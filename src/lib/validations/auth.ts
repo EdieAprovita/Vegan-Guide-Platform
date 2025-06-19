@@ -64,9 +64,31 @@ export const newPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+});
+
+export const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .min(2, "Username must be at least 2 characters")
+    .max(50, "Username must be less than 50 characters")
+    .optional(),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .optional(),
+  photo: z.string().url("Please enter a valid URL").optional(),
+});
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type NewPasswordFormData = z.infer<typeof newPasswordSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
 
 export type UserRole = "user" | "professional";

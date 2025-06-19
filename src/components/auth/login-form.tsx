@@ -14,17 +14,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import Link from "next/link";
 
 interface LoginFormProps {
   onSubmit?: (data: LoginFormData) => Promise<void> | void;
-  onForgotPassword?: () => void;
   onRegister?: () => void;
   isLoading?: boolean;
 }
 
 export function LoginForm({
   onSubmit,
-  onForgotPassword,
   onRegister,
   isLoading = false,
 }: LoginFormProps) {
@@ -109,12 +108,11 @@ export function LoginForm({
       </Form>
 
       <div className="text-center space-y-3 pt-4">
-        <button
-          type="button"
-          onClick={onForgotPassword}
+        <Link
+          href="/forgot-password"
           className="text-green-600 hover:text-green-700 font-['Playfair_Display'] text-sm underline decoration-2 underline-offset-2 transition-colors">
           Forgot your password?
-        </button>
+        </Link>
 
         <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
           Don't have an account?{" "}
