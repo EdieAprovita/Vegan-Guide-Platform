@@ -25,10 +25,9 @@ import Link from "next/link";
 
 interface RegisterFormProps {
   onSubmit?: (data: RegisterFormData) => Promise<void> | void;
-  onSignIn?: () => void;
 }
 
-export function RegisterForm({ onSubmit, onSignIn }: RegisterFormProps) {
+export function RegisterForm({ onSubmit }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<RegisterFormData>({
@@ -190,7 +189,7 @@ export function RegisterForm({ onSubmit, onSignIn }: RegisterFormProps) {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors">
+            className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors inline-flex items-center gap-1">
             Sign in here
           </Link>
         </p>

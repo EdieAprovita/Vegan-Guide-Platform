@@ -52,15 +52,6 @@ export function RegisterClient() {
     }
   }
 
-  const handleSignIn = () => {
-    console.log("handleSignIn called in register-client - navigating to /login")
-    try {
-      router.push("/login")
-    } catch (error) {
-      console.error("Navigation error:", error)
-    }
-  }
-
   return (
     <div className="w-full max-w-sm mx-auto space-y-6">
       {error && (
@@ -68,7 +59,7 @@ export function RegisterClient() {
           {error}
         </div>
       )}
-      <RegisterForm onSubmit={handleSubmit} onSignIn={handleSignIn} />
+      <RegisterForm onSubmit={handleSubmit} />
     </div>
   )
 } 

@@ -11,8 +11,19 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="absolute left-4 top-4 md:left-8 md:top-8 z-30 flex items-center gap-2">
-        <Link href="/" className="text-green-600 font-['Clicker_Script'] text-[28px] sm:text-[35px] font-normal hover:text-green-700 transition-colors">
-          Verde Guide
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+            <Image
+              src="/logo.svg"
+              alt="Verde Guide Logo"
+              width={24}
+              height={24}
+              className="text-white"
+            />
+          </div>
+          <span className="text-green-600 font-['Clicker_Script'] text-[28px] sm:text-[35px] font-normal group-hover:text-green-700 transition-colors">
+            Vegan Guide
+          </span>
         </Link>
       </div>
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
