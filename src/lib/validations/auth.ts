@@ -13,11 +13,11 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    name: z
+    username: z
       .string()
-      .min(1, "Name is required")
-      .min(2, "Name must be at least 2 characters")
-      .max(50, "Name must be less than 50 characters"),
+      .min(1, "Username is required")
+      .min(2, "Username must be at least 2 characters")
+      .max(50, "Username must be less than 50 characters"),
     email: z
       .string()
       .min(1, "Email is required")
@@ -31,6 +31,9 @@ export const registerSchema = z
         "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
+    role: z.enum(["user", "professional"], {
+      required_error: "Please select a role",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -65,3 +68,5 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type NewPasswordFormData = z.infer<typeof newPasswordSchema>;
+
+export type UserRole = "user" | "professional";

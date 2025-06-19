@@ -98,7 +98,7 @@ export function ResetPasswordForm({
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
           <FormField
             control={form.control}
             name="email"
@@ -111,7 +111,7 @@ export function ResetPasswordForm({
                   <Input
                     type="email"
                     placeholder="Enter your email"
-                    className="font-['Playfair_Display']"
+                    className="font-['Playfair_Display'] bg-white"
                     {...field}
                   />
                 </FormControl>

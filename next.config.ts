@@ -1,7 +1,20 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: [
+      "res.cloudinary.com",
+      "images.unsplash.com",
+    ],
+  },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["localhost:3000"],
+      bodySizeLimit: "2mb"
+    },
+  },
+}
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+export default nextConfig

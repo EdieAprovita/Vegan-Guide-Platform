@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -12,34 +13,43 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
+import Link from "next/link";
 
 interface RegisterFormProps {
   onSubmit?: (data: RegisterFormData) => Promise<void> | void;
-  onLogin?: () => void;
-  isLoading?: boolean;
+  onSignIn?: () => void;
 }
 
-export function RegisterForm({
-  onSubmit,
-  onLogin,
-  isLoading = false,
-}: RegisterFormProps) {
+export function RegisterForm({ onSubmit, onSignIn }: RegisterFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
+      role: "user",
     },
   });
 
   const handleSubmit = async (data: RegisterFormData) => {
+    setIsLoading(true);
     try {
       await onSubmit?.(data);
     } catch (error) {
       console.error("Registration failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,16 +68,16 @@ export function RegisterForm({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
           <FormField
             control={form.control}
-            name="name"
+            name="username"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
-                  Full Name
+                  Username
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder="Enter your username"
                     className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
@@ -92,6 +102,32 @@ export function RegisterForm({
                     className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
+                </FormControl>
+                <FormMessage className="text-rose-500" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                  Account Type
+                </FormLabel>
+                <FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="font-['Playfair_Display'] bg-white">
+                        <SelectValue placeholder="Select your account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">Regular User</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage className="text-rose-500" />
               </FormItem>
@@ -152,12 +188,11 @@ export function RegisterForm({
       <div className="text-center pt-4">
         <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
           Already have an account?{" "}
-          <button
-            type="button"
-            onClick={onLogin}
+          <Link
+            href="/login"
             className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors">
             Sign in here
-          </button>
+          </Link>
         </p>
       </div>
     </div>
