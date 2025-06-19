@@ -1,20 +1,29 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "res.cloudinary.com",
-      "images.unsplash.com",
-    ],
+    domains: ["images.unsplash.com", "via.placeholder.com"],
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ["localhost:3000"],
-      bodySizeLimit: "2mb"
-    },
+    optimizePackageImports: ["lucide-react"],
   },
-}
+  // PWA configuration
+  async headers() {
+    return [
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/manifest+json",
+          },
+        ],
+      },
+    ];
+  },
+};
 
-export default nextConfig
+export default nextConfig;
