@@ -54,10 +54,10 @@ describe('useAuthWithRouter login', () => {
     const { result } = renderHook(() => useAuthWithRouter())
 
     await act(async () => {
-      await result.current.login({ email: 'x@x.com', password: 'bad' })
+      await expect(
+        result.current.login({ email: 'x@x.com', password: 'bad' })
+      ).rejects.toThrow('Invalid credentials')
     })
-
-    await expect(result.current.login({ email: 'x@x.com', password: 'bad' })).rejects.toThrow('Invalid credentials')
     expect(useAuthStore.getState().isLoggingIn).toBe(false)
     expect(useAuthStore.getState().authModalOpen).toBe(true)
   })
@@ -90,11 +90,17 @@ describe('useAuthWithRouter register', () => {
 
     const { result } = renderHook(() => useAuthWithRouter())
 
-    await expect(
-      act(async () => {
-        await result.current.register({ username: 'test', email: 't@e.com', password: 'Password1', confirmPassword: 'Password1', role: 'user' })
-      })
-    ).rejects.toThrow('fail')
+    await act(async () => {
+      await expect(
+        result.current.register({
+          username: 'test',
+          email: 't@e.com',
+          password: 'Password1',
+          confirmPassword: 'Password1',
+          role: 'user',
+        })
+      ).rejects.toThrow('fail')
+    })
 
     expect(useAuthStore.getState().isRegistering).toBe(false)
     expect(useAuthStore.getState().authModalOpen).toBe(true)
