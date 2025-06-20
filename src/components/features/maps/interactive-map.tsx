@@ -131,7 +131,7 @@ export function InteractiveMap({
     if (locations.length > 1) {
       map.fitBounds(bounds);
     }
-  }, [map, locations, infoWindow, showInfoWindow, onLocationClick]);
+  }, [map, locations, infoWindow, showInfoWindow, onLocationClick, markers]);
 
   const getMarkerIcon = (type: string) => {
     const baseUrl = "https://maps.google.com/mapfiles/ms/icons/";

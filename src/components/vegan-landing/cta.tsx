@@ -1,15 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function CallToAction() {
   return (
     <div className="w-full h-[400px] sm:h-[500px] lg:h-[574px] relative flex items-center">
       {/* Background Image */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/750952/pexels-photo-750952.jpeg"
         alt="Fresh vegetables background"
         className="w-full h-full object-cover absolute top-0 left-0 z-10"
+        fill
+        priority
       />
 
       {/* Overlay */}
@@ -59,16 +62,20 @@ export function CallToAction() {
       </div>
 
       {/* Side decorative images - hidden on mobile for better performance */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
         alt="Plant-based meal"
         className="absolute right-0 top-0 z-20 w-[657px] h-full object-cover opacity-60 hidden xl:block"
+        width={657}
+        height={574}
       />
 
-      <img
+      <Image
         src="https://images.pexels.com/photos/1105166/pexels-photo-1105166.jpeg"
         alt="Healthy bowl"
         className="absolute right-[173px] top-[54px] z-30 w-[300px] h-[467px] object-cover shadow-[0px_10px_12px_0px_rgba(0,0,0,0.34)] rounded-lg hidden xl:block"
+        width={300}
+        height={467}
       />
     </div>
   );

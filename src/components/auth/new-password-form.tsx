@@ -20,10 +20,9 @@ import {
 
 interface NewPasswordFormProps {
   onSubmit?: (data: NewPasswordFormData) => Promise<void> | void;
-  token?: string;
 }
 
-export function NewPasswordForm({ onSubmit, token }: NewPasswordFormProps) {
+export function NewPasswordForm({ onSubmit }: NewPasswordFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 

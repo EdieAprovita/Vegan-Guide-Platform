@@ -35,7 +35,7 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
       setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
       onLikeChange?.();
       toast.success(isLiked ? "Post unliked" : "Post liked");
-    } catch (error) {
+    } catch {
       toast.error("Failed to like post");
     }
   };

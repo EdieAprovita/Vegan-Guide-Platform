@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 interface LazyImageProps {
   src: string;
@@ -28,7 +29,7 @@ export function LazyImage({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const img = new Image();
+    const img = new window.Image();
     img.src = src;
     
     img.onload = () => {
@@ -53,7 +54,7 @@ export function LazyImage({
   }
 
   return (
-    <img
+    <Image
       src={imageSrc}
       alt={alt}
       className={cn(
@@ -61,9 +62,10 @@ export function LazyImage({
         hasError && "opacity-50",
         className
       )}
-      width={width}
-      height={height}
+      width={width || 200}
+      height={height || 200}
       loading="lazy"
+      unoptimized
     />
   );
 } 

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Restaurant, getRestaurants } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Filter, MapPin } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 interface RestaurantListProps {
@@ -51,11 +51,11 @@ export function RestaurantList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadRestaurants = async (reset = false) => {
+  const loadRestaurants = useCallback(async (reset = false) => {
     setLoading(true);
     try {
       const currentPage = reset ? 1 : page;
-      const params: any = {
+      const params: Record<string, string | number> = {
         page: currentPage,
         limit: 12,
       };
@@ -74,18 +74,18 @@ export function RestaurantList({
       }
 
       setHasMore((response.restaurants || response).length === 12);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load restaurants");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, cuisineFilter, ratingFilter]);
 
   useEffect(() => {
     if (initialRestaurants.length === 0) {
       loadRestaurants(true);
     }
-  }, []);
+  }, [initialRestaurants.length, loadRestaurants]);
 
   const handleSearch = () => {
     loadRestaurants(true);

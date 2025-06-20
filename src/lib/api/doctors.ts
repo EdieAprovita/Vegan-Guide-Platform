@@ -88,16 +88,19 @@ export async function getDoctors(params?: {
   return response.json();
 }
 
-export async function getDoctor(id: string) {
-  const response = await fetch(`${API_URL}/doctors/${id}`, {
-    credentials: "include",
-  });
-
+export async function getDoctor(id: string): Promise<Doctor> {
+  const response = await fetch(`${API_URL}/${id}`);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch doctor");
+    throw new Error("Failed to fetch doctor");
   }
+  return response.json();
+}
 
+export async function searchDoctors(query: string): Promise<Doctor[]> {
+  const response = await fetch(`${API_URL}/search?q=${query}`);
+  if (!response.ok) {
+    throw new Error("Failed to search doctors");
+  }
   return response.json();
 }
 

@@ -1,6 +1,6 @@
 import { PostList } from "@/components/features/posts/post-list";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function CommunityPage() {

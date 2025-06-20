@@ -28,7 +28,7 @@ export function ForgotPasswordForm() {
   const handleForgotPassword = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
     try {
-      await forgotPassword(data.email);
+      await forgotPassword({ email: data.email });
       setEmailSent(true);
       toast.success("Reset email sent successfully!");
     } catch (error) {
@@ -47,12 +47,12 @@ export function ForgotPasswordForm() {
           </div>
           <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
           <CardDescription>
-            We've sent a password reset link to your email address.
+            We&apos;ve sent a password reset link to your email address.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
-            Didn't receive the email? Check your spam folder or try again.
+            Didn&apos;t receive the email? Check your spam folder or try again.
           </p>
           <Button
             onClick={() => setEmailSent(false)}
@@ -77,7 +77,8 @@ export function ForgotPasswordForm() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Forgot your password?</CardTitle>
         <CardDescription>
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we&apos;ll send you a link to reset your
+          password.
         </CardDescription>
       </CardHeader>
       <CardContent>

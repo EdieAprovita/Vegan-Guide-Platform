@@ -148,7 +148,7 @@ export function VirtualInfiniteList<T>({
   );
 
   // Add loading item to the end of items if hasMore
-  const itemsWithLoading = hasMore ? [...items, null as any] : items;
+  const itemsWithLoading = hasMore ? [...items, null as T | null] : items;
 
   const renderItemWithLoading = (item: T | null, index: number) => {
     if (item === null && hasMore) {

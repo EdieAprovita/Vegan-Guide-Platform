@@ -1,22 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Send, 
   MessageCircle, 
-  Users, 
-  MoreVertical,
-  Smile,
-  Paperclip,
-  Mic,
-  Video,
-  Phone
+  Paperclip
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
@@ -54,17 +48,41 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const loadMockData = useCallback(() => {
+    if (activeRoom) {
+      const mockMessages: Message[] = [
+        {
+          id: "1",
+          content: "Hello everyone! 👋",
+          sender: { id: "user2", username: "Sarah" },
+          timestamp: new Date(Date.now() - 1000 * 60 * 10),
+          type: "text",
+          isRead: true,
+        },
+        {
+          id: "2",
+          content: "Hi Sarah! How's your vegan journey going?",
+          sender: { id: user?._id || "user1", username: user?.username || "You" },
+          timestamp: new Date(Date.now() - 1000 * 60 * 8),
+          type: "text",
+          isRead: true,
+        },
+      ];
+
+      setMessages(mockMessages);
+    }
+  }, [activeRoom, user?._id, user?.username]);
 
   useEffect(() => {
     if (isOpen) {
       loadChatRooms();
       loadMockData();
     }
-  }, [isOpen]);
+  }, [isOpen, loadMockData]);
 
   useEffect(() => {
     scrollToBottom();
@@ -108,31 +126,6 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
     setOnlineUsers(["user1", "user2", "user4"]);
   };
 
-  const loadMockData = () => {
-    if (activeRoom) {
-      const mockMessages: Message[] = [
-        {
-          id: "1",
-          content: "Hello everyone! 👋",
-          sender: { id: "user2", username: "Sarah" },
-          timestamp: new Date(Date.now() - 1000 * 60 * 10),
-          type: "text",
-          isRead: true,
-        },
-        {
-          id: "2",
-          content: "Hi Sarah! How's your vegan journey going?",
-          sender: { id: user?.id || "user1", username: user?.username || "You" },
-          timestamp: new Date(Date.now() - 1000 * 60 * 8),
-          type: "text",
-          isRead: true,
-        },
-      ];
-
-      setMessages(mockMessages);
-    }
-  };
-
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeRoom || !user) return;
 
@@ -140,9 +133,9 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
       id: Date.now().toString(),
       content: newMessage,
       sender: {
-        id: user.id,
+        id: user._id,
         username: user.username,
-        avatar: user.avatar,
+        avatar: user.photo,
       },
       timestamp: new Date(),
       type: "text",
@@ -275,10 +268,10 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                       <div
                         key={message.id}
                         className={`flex gap-3 ${
-                          message.sender.id === user?.id ? "justify-end" : "justify-start"
+                          message.sender.id === user?._id ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {message.sender.id !== user?.id && (
+                        {message.sender.id !== user?._id && (
                           <Avatar className="h-8 w-8 flex-shrink-0">
                             <AvatarFallback>
                               {message.sender.username.charAt(0).toUpperCase()}
@@ -287,12 +280,12 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                         )}
                         <div
                           className={`max-w-xs lg:max-w-md ${
-                            message.sender.id === user?.id
+                            message.sender.id === user?._id
                               ? "bg-green-600 text-white"
                               : "bg-gray-100"
                           } rounded-lg p-3`}
                         >
-                          {message.sender.id !== user?.id && (
+                          {message.sender.id !== user?._id && (
                             <p className="text-xs font-medium mb-1 text-gray-600">
                               {message.sender.username}
                             </p>

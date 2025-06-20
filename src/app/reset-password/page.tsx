@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { ResetPasswordClient } from "@/components/auth/reset-password-client"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Image from "next/image"
 
 export const metadata: Metadata = {
   title: "Reset Password",
@@ -16,32 +17,31 @@ export default async function ResetPasswordPage() {
   }
 
   return (
-    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <div
-          className="absolute inset-0 bg-cover"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=2940&auto=format&fit=crop)",
-          }}
-        />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <img src="/logo.svg" alt="Logo" className="h-8 w-8 mr-2" />
-          Vegan Guide
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              "Join our community and discover the best vegan places, recipes, and
-              professionals."
-            </p>
-            <footer className="text-sm">Vegan Guide Team</footer>
-          </blockquote>
+    <div className="flex min-h-screen">
+      <div className="w-1/2 bg-gray-100 flex items-center justify-center p-12">
+        <div className="max-w-md w-full">
+          <ResetPasswordClient />
         </div>
       </div>
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <ResetPasswordClient />
+      <div className="w-1/2 bg-green-600 flex items-center justify-center p-12 text-white relative">
+        <Image
+          src="/logo.svg"
+          alt="Vegan Guide Logo"
+          width={150}
+          height={150}
+          className="absolute top-10 left-10"
+        />
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Welcome Back</h1>
+          <p className="text-lg">
+            Reset your password to continue your journey with Vegan Guide.
+          </p>
+        </div>
+        <div className="absolute bottom-10 text-center">
+          <p>&copy; 2024 Vegan Guide. All rights reserved.</p>
+          <p>
+            Connecting you to a world of vegan options.
+          </p>
         </div>
       </div>
     </div>

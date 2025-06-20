@@ -1,8 +1,14 @@
-import { LoginFormData, RegisterFormData } from "../validations/auth";
+import {
+  LoginFormData,
+  NewPasswordFormData,
+  RegisterFormData,
+  ResetPasswordFormData,
+} from "@/lib/validations/auth";
+import { User } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-export async function login(data: LoginFormData) {
+export async function login(data: LoginFormData): Promise<User> {
   const response = await fetch(`${API_URL}/users/login`, {
     method: "POST",
     headers: {
@@ -20,7 +26,7 @@ export async function login(data: LoginFormData) {
   return response.json();
 }
 
-export async function register(data: RegisterFormData) {
+export async function register(data: RegisterFormData): Promise<User> {
   const response = await fetch(`${API_URL}/users/register`, {
     method: "POST",
     headers: {
@@ -39,69 +45,69 @@ export async function register(data: RegisterFormData) {
 }
 
 export async function logout() {
-  const response = await fetch(`${API_URL}/users/logout`, {
+  await fetch(`${API_URL}/users/logout`, {
     method: "POST",
     credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to logout");
-  }
-
-  return response.json();
 }
 
-export async function getProfile() {
+export async function getProfile(token: string): Promise<User> {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
   const response = await fetch(`${API_URL}/users/profile`, {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
+    },
     credentials: "include",
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to get profile");
+    throw new Error("Not authenticated");
   }
 
   return response.json();
 }
 
-// Nuevas funciones para completar autenticación
-export async function forgotPassword(email: string) {
+export async function forgotPassword(data: ResetPasswordFormData): Promise<void> {
   const response = await fetch(`${API_URL}/users/forgot-password`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
-
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || "Failed to send reset email");
+    throw new Error(error.message || "Failed to send reset password email");
   }
-
-  return response.json();
 }
 
-export async function resetPassword(token: string, newPassword: string) {
+export async function resetPassword(
+  data: NewPasswordFormData,
+  token: string
+): Promise<void> {
   const response = await fetch(`${API_URL}/users/reset-password`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ token, newPassword }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...data, token }),
   });
-
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to reset password");
   }
-
-  return response.json();
 }
 
-export async function getUserProfile(userId: string) {
+export async function getUserProfile(userId: string, token: string) {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
   const response = await fetch(`${API_URL}/users/${userId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
+    },
     credentials: "include",
   });
 
@@ -113,24 +119,26 @@ export async function getUserProfile(userId: string) {
   return response.json();
 }
 
-export async function updateUserProfile(userId: string, data: {
-  username?: string;
-  email?: string;
-  photo?: string;
-}) {
-  const response = await fetch(`${API_URL}/users/profile/${userId}`, {
+export async function updateUserProfile(
+  data: Partial<RegisterFormData>,
+  token: string
+): Promise<User> {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/users/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
     },
     body: JSON.stringify(data),
     credentials: "include",
   });
-
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to update profile");
   }
-
   return response.json();
 }

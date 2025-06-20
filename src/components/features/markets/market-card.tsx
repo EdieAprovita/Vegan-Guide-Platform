@@ -4,7 +4,7 @@ import { Market } from "@/lib/api/markets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, Mail, Globe, Clock, Store } from "lucide-react";
+import { Star, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface MarketCardProps {

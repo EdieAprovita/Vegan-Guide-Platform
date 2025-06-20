@@ -367,7 +367,7 @@ export function RecipeForm({
         <FormField
           control={form.control}
           name="image"
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Recipe Image</FormLabel>
               <FormControl>
@@ -376,9 +376,8 @@ export function RecipeForm({
                   accept="image/*"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) onChange(file);
+                    if (file) field.onChange(file);
                   }}
-                  {...field}
                 />
               </FormControl>
               <FormMessage />

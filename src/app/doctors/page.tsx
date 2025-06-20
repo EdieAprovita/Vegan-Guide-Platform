@@ -1,9 +1,12 @@
 import { DoctorList } from "@/components/features/doctors/doctor-list";
 import { Button } from "@/components/ui/button";
-import { Plus, User } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
+import { getDoctors } from "@/lib/api/doctors";
 
-export default function DoctorsPage() {
+export default async function DoctorsPage() {
+  const initialDoctors = await getDoctors();
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -26,7 +29,7 @@ export default function DoctorsPage() {
         </div>
 
         {/* Doctor List */}
-        <DoctorList />
+        <DoctorList initialDoctors={initialDoctors} />
       </div>
     </div>
   );

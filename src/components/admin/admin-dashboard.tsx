@@ -11,7 +11,6 @@ import {
   User, 
   Store, 
   MessageSquare, 
-  Star, 
   TrendingUp, 
   AlertTriangle,
   Settings,
@@ -46,11 +45,10 @@ export function AdminDashboard() {
     totalReviews: 0,
     recentActivity: [],
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is admin
-    if (!user?.isAdmin) {
+    if (user?.role !== "admin") {
       toast.error("Access denied. Admin privileges required.");
       return;
     }
@@ -59,7 +57,6 @@ export function AdminDashboard() {
   }, [user]);
 
   const loadDashboardStats = async () => {
-    setLoading(true);
     try {
       // In a real app, you would fetch this from your API
       // For now, we'll use mock data
@@ -99,10 +96,8 @@ export function AdminDashboard() {
       };
 
       setStats(mockStats);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load dashboard stats");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -134,7 +129,7 @@ export function AdminDashboard() {
     }
   };
 
-  if (!user?.isAdmin) {
+  if (user?.role !== "admin") {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -155,7 +150,7 @@ export function AdminDashboard() {
             Admin Dashboard
           </h1>
           <p className="text-gray-600">
-            Welcome back, {user.username}. Here's what's happening with your platform.
+            Welcome back, {user.username}. Here&apos;s what&apos;s happening with your platform.
           </p>
         </div>
 

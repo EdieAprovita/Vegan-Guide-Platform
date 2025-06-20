@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;

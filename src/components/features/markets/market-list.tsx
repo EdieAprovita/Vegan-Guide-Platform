@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Market, getMarkets } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
@@ -50,11 +50,11 @@ export function MarketList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadMarkets = async (reset = false) => {
+  const loadMarkets = useCallback(async (reset = false) => {
     setLoading(true);
     try {
       const currentPage = reset ? 1 : page;
-      const params: any = {
+      const params: Record<string, string | number> = {
         page: currentPage,
         limit: 12,
       };
@@ -73,18 +73,18 @@ export function MarketList({
       }
 
       setHasMore((response.markets || response).length === 12);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load markets");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, productFilter, ratingFilter]);
 
   useEffect(() => {
     if (initialMarkets.length === 0) {
       loadMarkets(true);
     }
-  }, []);
+  }, [initialMarkets.length, loadMarkets]);
 
   const handleSearch = () => {
     loadMarkets(true);

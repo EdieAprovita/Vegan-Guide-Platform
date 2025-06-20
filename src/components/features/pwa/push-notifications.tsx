@@ -67,7 +67,7 @@ export function PushNotifications() {
       } else {
         toast.error("Permission denied for push notifications");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to enable push notifications");
     } finally {
       setLoading(false);
@@ -87,8 +87,8 @@ export function PushNotifications() {
       
       // Send subscription to backend
       await sendSubscriptionToServer(subscription);
-    } catch (error) {
-      console.error("Failed to subscribe to push notifications:", error);
+    } catch {
+      console.error("Failed to subscribe to push notifications");
       toast.error("Failed to subscribe to push notifications");
     }
   };
@@ -101,7 +101,7 @@ export function PushNotifications() {
         setSettings(prev => ({ ...prev, enabled: false }));
         toast.success("Push notifications disabled");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to disable push notifications");
     }
   };
@@ -122,8 +122,8 @@ export function PushNotifications() {
       if (!response.ok) {
         throw new Error("Failed to save subscription");
       }
-    } catch (error) {
-      console.error("Failed to send subscription to server:", error);
+    } catch {
+      console.error("Failed to send subscription to server");
     }
   };
 
@@ -141,7 +141,7 @@ export function PushNotifications() {
           body: JSON.stringify(newSettings),
         });
         toast.success("Notification settings updated");
-      } catch (error) {
+      } catch {
         toast.error("Failed to update settings");
       }
     }
@@ -169,7 +169,7 @@ export function PushNotifications() {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600">
-            Your browser doesn't support push notifications. Please use a modern browser.
+            Your browser doesn&apos;t support push notifications. Please use a modern browser.
           </p>
         </CardContent>
       </Card>

@@ -13,7 +13,7 @@ interface CacheOptions {
 
 export function useCache<T>(
   fetchFunction: () => Promise<T>,
-  dependencies: any[] = [],
+  dependencies: unknown[] = [],
   options: CacheOptions = {}
 ) {
   const { ttl = 5 * 60 * 1000, key } = options;
@@ -89,7 +89,7 @@ export function useCache<T>(
       // Fetch fresh data if no cache
       refetch();
     }
-  }, dependencies);
+  }, [getCachedData, refetch]);
 
   return {
     data,

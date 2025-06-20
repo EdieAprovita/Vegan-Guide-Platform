@@ -7,10 +7,12 @@ import { type ResetPasswordFormData } from "@/lib/validations/auth"
 
 export function ResetPasswordClient() {
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (data: ResetPasswordFormData) => {
     setError(null)
+    setIsLoading(true)
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/forgot-password`, {
@@ -31,8 +33,10 @@ export function ResetPasswordClient() {
       }
 
       // The form will show success state
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -47,7 +51,7 @@ export function ResetPasswordClient() {
           {error}
         </div>
       )}
-      <ResetPasswordForm onSubmit={handleSubmit} onBackToLogin={handleBackToLogin} />
+      <ResetPasswordForm onSubmit={handleSubmit} onBackToLogin={handleBackToLogin} isLoading={isLoading} />
     </div>
   )
 } 

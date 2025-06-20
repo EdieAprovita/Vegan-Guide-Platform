@@ -9,23 +9,18 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updateProfileSchema, UpdateProfileFormData } from "@/lib/validations/auth";
-import { updateUserProfile, getUserProfile } from "@/lib/api/auth";
+import { getUserProfile } from "@/lib/api/auth";
 import { toast } from "sonner";
-import { User, Camera } from "lucide-react";
-
-interface UserProfile {
-  _id: string;
-  username: string;
-  email: string;
-  photo: string;
-  role: string;
-  isAdmin: boolean;
-}
+import { User as UserIcon, Camera } from "lucide-react";
+import { User } from "@/types";
+import { useAuthWithRouter } from "@/hooks/useAuth";
+import { LogoutButton } from "./logout-button";
 
 export function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const { user: sessionUser, isAuthenticated, status, updateProfile } = useAuthWithRouter();
 
   const {
     register,
@@ -36,17 +31,42 @@ export function ProfileForm() {
     resolver: zodResolver(updateProfileSchema),
   });
 
+  // Debug logs
+  useEffect(() => {
+    console.log("ProfileForm Debug:", {
+      status,
+      isAuthenticated,
+      hasSession: !!sessionUser,
+      hasToken: !!sessionUser?.token,
+      token: sessionUser?.token ? "Token exists" : "No token",
+      user: sessionUser
+    });
+  }, [sessionUser, status, isAuthenticated]);
+
   useEffect(() => {
     const loadProfile = async () => {
+      console.log("loadProfile called:", {
+        isAuthenticated,
+        hasToken: !!sessionUser?.token,
+        token: sessionUser?.token
+      });
+
+      if (!isAuthenticated || !sessionUser?.token) {
+        console.log("Not authenticated or no token, skipping profile load");
+        setIsLoadingProfile(false);
+        return;
+      }
+
       try {
-        // Asumiendo que tenemos el userId del contexto de autenticación
-        // Por ahora usaremos un ID hardcodeado para testing
-        const profile = await getUserProfile("current"); // Esto debería venir del contexto de auth
+        console.log("Calling getUserProfile with token:", sessionUser.token.substring(0, 20) + "...");
+        const profile = await getUserProfile("current", sessionUser.token);
+        console.log("Profile loaded successfully:", profile);
         setUser(profile);
         setValue("username", profile.username);
         setValue("email", profile.email);
         setValue("photo", profile.photo);
       } catch (error) {
+        console.error("Failed to load profile:", error);
         toast.error("Failed to load profile");
       } finally {
         setIsLoadingProfile(false);
@@ -54,22 +74,33 @@ export function ProfileForm() {
     };
 
     loadProfile();
-  }, [setValue]);
+  }, [setValue, isAuthenticated, sessionUser?.token]);
 
   const handleUpdateProfile = async (data: UpdateProfileFormData) => {
-    if (!user) return;
+    if (!user || !isAuthenticated || !sessionUser?.token) return;
     
     setIsLoading(true);
     try {
-      await updateUserProfile(user._id, data);
+      await updateProfile(data);
       setUser(prev => prev ? { ...prev, ...data } : null);
       toast.success("Profile updated successfully!");
     } catch (error) {
+      console.error("Failed to update profile:", error);
       toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <p className="text-gray-500">Please log in to view your profile.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoadingProfile) {
     return (
@@ -84,19 +115,32 @@ export function ProfileForm() {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Profile Settings</CardTitle>
-        <CardDescription>
-          Update your profile information and preferences.
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl font-bold">Profile Settings</CardTitle>
+            <CardDescription>
+              Update your profile information and preferences.
+            </CardDescription>
+          </div>
+          <LogoutButton variant="outline" size="sm" />
+        </div>
       </CardHeader>
       <CardContent>
+        {/* Debug info */}
+        <div className="mb-4 p-3 bg-gray-100 rounded text-sm">
+          <p><strong>Status:</strong> {status}</p>
+          <p><strong>Authenticated:</strong> {isAuthenticated ? "Yes" : "No"}</p>
+          <p><strong>Has Token:</strong> {sessionUser?.token ? "Yes" : "No"}</p>
+          <p><strong>User ID:</strong> {sessionUser?.id || "None"}</p>
+        </div>
+
         <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-6">
           {/* Profile Picture */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
               <AvatarImage src={user?.photo} alt={user?.username} />
               <AvatarFallback>
-                <User className="h-8 w-8" />
+                <UserIcon className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
             <div>
@@ -159,8 +203,7 @@ export function ProfileForm() {
             <h3 className="font-medium mb-2">Account Information</h3>
             <div className="space-y-1 text-sm text-gray-600">
               <p><strong>Role:</strong> {user?.role}</p>
-              <p><strong>Admin:</strong> {user?.isAdmin ? "Yes" : "No"}</p>
-              <p><strong>Member since:</strong> {user ? new Date().toLocaleDateString() : "N/A"}</p>
+              <p><strong>Member since:</strong> {user ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
             </div>
           </div>
 

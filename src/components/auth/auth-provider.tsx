@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "next-auth/react";
 import { useAuthStore } from "@/lib/store/auth";
 
 interface AuthProviderProps {
@@ -9,16 +9,26 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { checkAuth } = useAuth();
-  const { isAuthenticated, user } = useAuthStore();
+  const { data: session, status } = useSession();
+  const { setUser } = useAuthStore();
 
   useEffect(() => {
-    // Only check authentication if we have a stored user but no authentication state
-    // This prevents unnecessary API calls on initial load
-    if (!isAuthenticated && user) {
-      checkAuth();
+    // Sync NextAuth session with Zustand store
+    if (session?.user) {
+      setUser({
+        _id: session.user.id,
+        username: session.user.name || "",
+        email: session.user.email || "",
+        role: session.user.role as "user" | "professional" | "admin",
+        photo: session.user.image,
+        bio: "",
+        createdAt: new Date().toISOString(), // Default value since NextAuth doesn't provide this
+        isAdmin: session.user.role === "admin", // Now this should work correctly
+      });
+    } else if (status === "unauthenticated") {
+      setUser(null);
     }
-  }, [checkAuth, isAuthenticated, user]);
+  }, [session, status, setUser]);
 
   return <>{children}</>;
 }

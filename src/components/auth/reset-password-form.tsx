@@ -19,15 +19,16 @@ import {
 } from "@/lib/validations/auth";
 
 interface ResetPasswordFormProps {
-  onSubmit?: (data: ResetPasswordFormData) => Promise<void> | void;
-  onBackToLogin?: () => void;
+  onSubmit: (data: ResetPasswordFormData) => Promise<void>;
+  onBackToLogin: () => void;
+  isLoading: boolean;
 }
 
 export function ResetPasswordForm({
   onSubmit,
   onBackToLogin,
+  isLoading,
 }: ResetPasswordFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<ResetPasswordFormData>({
@@ -38,14 +39,11 @@ export function ResetPasswordForm({
   });
 
   const handleSubmit = async (data: ResetPasswordFormData) => {
-    setIsLoading(true);
     try {
-      await onSubmit?.(data);
+      await onSubmit(data);
       setIsSuccess(true);
     } catch (error) {
       console.error("Reset password failed:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -71,7 +69,7 @@ export function ResetPasswordForm({
             Check Your Email
           </h1>
           <p className="text-gray-600 font-['Playfair_Display']">
-            We've sent a password reset link to your email address.
+            We&apos;ve sent a password reset link to your email address.
           </p>
         </div>
 
@@ -92,7 +90,7 @@ export function ResetPasswordForm({
           Reset Password
         </h1>
         <p className="text-gray-600 font-['Playfair_Display']">
-          Enter your email address and we'll send you a link to reset your
+          Enter your email address and we&apos;ll send you a link to reset your
           password.
         </p>
       </div>
