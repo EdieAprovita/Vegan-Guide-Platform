@@ -189,6 +189,15 @@ npm run test:watch
 npm run test:coverage
 ```
 
+## 🐳 Docker
+
+Para construir la imagen de producción:
+
+```bash
+docker build -t vegan-guide .
+docker run -p 3000:3000 vegan-guide
+```
+
 ## 📱 PWA Features
 
 - **Instalable**: Los usuarios pueden instalar la app en su dispositivo
