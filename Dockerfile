@@ -10,7 +10,10 @@ RUN npm ci --omit=dev
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY src/ ./src/
+COPY public/ ./public/
+COPY next.config.js ./
+COPY package.json ./
 RUN npm run build
 
 # Production image
