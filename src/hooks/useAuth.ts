@@ -1,123 +1,137 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { authApi } from "@/lib/api/auth";
-import { useAuthStore } from "@/lib/store/auth";
-import type {
-  LoginFormData,
-  RegisterFormData,
-  ResetPasswordFormData,
-  NewPasswordFormData,
-} from "@/lib/validations/auth";
+"use client";
 
-export function useAuth() {
+import { useSession, signIn, signOut } from "next-auth/react";
+import { LoginFormData, RegisterFormData, ResetPasswordFormData, NewPasswordFormData } from "@/lib/validations/auth";
+import * as authApi from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/store/auth";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+export function useAuthWithRouter() {
+  const { data: session, status } = useSession();
   const {
     setUser,
-    setLoading,
-    setError,
-    logout: logoutStore,
-    clearError,
+    isLoggingIn,
+    setIsLoggingIn,
+    isRegistering,
+    setIsRegistering,
+    isSendingResetEmail,
+    setIsSendingResetEmail,
+    isUpdatingProfile,
+    setIsUpdatingProfile,
+    authModalOpen,
+    setAuthModalOpen,
+    authModalView,
+    setAuthModalView,
   } = useAuthStore();
+  const router = useRouter();
 
-  const loginMutation = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (user) => {
-      setUser(user);
-      toast.success("Welcome back!");
-    },
-    onError: (error: Error) => {
-      setError(error.message);
-      toast.error(error.message);
-    },
-  });
+  const login = async (credentials: LoginFormData) => {
+    setIsLoggingIn(true);
+    try {
+      const result = await signIn("credentials", {
+        email: credentials.email,
+        password: credentials.password,
+        redirect: false,
+      });
 
-  const registerMutation = useMutation({
-    mutationFn: authApi.register,
-    onSuccess: (user) => {
-      setUser(user);
-      toast.success("Account created successfully!");
-    },
-    onError: (error: Error) => {
-      setError(error.message);
-      toast.error(error.message);
-    },
-  });
+      if (result?.error) {
+        throw new Error(result.error);
+      }
 
-  const forgotPasswordMutation = useMutation({
-    mutationFn: ({ email }: { email: string }) => authApi.forgotPassword(email),
-    onSuccess: () => {
-      toast.success("Password reset email sent!");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+      toast.success("Login successful!");
+      setAuthModalOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+      throw error;
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
-  const resetPasswordMutation = useMutation({
-    mutationFn: ({
-      token,
-      newPassword,
-    }: {
-      token: string;
-      newPassword: string;
-    }) => authApi.resetPassword(token, newPassword),
-    onSuccess: () => {
-      toast.success("Password reset successfully!");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+  const register = async (data: RegisterFormData) => {
+    setIsRegistering(true);
+    try {
+      const userData = await authApi.register(data);
+      setUser(userData);
+      toast.success("Registration successful!");
+      setAuthModalOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+      throw error;
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
-  const logoutMutation = useMutation({
-    mutationFn: authApi.logout,
-    onSuccess: () => {
-      logoutStore();
-      toast.success("Logged out successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+  const forgotPassword = async (data: ResetPasswordFormData) => {
+    setIsSendingResetEmail(true);
+    try {
+      await authApi.forgotPassword(data);
+      toast.success("Password reset link sent to your email.");
+    } catch (error) {
+      toast.error((error as Error).message);
+      throw error;
+    } finally {
+      setIsSendingResetEmail(false);
+    }
+  };
 
-  // Query for current user - only runs when explicitly called
-  const currentUserQuery = useQuery({
-    queryKey: ["currentUser"],
-    queryFn: authApi.getCurrentUser,
-    enabled: false, // Disabled by default
-    retry: false,
-  });
+  const resetPassword = async (data: NewPasswordFormData, token: string) => {
+    try {
+      await authApi.resetPassword(data, token);
+      toast.success("Password has been reset successfully.");
+      router.push("/login");
+    } catch (error) {
+      toast.error((error as Error).message);
+      throw error;
+    }
+  };
 
-  // Handle user query results when data changes
-  if (currentUserQuery.data) {
-    setUser(currentUserQuery.data);
-  }
+  const updateProfile = async (data: Partial<RegisterFormData>) => {
+    if (!session?.user?.token) {
+      throw new Error("Not authenticated");
+    }
 
-  if (currentUserQuery.error) {
-    logoutStore();
-  }
+    setIsUpdatingProfile(true);
+    try {
+      const updatedUser = await authApi.updateUserProfile(data, session.user.token);
+      setUser(updatedUser);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error((error as Error).message);
+      throw error;
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const logout = () => {
+    signOut({ redirect: false });
+    setUser(null);
+    toast.success("Logged out successfully!");
+  };
 
   return {
-    // Mutations
-    login: loginMutation.mutate,
-    register: registerMutation.mutate,
-    forgotPassword: forgotPasswordMutation.mutate,
-    resetPassword: resetPasswordMutation.mutate,
-    logout: logoutMutation.mutate,
-
-    // Loading states
-    isLoggingIn: loginMutation.isPending,
-    isRegistering: registerMutation.isPending,
-    isSendingResetEmail: forgotPasswordMutation.isPending,
-    isResettingPassword: resetPasswordMutation.isPending,
-    isLoggingOut: logoutMutation.isPending,
-    isLoadingUser: currentUserQuery.isLoading,
-
-    // Error states
-    loginError: loginMutation.error,
-    registerError: registerMutation.error,
-
-    // Actions
-    clearError,
-    checkAuth: () => currentUserQuery.refetch(),
+    user: session?.user,
+    isAuthenticated: !!session?.user,
+    status,
+    login,
+    register,
+    logout,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    isLoggingIn,
+    isRegistering,
+    isSendingResetEmail,
+    isUpdatingProfile,
+    authModalOpen,
+    setAuthModalOpen,
+    authModalView,
+    setAuthModalView,
   };
 }
+
+// Export useAuth as an alias for useAuthWithRouter for backward compatibility
+export const useAuth = useAuthWithRouter;

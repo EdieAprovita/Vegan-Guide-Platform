@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -16,17 +15,17 @@ import {
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
 
 interface LoginFormProps {
-  onSubmit?: (data: LoginFormData) => Promise<void> | void;
-  onForgotPassword?: () => void;
-  onRegister?: () => void;
-  isLoading?: boolean;
+  onSubmit: (data: LoginFormData) => Promise<void>;
+  onForgotPassword: () => void;
+  onRegister: () => void;
+  isLoading: boolean;
 }
 
 export function LoginForm({
   onSubmit,
   onForgotPassword,
   onRegister,
-  isLoading = false,
+  isLoading,
 }: LoginFormProps) {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,7 +37,7 @@ export function LoginForm({
 
   const handleSubmit = async (data: LoginFormData) => {
     try {
-      await onSubmit?.(data);
+      await onSubmit(data);
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -117,7 +116,7 @@ export function LoginForm({
         </button>
 
         <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <button
             type="button"
             onClick={onRegister}
