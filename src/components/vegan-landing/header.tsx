@@ -8,10 +8,22 @@ import {
   RegisterModal,
 } from "@/components/auth/auth-modal";
 import { useAuthStore } from "@/lib/store/auth";
+import { GlobalSearch } from "@/components/features/search/global-search";
+import Link from "next/link";
+import { NotificationBell } from "@/components/features/notifications/notification-bell";
+import { ChatButton } from "@/components/features/chat/chat-button";
+import * as authApi from "@/lib/api/auth";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  const isAuthenticated = !!user;
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await authApi.logout();
+    setUser(null);
+  };
 
   return (
     <>
@@ -22,12 +34,43 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex gap-[60px]">
-          <div className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+          <Link href="/" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
             Home
-          </div>
-          <div className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+          </Link>
+          <Link href="/recipes" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
             Recipes
-          </div>
+          </Link>
+          <Link href="/restaurants" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Restaurants
+          </Link>
+          <Link href="/doctors" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Doctors
+          </Link>
+          <Link href="/markets" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Markets
+          </Link>
+          <Link href="/community" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Community
+          </Link>
+          <Link href="/map" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Map
+          </Link>
+          <Link href="/recommendations" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Recommendations
+          </Link>
+          <Link href="/achievements" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+            Achievements
+          </Link>
+          {user?.isAdmin && (
+            <Link href="/admin" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+              Admin
+            </Link>
+          )}
+          {user?.isAdmin && (
+            <Link href="/analytics" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
+              Analytics
+            </Link>
+          )}
           <div className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
             About Us
           </div>
@@ -35,6 +78,14 @@ export function Header() {
             Contact Us
           </div>
         </div>
+
+        {/* Search Bar */}
+        <div className="hidden md:block flex-1 max-w-md mx-8">
+          <GlobalSearch />
+        </div>
+
+        {/* Notifications */}
+        <NotificationBell />
 
         {/* Desktop Auth */}
         <div className="hidden sm:flex items-center gap-4 lg:gap-[45px]">
@@ -44,7 +95,7 @@ export function Header() {
                 Welcome, {user?.username}!
               </span>
               <Button
-                onClick={logout}
+                onClick={handleLogout}
                 variant="outline"
                 className="text-white border-white hover:bg-white hover:text-green-800 font-['Playfair_Display'] text-xs sm:text-sm font-normal w-[80px] sm:w-[100px] h-10 sm:h-12 rounded-3xl">
                 Logout
@@ -99,12 +150,48 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-sm z-20 border-t border-green-500/20">
           <div className="flex flex-col p-4 space-y-4">
-            <div className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+            {/* Mobile Search */}
+            <div className="md:hidden">
+              <GlobalSearch />
+            </div>
+            
+            <Link href="/" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
               Home
-            </div>
-            <div className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+            </Link>
+            <Link href="/recipes" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
               Recipes
-            </div>
+            </Link>
+            <Link href="/restaurants" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Restaurants
+            </Link>
+            <Link href="/doctors" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Doctors
+            </Link>
+            <Link href="/markets" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Markets
+            </Link>
+            <Link href="/community" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Community
+            </Link>
+            <Link href="/map" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Map
+            </Link>
+            <Link href="/recommendations" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Recommendations
+            </Link>
+            <Link href="/achievements" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+              Achievements
+            </Link>
+            {user?.isAdmin && (
+              <Link href="/admin" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+                Admin
+              </Link>
+            )}
+            {user?.isAdmin && (
+              <Link href="/analytics" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
+                Analytics
+              </Link>
+            )}
             <div className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
               About Us
             </div>
@@ -118,7 +205,7 @@ export function Header() {
                     Welcome, {user?.username}!
                   </span>
                   <Button
-                    onClick={logout}
+                    onClick={handleLogout}
                     variant="outline"
                     className="text-white border-white hover:bg-white hover:text-green-800 font-['Playfair_Display'] text-sm font-normal w-full h-12 rounded-3xl">
                     Logout
@@ -146,6 +233,15 @@ export function Header() {
           </div>
         </div>
       )}
+
+      {/* Auth Modal */}
+      <AuthModal 
+        open={isAuthModalOpen} 
+        onOpenChange={setIsAuthModalOpen} 
+      />
+
+      {/* Chat Button - Only show for authenticated users */}
+      {isAuthenticated && <ChatButton />}
     </>
   );
 }

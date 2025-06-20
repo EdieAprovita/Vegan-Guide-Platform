@@ -1,60 +1,39 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { AuthResponse } from "@/lib/api/auth";
+import { User } from "@/types";
 
-interface AuthState {
-  user: AuthResponse | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
+type AuthState = {
+  user: User | null;
+  isLoggingIn: boolean;
+  isRegistering: boolean;
+  isSendingResetEmail: boolean;
+  isUpdatingProfile: boolean;
+  authModalOpen: boolean;
+  authModalView: "login" | "register" | "forgot-password";
+};
 
-interface AuthActions {
-  setUser: (user: AuthResponse | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  logout: () => void;
-  clearError: () => void;
-}
+type AuthActions = {
+  setUser: (user: User | null) => void;
+  setIsLoggingIn: (value: boolean) => void;
+  setIsRegistering: (value: boolean) => void;
+  setIsSendingResetEmail: (value: boolean) => void;
+  setIsUpdatingProfile: (value: boolean) => void;
+  setAuthModalOpen: (value: boolean) => void;
+  setAuthModalView: (view: "login" | "register" | "forgot-password") => void;
+};
 
-type AuthStore = AuthState & AuthActions;
-
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      // State
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-
-      // Actions
-      setUser: (user) =>
-        set({
-          user,
-          isAuthenticated: !!user,
-          error: null,
-        }),
-
-      setLoading: (isLoading) => set({ isLoading }),
-
-      setError: (error) => set({ error, isLoading: false }),
-
-      logout: () =>
-        set({
-          user: null,
-          isAuthenticated: false,
-          error: null,
-        }),
-
-      clearError: () => set({ error: null }),
-    }),
-    {
-      name: "auth-storage",
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-);
+export const useAuthStore = create<AuthState & AuthActions>((set) => ({
+  user: null,
+  isLoggingIn: false,
+  isRegistering: false,
+  isSendingResetEmail: false,
+  isUpdatingProfile: false,
+  authModalOpen: false,
+  authModalView: "login",
+  setUser: (user) => set({ user }),
+  setIsLoggingIn: (value) => set({ isLoggingIn: value }),
+  setIsRegistering: (value) => set({ isRegistering: value }),
+  setIsSendingResetEmail: (value) => set({ isSendingResetEmail: value }),
+  setIsUpdatingProfile: (value) => set({ isUpdatingProfile: value }),
+  setAuthModalOpen: (value) => set({ authModalOpen: value }),
+  setAuthModalView: (view) => set({ authModalView: view }),
+}));

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const recipes = [
   {
@@ -34,10 +35,12 @@ export function RecipeShowcase() {
   return (
     <div className="py-12 sm:py-16 md:py-20 lg:py-[82px] px-4 sm:px-6 lg:px-24 xl:px-[93px] relative">
       {/* Decorative background element */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/1105166/pexels-photo-1105166.jpeg"
         alt=""
         className="absolute right-[-127px] top-[508px] z-10 w-[478px] h-[261px] object-cover opacity-20 hidden xl:block"
+        width={478}
+        height={261}
       />
 
       <div className="text-green-800 font-['Playfair_Display'] text-2xl sm:text-3xl md:text-4xl lg:text-[54px] font-bold text-center mb-4 max-w-[795px] mx-auto leading-tight">
@@ -45,7 +48,7 @@ export function RecipeShowcase() {
       </div>
 
       <div className="text-gray-600 font-['Playfair_Display'] text-sm sm:text-base md:text-xl font-normal leading-relaxed md:leading-[34px] text-center mb-8 sm:mb-12 lg:mb-[66px] max-w-[980px] mx-auto">
-        Explore incredible flavors with our plant-based recipes. There's always
+        Explore incredible flavors with our plant-based recipes. There&apos;s always
         a new dish worth discovering
       </div>
 
@@ -55,10 +58,12 @@ export function RecipeShowcase() {
             key={index}
             className="w-full max-w-[280px] border border-green-200/60 relative bg-green-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
-            <img
+            <Image
               src={recipe.image}
               alt={recipe.title}
               className="w-full h-[200px] sm:h-[222px] object-cover"
+              width={280}
+              height={200}
             />
 
             <div className="p-4 pb-20 text-center">

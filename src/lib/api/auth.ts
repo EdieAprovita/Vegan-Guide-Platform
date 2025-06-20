@@ -1,88 +1,144 @@
-import axios from "axios";
-import type {
+import {
   LoginFormData,
+  NewPasswordFormData,
   RegisterFormData,
   ResetPasswordFormData,
-  NewPasswordFormData,
 } from "@/lib/validations/auth";
+import { User } from "@/types";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // Para manejar cookies JWT
-});
+export async function login(data: LoginFormData): Promise<User> {
+  const response = await fetch(`${API_URL}/users/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
 
-export interface AuthResponse {
-  _id: string;
-  username: string;
-  email: string;
-  role: "user" | "professional";
-  photo: string;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
-
-export const authApi = {
-  async login(credentials: LoginFormData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>("/users/login", credentials);
-    return response.data;
-  },
-
-  async register(userData: RegisterFormData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>("/users/register", {
-      username: userData.name,
-      email: userData.email,
-      password: userData.password,
-    });
-    return response.data;
-  },
-
-  async forgotPassword(email: string): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>(
-      "/users/forgot-password",
-      { email }
-    );
-    return response.data;
-  },
-
-  async resetPassword(
-    token: string,
-    newPassword: string
-  ): Promise<{ message: string }> {
-    const response = await api.put<{ message: string }>(
-      "/users/reset-password",
-      {
-        token,
-        newPassword,
-      }
-    );
-    return response.data;
-  },
-
-  async logout(): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>("/users/logout");
-    return response.data;
-  },
-
-  async getCurrentUser(): Promise<AuthResponse> {
-    const response = await api.get<AuthResponse>("/users/profile");
-    return response.data;
-  },
-};
-
-// Interceptor para manejar errores
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const message =
-      error.response?.data?.message || error.message || "An error occurred";
-    return Promise.reject(new Error(message));
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to login");
   }
-);
+
+  return response.json();
+}
+
+export async function register(data: RegisterFormData): Promise<User> {
+  const response = await fetch(`${API_URL}/users/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to register");
+  }
+
+  return response.json();
+}
+
+export async function logout() {
+  await fetch(`${API_URL}/users/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+}
+
+export async function getProfile(token: string): Promise<User> {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/users/profile`, {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Not authenticated");
+  }
+
+  return response.json();
+}
+
+export async function forgotPassword(data: ResetPasswordFormData): Promise<void> {
+  const response = await fetch(`${API_URL}/users/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to send reset password email");
+  }
+}
+
+export async function resetPassword(
+  data: NewPasswordFormData,
+  token: string
+): Promise<void> {
+  const response = await fetch(`${API_URL}/users/reset-password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...data, token }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to reset password");
+  }
+}
+
+export async function getUserProfile(userId: string, token: string) {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/users/${userId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to get user profile");
+  }
+
+  return response.json();
+}
+
+export async function updateUserProfile(
+  data: Partial<RegisterFormData>,
+  token: string
+): Promise<User> {
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/users/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `jwt=${token}`,
+    },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update profile");
+  }
+  return response.json();
+}

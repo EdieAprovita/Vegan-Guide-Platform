@@ -1,18 +1,24 @@
 "use client";
 
+import Image from "next/image";
+
 export function Testimonials() {
   return (
     <div className="py-12 sm:py-16 md:py-20 lg:py-[82px] px-4 sm:px-6 lg:px-24 xl:px-[93px] relative text-center">
       {/* Decorative background elements */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/1105166/pexels-photo-1105166.jpeg"
         alt=""
         className="absolute left-[-26px] top-12 z-10 w-[498px] h-[272px] object-cover opacity-20 hidden xl:block"
+        width={498}
+        height={272}
       />
-      <img
+      <Image
         src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
         alt=""
         className="absolute right-0 top-[521px] z-10 w-[414px] h-[226px] object-cover opacity-20 hidden xl:block"
+        width={414}
+        height={226}
       />
 
       <div className="text-green-800 font-['Playfair_Display'] text-2xl sm:text-3xl md:text-4xl lg:text-[54px] font-bold mb-4 max-w-[764px] mx-auto leading-tight">
@@ -26,7 +32,7 @@ export function Testimonials() {
 
       <div className="w-full max-w-[980px] h-auto min-h-[400px] sm:min-h-[524px] border border-green-200/60 mx-auto relative p-6 sm:p-8 lg:p-[75px_100px] bg-green-50 rounded-lg shadow-sm">
         <div className="text-green-800 font-['Playfair_Display'] text-[80px] sm:text-[120px] md:text-[180px] lg:text-[220px] font-bold leading-[60px] sm:leading-[112px] absolute left-2 sm:left-4 lg:left-[29px] top-4 sm:top-8 lg:top-[54px]">
-          "
+          &quot;
         </div>
 
         <div className="text-gray-600 font-['Playfair_Display'] text-sm sm:text-base md:text-lg font-bold leading-relaxed md:leading-9 text-center mb-8 sm:mb-16 lg:mb-[88px] max-w-[780px] mx-auto relative z-10 pt-12 sm:pt-16">
@@ -47,10 +53,12 @@ export function Testimonials() {
           Wellness Coach
         </div>
 
-        <img
+        <Image
           src="https://images.pexels.com/photos/6853406/pexels-photo-6853406.jpeg"
           alt="Sarah Martinez"
           className="w-[80px] sm:w-[112px] h-[80px] sm:h-[112px] rounded-2xl shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] object-cover mx-auto"
+          width={112}
+          height={112}
         />
       </div>
 

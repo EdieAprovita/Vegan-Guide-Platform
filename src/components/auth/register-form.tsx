@@ -12,32 +12,40 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 
 interface RegisterFormProps {
-  onSubmit?: (data: RegisterFormData) => Promise<void> | void;
-  onLogin?: () => void;
-  isLoading?: boolean;
+  onSubmit: (data: RegisterFormData) => Promise<void>;
+  onLogin: () => void;
+  isLoading: boolean;
 }
 
 export function RegisterForm({
   onSubmit,
   onLogin,
-  isLoading = false,
+  isLoading,
 }: RegisterFormProps) {
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
+      role: "user",
     },
   });
 
   const handleSubmit = async (data: RegisterFormData) => {
     try {
-      await onSubmit?.(data);
+      await onSubmit(data);
     } catch (error) {
       console.error("Registration failed:", error);
     }
@@ -58,16 +66,16 @@ export function RegisterForm({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
           <FormField
             control={form.control}
-            name="name"
+            name="username"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
-                  Full Name
+                  Username
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder="Enter your username"
                     className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
@@ -92,6 +100,32 @@ export function RegisterForm({
                     className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
+                </FormControl>
+                <FormMessage className="text-rose-500" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                  Account Type
+                </FormLabel>
+                <FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="font-['Playfair_Display'] bg-white">
+                        <SelectValue placeholder="Select your account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">Regular User</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage className="text-rose-500" />
               </FormItem>
@@ -155,7 +189,7 @@ export function RegisterForm({
           <button
             type="button"
             onClick={onLogin}
-            className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors">
+            className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors inline-flex items-center gap-1">
             Sign in here
           </button>
         </p>

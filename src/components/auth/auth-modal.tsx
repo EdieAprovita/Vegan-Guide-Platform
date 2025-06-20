@@ -12,8 +12,7 @@ import {
 import { LoginForm } from "./login-form";
 import { RegisterForm } from "./register-form";
 import { ResetPasswordForm } from "./reset-password-form";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthWithRouter } from "@/hooks/useAuth";
 import type {
   LoginFormData,
   RegisterFormData,
@@ -44,13 +43,12 @@ export function AuthModal({
     isLoggingIn,
     isRegistering,
     isSendingResetEmail,
-  } = useAuth();
+  } = useAuthWithRouter();
 
   const handleOpenChange = (newOpen: boolean) => {
     setIsOpen(newOpen);
     onOpenChange?.(newOpen);
     if (!newOpen) {
-      // Reset to default view when modal closes
       setTimeout(() => setCurrentView(defaultView), 200);
     }
   };
@@ -59,7 +57,7 @@ export function AuthModal({
     try {
       await login(data);
       handleOpenChange(false);
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   };
@@ -68,16 +66,15 @@ export function AuthModal({
     try {
       await register(data);
       handleOpenChange(false);
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   };
 
   const handleResetPassword = async (data: ResetPasswordFormData) => {
     try {
-      await forgotPassword({ email: data.email });
-      // Don't close modal, let user see success message
-    } catch (error) {
+      await forgotPassword(data);
+    } catch {
       // Error is handled by the hook
     }
   };
