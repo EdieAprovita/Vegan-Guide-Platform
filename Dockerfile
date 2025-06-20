@@ -1,5 +1,5 @@
 # Install dependencies only when needed
-FROM node:20-alpine AS deps
+FROM node:20.3.0-alpine AS deps
 WORKDIR /app
 
 # Install dependencies based on the preferred lockfile
