@@ -6,7 +6,6 @@ import { signIn } from 'next-auth/react'
 
 jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
-  signOut: jest.fn(),
   useSession: jest.fn(() => ({ data: null, status: 'unauthenticated' })),
 }))
 
