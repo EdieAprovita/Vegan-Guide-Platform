@@ -4,8 +4,18 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { getDoctors } from "@/lib/api/doctors";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function DoctorsPage() {
-  const initialDoctors = await getDoctors();
+  let initialDoctors = [];
+  
+  try {
+    initialDoctors = await getDoctors();
+  } catch (error) {
+    console.error('Failed to fetch doctors:', error);
+    // Continue with empty array, the client-side will handle the loading
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

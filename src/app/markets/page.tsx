@@ -4,8 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function MarketsPage() {
-  const initialMarkets = await getMarkets();
+  let initialMarkets = [];
+  
+  try {
+    initialMarkets = await getMarkets();
+  } catch (error) {
+    console.error('Failed to fetch markets:', error);
+    // Continue with empty array, the client-side will handle the loading
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
