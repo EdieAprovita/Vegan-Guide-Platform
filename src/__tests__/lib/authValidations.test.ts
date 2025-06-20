@@ -30,7 +30,7 @@ describe('registerSchema', () => {
   }
 
   it('accepts valid data', () => {
-    expect(registerSchema.parse(base)).toMatchObject(base)
+    expect(registerSchema.parse(base)).toEqual(base)
   })
 
   it('requires matching passwords', () => {
