@@ -32,7 +32,22 @@ export function RegisterClient() {
       const result = await res.json()
 
       if (!res.ok) {
-        setError(result.message || "Registration failed")
+        const firstError = result.errors?.[0]?.message
+        if (firstError) {
+          if (firstError.includes("E11000")) {
+            if (firstError.includes("username")) {
+              setError("Username already exists. Please choose another one.")
+            } else if (firstError.includes("email")) {
+              setError("Email already exists. Please use a different email.")
+            } else {
+              setError("An account with these details already exists.")
+            }
+          } else {
+            setError(firstError)
+          }
+        } else {
+          setError("An unknown registration error occurred.")
+        }
         return
       }
 
@@ -49,7 +64,8 @@ export function RegisterClient() {
         router.push("/profile")
         router.refresh()
       }
-    } catch {
+    } catch (error) {
+      console.error("Registration submission failed", error)
       setError("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
