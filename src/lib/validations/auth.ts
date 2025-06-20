@@ -41,10 +41,7 @@ export const registerSchema = z
   });
 
 export const resetPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+  email: z.string().email({ message: "Please enter a valid email address." }),
 });
 
 export const newPasswordSchema = z

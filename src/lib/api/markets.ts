@@ -155,20 +155,24 @@ export async function deleteMarket(id: string) {
   return response.json();
 }
 
-export async function addMarketReview(id: string, review: MarketReview) {
-  const response = await fetch(`${API_URL}/markets/add-review/${id}`, {
+export async function addMarketReview(
+  id: string,
+  review: { rating: number; comment: string }
+): Promise<Market> {
+  const response = await fetch(`${API_URL}/${id}/reviews`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      // Include auth token if needed
     },
     body: JSON.stringify(review),
-    credentials: "include",
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
+    throw new Error("Failed to add review");
   }
 
+  // The backend should return the updated market object with the new review
+  // including the populated user
   return response.json();
 } 

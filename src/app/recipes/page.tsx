@@ -1,16 +1,18 @@
 import { RecipeList } from "@/components/features/recipes/recipe-list";
 
 interface RecipesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     search?: string;
     category?: string;
     difficulty?: string;
-  };
+  }>;
 }
 
-export default function RecipesPage({ searchParams }: RecipesPageProps) {
+export default async function RecipesPage({ searchParams }: RecipesPageProps) {
+  const params = await searchParams;
+  
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-screen-2xl mx-auto space-y-6">
@@ -25,11 +27,11 @@ export default function RecipesPage({ searchParams }: RecipesPageProps) {
         </div>
 
         <RecipeList
-          initialPage={Number(searchParams.page) || 1}
-          initialLimit={Number(searchParams.limit) || 12}
-          initialSearch={searchParams.search || ""}
-          initialCategory={searchParams.category || ""}
-          initialDifficulty={searchParams.difficulty || ""}
+          initialPage={Number(params.page) || 1}
+          initialLimit={Number(params.limit) || 12}
+          initialSearch={params.search || ""}
+          initialCategory={params.category || ""}
+          initialDifficulty={params.difficulty || ""}
         />
       </div>
     </main>

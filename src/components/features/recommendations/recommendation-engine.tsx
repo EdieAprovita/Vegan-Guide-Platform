@@ -13,7 +13,6 @@ import {
   ChefHat, 
   Users,
   TrendingUp,
-  Clock,
   ThumbsUp,
   ThumbsDown
 } from "lucide-react";
@@ -45,7 +44,7 @@ interface UserPreferences {
 export function RecommendationEngine() {
   const { user } = useAuthStore();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+  const [userPreferences] = useState<UserPreferences>({
     dietaryRestrictions: ["vegan"],
     favoriteCuisines: ["italian", "asian", "mediterranean"],
     priceRange: "medium",
@@ -137,7 +136,7 @@ export function RecommendationEngine() {
       ];
 
       setRecommendations(mockRecommendations);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load recommendations");
     } finally {
       setLoading(false);
@@ -147,8 +146,8 @@ export function RecommendationEngine() {
   const handleFeedback = (recommendationId: string, isPositive: boolean) => {
     toast.success(
       isPositive 
-        ? "Thanks for the feedback! We'll show you more like this." 
-        : "Thanks for the feedback! We'll improve our recommendations."
+        ? "Thanks for the feedback! We&apos;ll show you more like this." 
+        : "Thanks for the feedback! We&apos;ll improve our recommendations."
     );
     
     // In a real app, this would send feedback to the backend
@@ -207,7 +206,7 @@ export function RecommendationEngine() {
         <div className="max-w-4xl mx-auto text-center">
           <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in for personalized recommendations</h2>
-          <p className="text-gray-600">We'll learn your preferences and suggest the best vegan options for you.</p>
+          <p className="text-gray-600">We&apos;ll learn your preferences and suggest the best vegan options for you.</p>
         </div>
       </div>
     );

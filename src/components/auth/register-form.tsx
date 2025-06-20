@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -21,15 +20,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
-import Link from "next/link";
 
 interface RegisterFormProps {
-  onSubmit?: (data: RegisterFormData) => Promise<void> | void;
+  onSubmit: (data: RegisterFormData) => Promise<void>;
+  onLogin: () => void;
+  isLoading: boolean;
 }
 
-export function RegisterForm({ onSubmit }: RegisterFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
+export function RegisterForm({
+  onSubmit,
+  onLogin,
+  isLoading,
+}: RegisterFormProps) {
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -42,13 +44,10 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
   });
 
   const handleSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
     try {
-      await onSubmit?.(data);
+      await onSubmit(data);
     } catch (error) {
       console.error("Registration failed:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -187,11 +186,12 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
       <div className="text-center pt-4">
         <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
           Already have an account?{" "}
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={onLogin}
             className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors inline-flex items-center gap-1">
             Sign in here
-          </Link>
+          </button>
         </p>
       </div>
     </div>

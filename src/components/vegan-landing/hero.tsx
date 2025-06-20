@@ -1,15 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function Hero() {
   return (
     <div className="w-full min-h-screen relative flex flex-col justify-center">
       {/* Background Image */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/750952/pexels-photo-750952.jpeg"
         alt="Fresh green vegetables"
         className="w-full h-full object-cover absolute top-0 left-0 z-10"
+        fill
+        priority
       />
 
       {/* Overlay */}

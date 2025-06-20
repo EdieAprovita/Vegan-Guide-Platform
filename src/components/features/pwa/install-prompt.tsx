@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Download, 
   Smartphone, 
@@ -37,7 +36,7 @@ export function InstallPrompt() {
       await installPWA();
       setShowPrompt(false);
       toast.success("Vegan Guide installed successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to install app");
     }
   };

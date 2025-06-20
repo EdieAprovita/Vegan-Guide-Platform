@@ -4,7 +4,7 @@ import { Doctor } from "@/lib/api/doctors";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, Mail, Globe, User } from "lucide-react";
+import { Star, MapPin, Phone, Mail, Globe } from "lucide-react";
 import Link from "next/link";
 
 interface DoctorCardProps {
@@ -15,14 +15,6 @@ interface DoctorCardProps {
 export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
-  };
-
-  const getSpecialtyBadges = (specialties: string[]) => {
-    return specialties.slice(0, 2).map((specialty, index) => (
-      <Badge key={index} variant="secondary" className="text-xs">
-        {specialty}
-      </Badge>
-    ));
   };
 
   return (

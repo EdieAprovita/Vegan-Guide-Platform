@@ -12,14 +12,17 @@ import { GlobalSearch } from "@/components/features/search/global-search";
 import Link from "next/link";
 import { NotificationBell } from "@/components/features/notifications/notification-bell";
 import { ChatButton } from "@/components/features/chat/chat-button";
+import * as authApi from "@/lib/api/auth";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  const isAuthenticated = !!user;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await authApi.logout();
+    setUser(null);
   };
 
   return (

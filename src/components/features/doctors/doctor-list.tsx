@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Doctor, getDoctors } from "@/lib/api/doctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Filter, User } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { toast } from "sonner";
 
 interface DoctorListProps {
@@ -50,11 +50,11 @@ export function DoctorList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadDoctors = async (reset = false) => {
+  const loadDoctors = useCallback(async (reset = false) => {
     setLoading(true);
     try {
       const currentPage = reset ? 1 : page;
-      const params: any = {
+      const params: Record<string, string | number> = {
         page: currentPage,
         limit: 12,
       };
@@ -73,18 +73,18 @@ export function DoctorList({
       }
 
       setHasMore((response.doctors || response).length === 12);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load doctors");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, specialtyFilter, ratingFilter]);
 
   useEffect(() => {
     if (initialDoctors.length === 0) {
       loadDoctors(true);
     }
-  }, []);
+  }, [initialDoctors.length, loadDoctors]);
 
   const handleSearch = () => {
     loadDoctors(true);

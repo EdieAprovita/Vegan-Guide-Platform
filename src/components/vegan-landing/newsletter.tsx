@@ -1,30 +1,37 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function Newsletter() {
   return (
     <div className="w-full h-[500px] sm:h-[600px] lg:h-[698px] relative flex items-center justify-center">
       {/* Background Image */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/750952/pexels-photo-750952.jpeg"
         alt="Green vegetables background"
         className="w-full h-full object-cover absolute top-0 left-0 z-10"
+        fill
+        priority
       />
 
       {/* Footer background overlay */}
       <div className="w-full h-[350px] sm:h-[400px] lg:h-[492px] absolute bottom-0 left-0 z-20 bg-green-900" />
 
       {/* Decorative side images - hidden on mobile for better performance */}
-      <img
+      <Image
         src="https://images.pexels.com/photos/1105166/pexels-photo-1105166.jpeg"
         alt=""
         className="absolute left-[-147px] bottom-[236px] z-30 w-[444px] h-[358px] object-cover opacity-60 hidden xl:block"
+        width={444}
+        height={358}
       />
-      <img
+      <Image
         src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
         alt=""
         className="absolute right-[-147px] bottom-[236px] z-30 w-[444px] h-[358px] object-cover opacity-60 hidden xl:block"
+        width={444}
+        height={358}
       />
 
       {/* Content */}
@@ -34,7 +41,7 @@ export function Newsletter() {
         </div>
 
         <div className="text-white font-['Playfair_Display'] text-sm sm:text-base md:text-xl font-normal leading-relaxed md:leading-[34px] mb-6 lg:mb-[26px] max-w-2xl mx-auto">
-          Don't miss out on our latest recipes, nutrition tips, and sustainable
+          Don&apos;t miss out on our latest recipes, nutrition tips, and sustainable
           living advice
         </div>
 

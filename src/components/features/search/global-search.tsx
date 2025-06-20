@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, MapPin, ChefHat, Store, Heart, User, Star } from "lucide-react";
@@ -11,7 +10,6 @@ import { getRestaurants } from "@/lib/api/restaurants";
 import { getRecipes } from "@/lib/api/recipes";
 import { getDoctors } from "@/lib/api/doctors";
 import { getMarkets } from "@/lib/api/markets";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface SearchResult {
@@ -45,14 +43,14 @@ export function GlobalSearch() {
       // Search restaurants
       try {
         const restaurants = await getRestaurants({ search: searchQuery, limit: 5 });
-        const restaurantResults = (restaurants.restaurants || restaurants).map((restaurant: any) => ({
-          id: restaurant._id,
+        const restaurantResults = (restaurants.restaurants || restaurants).map((restaurant: Record<string, unknown>) => ({
+          id: restaurant._id as string,
           type: "restaurant" as const,
-          title: restaurant.restaurantName,
-          description: restaurant.address,
-          rating: restaurant.rating,
-          location: restaurant.address,
-          tags: restaurant.cuisine,
+          title: restaurant.restaurantName as string,
+          description: restaurant.address as string,
+          rating: restaurant.rating as number,
+          location: restaurant.address as string,
+          tags: restaurant.cuisine as string[],
           url: `/restaurants/${restaurant._id}`,
         }));
         allResults.push(...restaurantResults);
@@ -63,13 +61,13 @@ export function GlobalSearch() {
       // Search recipes
       try {
         const recipes = await getRecipes({ search: searchQuery, limit: 5 });
-        const recipeResults = (recipes.recipes || recipes).map((recipe: any) => ({
-          id: recipe._id,
+        const recipeResults = (recipes.recipes || recipes).map((recipe: Record<string, unknown>) => ({
+          id: recipe._id as string,
           type: "recipe" as const,
-          title: recipe.title,
-          description: recipe.description,
-          rating: recipe.averageRating,
-          tags: recipe.categories,
+          title: recipe.title as string,
+          description: recipe.description as string,
+          rating: recipe.averageRating as number,
+          tags: recipe.categories as string[],
           url: `/recipes/${recipe._id}`,
         }));
         allResults.push(...recipeResults);
@@ -80,14 +78,14 @@ export function GlobalSearch() {
       // Search doctors
       try {
         const doctors = await getDoctors({ search: searchQuery, limit: 5 });
-        const doctorResults = (doctors.doctors || doctors).map((doctor: any) => ({
-          id: doctor._id,
+        const doctorResults = (doctors.doctors || doctors).map((doctor: Record<string, unknown>) => ({
+          id: doctor._id as string,
           type: "doctor" as const,
-          title: `Dr. ${doctor.name}`,
-          description: doctor.specialty,
-          rating: doctor.rating,
-          location: doctor.address,
-          tags: doctor.languages,
+          title: `Dr. ${doctor.name as string}`,
+          description: doctor.specialty as string,
+          rating: doctor.rating as number,
+          location: doctor.address as string,
+          tags: doctor.languages as string[],
           url: `/doctors/${doctor._id}`,
         }));
         allResults.push(...doctorResults);
@@ -98,14 +96,14 @@ export function GlobalSearch() {
       // Search markets
       try {
         const markets = await getMarkets({ search: searchQuery, limit: 5 });
-        const marketResults = (markets.markets || markets).map((market: any) => ({
-          id: market._id,
+        const marketResults = (markets.markets || markets).map((market: Record<string, unknown>) => ({
+          id: market._id as string,
           type: "market" as const,
-          title: market.marketName,
-          description: market.address,
-          rating: market.rating,
-          location: market.address,
-          tags: market.products,
+          title: market.marketName as string,
+          description: market.address as string,
+          rating: market.rating as number,
+          location: market.address as string,
+          tags: market.products as string[],
           url: `/markets/${market._id}`,
         }));
         allResults.push(...marketResults);

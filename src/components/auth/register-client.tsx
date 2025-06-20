@@ -8,10 +8,12 @@ import { type RegisterFormData } from "@/lib/validations/auth"
 
 export function RegisterClient() {
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (data: RegisterFormData) => {
     setError(null)
+    setIsLoading(true)
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
@@ -47,9 +49,15 @@ export function RegisterClient() {
         router.push("/profile")
         router.refresh()
       }
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const handleLogin = () => {
+    router.push("/login")
   }
 
   return (
@@ -59,7 +67,7 @@ export function RegisterClient() {
           {error}
         </div>
       )}
-      <RegisterForm onSubmit={handleSubmit} />
+      <RegisterForm onSubmit={handleSubmit} onLogin={handleLogin} isLoading={isLoading} />
     </div>
   )
 } 

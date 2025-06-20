@@ -1,9 +1,12 @@
+import { getMarkets } from "@/lib/api/markets";
 import { MarketList } from "@/components/features/markets/market-list";
 import { Button } from "@/components/ui/button";
-import { Plus, Store } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
-export default function MarketsPage() {
+export default async function MarketsPage() {
+  const initialMarkets = await getMarkets();
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -26,7 +29,7 @@ export default function MarketsPage() {
         </div>
 
         {/* Market List */}
-        <MarketList />
+        <MarketList initialMarkets={initialMarkets} />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Post, getPosts } from "@/lib/api/posts";
 import { PostCard } from "./post-card";
 import { Input } from "@/components/ui/input";
@@ -43,11 +43,11 @@ export function PostList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadPosts = async (reset = false) => {
+  const loadPosts = useCallback(async (reset = false) => {
     setLoading(true);
     try {
       const currentPage = reset ? 1 : page;
-      const params: any = {
+      const params: Record<string, string | number> = {
         page: currentPage,
         limit: 12,
       };
@@ -65,18 +65,18 @@ export function PostList({
       }
 
       setHasMore((response.posts || response).length === 12);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load posts");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, tagFilter]);
 
   useEffect(() => {
     if (initialPosts.length === 0) {
       loadPosts(true);
     }
-  }, []);
+  }, [initialPosts.length, loadPosts]);
 
   const handleSearch = () => {
     loadPosts(true);

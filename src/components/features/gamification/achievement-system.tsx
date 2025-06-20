@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,9 +12,7 @@ import {
   ChefHat, 
   MapPin, 
   Users, 
-  MessageSquare,
   Award,
-  Target,
   Zap
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
@@ -54,16 +51,8 @@ export function AchievementSystem() {
     streak: 0,
     rank: "Beginner",
   });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadAchievements();
-    }
-  }, [user]);
-
-  const loadAchievements = async () => {
-    setLoading(true);
+  const loadAchievements = useCallback(async () => {
     try {
       // Mock achievements data
       const mockAchievements: Achievement[] = [
@@ -177,12 +166,16 @@ export function AchievementSystem() {
         streak: 5,
         rank,
       });
-    } catch (error) {
+    } catch {
       toast.error("Failed to load achievements");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadAchievements();
+    }
+  }, [user, loadAchievements]);
 
   const getRank = (level: number): string => {
     if (level >= 20) return "Vegan Master";

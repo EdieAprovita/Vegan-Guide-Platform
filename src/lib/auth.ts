@@ -2,12 +2,13 @@ import NextAuth from "next-auth"
 import type { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 
-export type UserRole = "user" | "professional"
+export type UserRole = "user" | "professional" | "admin"
 
 declare module "next-auth" {
   interface User {
     id: string
     role: UserRole
+    token?: string // JWT token from backend
   }
   interface Session {
     user: {
@@ -16,11 +17,13 @@ declare module "next-auth" {
       email: string
       image?: string
       role: UserRole
+      token?: string // JWT token for backend requests
     }
   }
 }
 
 export const config = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
@@ -36,7 +39,7 @@ export const config = {
         }
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -59,8 +62,9 @@ export const config = {
             email: data.user.email,
             image: data.user.photo,
             role: data.user.role,
+            token: data.token, // Store the JWT token from backend
           }
-        } catch (error) {
+        } catch {
           return null
         }
       },
@@ -71,6 +75,7 @@ export const config = {
       if (user) {
         token.id = user.id as string
         token.role = user.role as UserRole
+        token.backendToken = user.token // Store backend JWT in NextAuth token
       }
       return token
     },
@@ -78,6 +83,7 @@ export const config = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as UserRole
+        session.user.token = token.backendToken as string // Make backend token available in session
       }
       return session
     },

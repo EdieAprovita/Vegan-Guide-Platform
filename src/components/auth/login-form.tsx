@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -14,18 +13,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
-import Link from "next/link";
 
 interface LoginFormProps {
-  onSubmit?: (data: LoginFormData) => Promise<void> | void;
-  onRegister?: () => void;
-  isLoading?: boolean;
+  onSubmit: (data: LoginFormData) => Promise<void>;
+  onForgotPassword: () => void;
+  onRegister: () => void;
+  isLoading: boolean;
 }
 
 export function LoginForm({
   onSubmit,
+  onForgotPassword,
   onRegister,
-  isLoading = false,
+  isLoading,
 }: LoginFormProps) {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -37,7 +37,7 @@ export function LoginForm({
 
   const handleSubmit = async (data: LoginFormData) => {
     try {
-      await onSubmit?.(data);
+      await onSubmit(data);
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -108,14 +108,15 @@ export function LoginForm({
       </Form>
 
       <div className="text-center space-y-3 pt-4">
-        <Link
-          href="/forgot-password"
+        <button
+          type="button"
+          onClick={onForgotPassword}
           className="text-green-600 hover:text-green-700 font-['Playfair_Display'] text-sm underline decoration-2 underline-offset-2 transition-colors">
           Forgot your password?
-        </Link>
+        </button>
 
         <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <button
             type="button"
             onClick={onRegister}

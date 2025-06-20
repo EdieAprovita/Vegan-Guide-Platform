@@ -5,22 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   TrendingUp, 
   TrendingDown, 
   Users, 
-  Eye, 
   Heart, 
   MessageSquare,
-  MapPin,
   ChefHat,
   Star,
   Calendar,
   BarChart3,
-  PieChart,
-  Activity,
-  Target
+  Activity
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
@@ -78,7 +73,7 @@ export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("30d");
 
   useEffect(() => {
-    if (user?.isAdmin) {
+    if (user?.role === "admin") {
       loadAnalyticsData();
     }
   }, [user, timeRange]);
@@ -151,7 +146,7 @@ export function AnalyticsDashboard() {
       };
 
       setData(mockData);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load analytics data");
     } finally {
       setLoading(false);
@@ -170,7 +165,7 @@ export function AnalyticsDashboard() {
     return value >= 0 ? "text-green-600" : "text-red-600";
   };
 
-  if (!user?.isAdmin) {
+  if (user?.role !== "admin") {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -204,7 +199,7 @@ export function AnalyticsDashboard() {
                 Analytics Dashboard
               </h1>
               <p className="text-gray-600">
-                Comprehensive insights into your platform's performance
+                Comprehensive insights into your platform&apos;s performance
               </p>
             </div>
             <div className="flex items-center gap-4">

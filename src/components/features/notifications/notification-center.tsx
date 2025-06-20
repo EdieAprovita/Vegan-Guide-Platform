@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,9 +12,7 @@ import {
   Star, 
   UserPlus, 
   CheckCircle, 
-  XCircle,
-  Trash2,
-  Settings
+  Trash2
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
@@ -108,7 +106,7 @@ export function NotificationCenter() {
       ];
 
       setNotifications(mockNotifications);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load notifications");
     } finally {
       setLoading(false);
@@ -125,7 +123,7 @@ export function NotificationCenter() {
         )
       );
       toast.success("Marked as read");
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark as read");
     }
   };
@@ -136,7 +134,7 @@ export function NotificationCenter() {
         prev.map(notification => ({ ...notification, read: true }))
       );
       toast.success("All notifications marked as read");
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark all as read");
     }
   };
@@ -147,7 +145,7 @@ export function NotificationCenter() {
         prev.filter(notification => notification.id !== notificationId)
       );
       toast.success("Notification deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete notification");
     }
   };
