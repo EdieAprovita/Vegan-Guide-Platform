@@ -53,12 +53,11 @@ describe('useAuthWithRouter login', () => {
 
     const { result } = renderHook(() => useAuthWithRouter())
 
-    await expect(
-      act(async () => {
-        await result.current.login({ email: 'x@x.com', password: 'bad' })
-      })
-    ).rejects.toThrow('Invalid credentials')
+    await act(async () => {
+      await result.current.login({ email: 'x@x.com', password: 'bad' })
+    })
 
+    await expect(result.current.login({ email: 'x@x.com', password: 'bad' })).rejects.toThrow('Invalid credentials')
     expect(useAuthStore.getState().isLoggingIn).toBe(false)
     expect(useAuthStore.getState().authModalOpen).toBe(true)
   })
