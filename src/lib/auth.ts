@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import type { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { API_CONFIG } from "./api/config"
 
 export type UserRole = "user" | "professional" | "admin"
 
@@ -39,7 +40,7 @@ export const config = {
         }
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
+          const res = await fetch(`${API_CONFIG.BASE_URL}/users/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

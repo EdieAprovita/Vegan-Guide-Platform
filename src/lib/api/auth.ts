@@ -5,49 +5,28 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/auth";
 import { User } from "@/types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { API_CONFIG, apiRequest, getApiHeaders } from "./config";
 
 export async function login(data: LoginFormData): Promise<User> {
-  const response = await fetch(`${API_URL}/users/login`, {
+  return apiRequest<User>("/users/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to login");
-  }
-
-  return response.json();
 }
 
 export async function register(data: RegisterFormData): Promise<User> {
-  const response = await fetch(`${API_URL}/users/register`, {
+  return apiRequest<User>("/users/register", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to register");
-  }
-
-  return response.json();
 }
 
 export async function logout() {
-  await fetch(`${API_URL}/users/logout`, {
+  return apiRequest<void>("/users/logout", {
     method: "POST",
-    credentials: "include",
+    headers: getApiHeaders(),
   });
 }
 
@@ -56,67 +35,38 @@ export async function getProfile(token: string): Promise<User> {
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/users/profile`, {
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `jwt=${token}`,
-    },
-    credentials: "include",
+  return apiRequest<User>("/users/profile", {
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    throw new Error("Not authenticated");
-  }
-
-  return response.json();
 }
 
 export async function forgotPassword(data: ResetPasswordFormData): Promise<void> {
-  const response = await fetch(`${API_URL}/users/forgot-password`, {
+  return apiRequest<void>("/users/forgot-password", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getApiHeaders(),
     body: JSON.stringify(data),
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to send reset password email");
-  }
 }
 
 export async function resetPassword(
   data: NewPasswordFormData,
   token: string
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/users/reset-password`, {
+  return apiRequest<void>("/users/reset-password", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getApiHeaders(),
     body: JSON.stringify({ ...data, token }),
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to reset password");
-  }
 }
 
-export async function getUserProfile(userId: string, token: string) {
+export async function getUserProfile(userId: string, token: string): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/users/${userId}`, {
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `jwt=${token}`,
-    },
-    credentials: "include",
+  return apiRequest<User>(`/users/${userId}`, {
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to get user profile");
-  }
-
-  return response.json();
 }
 
 export async function updateUserProfile(
@@ -127,18 +77,9 @@ export async function updateUserProfile(
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/users/profile`, {
+  return apiRequest<User>("/users/profile", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `jwt=${token}`,
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update profile");
-  }
-  return response.json();
 }
