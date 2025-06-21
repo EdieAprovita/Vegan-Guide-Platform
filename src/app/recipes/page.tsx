@@ -1,4 +1,4 @@
-import { RecipeList } from "@/components/features/recipes/recipe-list";
+import { SimpleRecipeList } from "@/components/features/recipes/simple-recipe-list";
 
 interface RecipesPageProps {
   searchParams: Promise<{
@@ -26,7 +26,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
           </p>
         </div>
 
-        <RecipeList
+        <SimpleRecipeList
           initialPage={Number(params.page) || 1}
           initialLimit={Number(params.limit) || 12}
           initialSearch={params.search || ""}

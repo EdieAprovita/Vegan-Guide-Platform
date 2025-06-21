@@ -10,15 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  FormMessage, } from "@/components/ui/form";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 
 interface RegisterFormProps {
@@ -115,17 +107,15 @@ export function RegisterForm({
                   Account Type
                 </FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="font-['Playfair_Display'] bg-white">
-                        <SelectValue placeholder="Select your account type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="user">Regular User</SelectItem>
-                      <SelectItem value="professional">Professional</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <select
+                    value={field.value}
+                    onChange={field.onChange}
+                    className="w-full font-['Playfair_Display'] bg-white rounded-md border border-input px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Select your account type</option>
+                    <option value="user">Regular User</option>
+                    <option value="professional">Professional</option>
+                  </select>
                 </FormControl>
                 <FormMessage className="text-rose-500" />
               </FormItem>
