@@ -107,7 +107,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="application-name" content="Verde Guide" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -128,7 +128,8 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}>
+        className={`${geistSans.variable} ${geistMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}
+        suppressHydrationWarning>
         <Providers>
           {children}
           <InstallPrompt />

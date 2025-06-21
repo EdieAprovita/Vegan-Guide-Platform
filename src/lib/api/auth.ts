@@ -5,7 +5,7 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/auth";
 import { User } from "@/types";
-import { API_CONFIG, apiRequest, getApiHeaders } from "./config";
+import {  apiRequest, getApiHeaders } from "./config";
 
 export async function login(data: LoginFormData): Promise<User> {
   return apiRequest<User>("/users/login", {
@@ -35,7 +35,9 @@ export async function getProfile(token: string): Promise<User> {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>("/users/profile", {
+  // Nota: Backend no tiene endpoint para perfil actual, usando getUserProfile genérico
+  // Deberías agregar un endpoint /users/me en tu backend
+  return apiRequest<User>("/users/me", {
     headers: getApiHeaders(token),
   });
 }
@@ -71,13 +73,14 @@ export async function getUserProfile(userId: string, token: string): Promise<Use
 
 export async function updateUserProfile(
   data: Partial<RegisterFormData>,
-  token: string
+  token: string,
+  userId: string
 ): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>("/users/profile", {
+  return apiRequest<User>(`/users/profile/${userId}`, {
     method: "PUT",
     headers: getApiHeaders(token),
     body: JSON.stringify(data),
