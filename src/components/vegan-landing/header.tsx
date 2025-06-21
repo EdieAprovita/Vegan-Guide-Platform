@@ -1,24 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  AuthModal,
-  LoginModal,
-  RegisterModal,
-} from "@/components/auth/auth-modal";
-import { useAuthStore } from "@/lib/store/auth";
-import { GlobalSearch } from "@/components/features/search/global-search";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/features/notifications/notification-bell";
 import { ChatButton } from "@/components/features/chat/chat-button";
+import { LoginModal, RegisterModal } from "@/components/auth/auth-modal";
+import { useAuthStore } from "@/lib/store/auth";
 import * as authApi from "@/lib/api/auth";
 
+const NAV_ITEMS = [
+  { label: "Home", href: "/" },
+  { label: "Recipes", href: "/recipes" },
+  { label: "Restaurants", href: "/restaurants" },
+  { label: "Doctors", href: "/doctors" },
+  { label: "Markets", href: "/markets" },
+  { label: "Community", href: "/community" },
+  { label: "Map", href: "/map" },
+  { label: "Recommendations", href: "/recommendations" },
+  { label: "Achievements", href: "/achievements" },
+];
+
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user, setUser } = useAuthStore();
-  const isAuthenticated = !!user;
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const isAuth = !!user;
 
   const handleLogout = async () => {
     await authApi.logout();
@@ -26,222 +32,216 @@ export function Header() {
   };
 
   return (
-    <>
-      <div className="flex items-center justify-between p-4 sm:p-6 lg:px-24 xl:px-[93px] relative z-30">
-        <div className="text-white font-['Clicker_Script'] text-[28px] sm:text-[35px] font-normal">
-          Verde Guide
-        </div>
+    <header className="bg-white shadow-sm sticky top-0 z-50 w-full overflow-x-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center">
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0">
+          <span className="text-3xl font-['Clicker_Script'] text-green-600 hover:text-green-700 transition-colors duration-200">
+            Verde Guide
+          </span>
+        </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex gap-[60px]">
-          <Link href="/" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Home
-          </Link>
-          <Link href="/recipes" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Recipes
-          </Link>
-          <Link href="/restaurants" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Restaurants
-          </Link>
-          <Link href="/doctors" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Doctors
-          </Link>
-          <Link href="/markets" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Markets
-          </Link>
-          <Link href="/community" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Community
-          </Link>
-          <Link href="/map" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Map
-          </Link>
-          <Link href="/recommendations" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Recommendations
-          </Link>
-          <Link href="/achievements" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Achievements
-          </Link>
-          {user?.isAdmin && (
-            <Link href="/admin" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-              Admin
-            </Link>
-          )}
-          {user?.isAdmin && (
-            <Link href="/analytics" className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-              Analytics
-            </Link>
-          )}
-          <div className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            About Us
-          </div>
-          <div className="text-white font-['Playfair_Display'] text-sm font-normal cursor-pointer hover:text-green-200 transition-colors">
-            Contact Us
-          </div>
-        </div>
+        {/* Desktop Nav: ocupa todo el espacio disponible */}
+        <nav className="hidden lg:flex flex-1 overflow-x-auto mx-6">
+          <ul className="flex flex-nowrap whitespace-nowrap space-x-4">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.href} className="flex-shrink-0">
+                <Link
+                  href={item.href}
+                  className="relative text-sm font-['Playfair_Display'] font-medium text-gray-700 hover:text-green-600 transition-colors duration-200 py-2 px-3 group"
+                >
+                  {item.label}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full" />
+                </Link>
+              </li>
+            ))}
 
-        {/* Search Bar */}
-        <div className="hidden md:block flex-1 max-w-md mx-8">
-          <GlobalSearch />
-        </div>
+            {user?.isAdmin && (
+              <>
+                <li className="flex-shrink-0">
+                  <Link
+                    href="/admin"
+                    className="relative text-sm font-['Playfair_Display'] font-medium text-gray-700 hover:text-green-600 transition-colors duration-200 py-2 px-3 group"
+                  >
+                    Admin
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full" />
+                  </Link>
+                </li>
+                <li className="flex-shrink-0">
+                  <Link
+                    href="/analytics"
+                    className="relative text-sm font-['Playfair_Display'] font-medium text-gray-700 hover:text-green-600 transition-colors duration-200 py-2 px-3 group"
+                  >
+                    Analytics
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full" />
+                  </Link>
+                </li>
+              </>
+            )}
 
-        {/* Notifications */}
-        <NotificationBell />
+            <li className="flex-shrink-0">
+              <Link
+                href="/about"
+                className="relative text-sm font-['Playfair_Display'] font-medium text-gray-700 hover:text-green-600 transition-colors duration-200 py-2 px-3 group"
+              >
+                About Us
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full" />
+              </Link>
+            </li>
+            <li className="flex-shrink-0">
+              <Link
+                href="/contact"
+                className="relative text-sm font-['Playfair_Display'] font-medium text-gray-700 hover:text-green-600 transition-colors duration-200 py-2 px-3 group"
+              >
+                Contact Us
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full" />
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
-        {/* Desktop Auth */}
-        <div className="hidden sm:flex items-center gap-4 lg:gap-[45px]">
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <span className="text-white font-['Playfair_Display'] text-sm">
-                Welcome, {user?.username}!
+        {/* Acciones (bell, auth, chat) */}
+        <div className="flex items-center space-x-4">
+          <NotificationBell />
+
+          {isAuth ? (
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-['Playfair_Display'] font-medium text-gray-700">
+                Welcome, {user.username}
               </span>
               <Button
-                onClick={handleLogout}
                 variant="outline"
-                className="text-white border-white hover:bg-white hover:text-green-800 font-['Playfair_Display'] text-xs sm:text-sm font-normal w-[80px] sm:w-[100px] h-10 sm:h-12 rounded-3xl">
+                className="text-gray-700 border-gray-300 hover:bg-gray-700 hover:text-white hover:border-gray-700 text-sm rounded-full px-6 py-2 font-['Playfair_Display'] font-medium transition-all duration-200"
+                onClick={handleLogout}
+              >
                 Logout
               </Button>
             </div>
           ) : (
-            <>
+            <div className="flex items-center space-x-2">
               <LoginModal
                 trigger={
-                  <button className="text-white font-['Playfair_Display'] text-sm font-normal underline cursor-pointer hover:text-green-200 transition-colors">
+                  <button className="text-sm font-['Playfair_Display'] font-medium underline text-gray-700 hover:text-green-600 transition-colors duration-200 px-2 py-1">
                     Sign In
                   </button>
                 }
               />
               <RegisterModal
                 trigger={
-                  <Button className="bg-green-500 hover:bg-green-600 text-white font-['Playfair_Display'] text-xs sm:text-sm font-normal w-[80px] sm:w-[100px] h-10 sm:h-12 rounded-3xl shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] border-0">
+                  <Button className="bg-green-500 hover:bg-green-600 text-white text-sm rounded-full px-6 py-2 font-['Playfair_Display'] font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
                     Join Us
                   </Button>
                 }
               />
-            </>
+            </div>
           )}
-        </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden text-white p-2"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu">
-          <svg
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d={
-                mobileMenuOpen
-                  ? "M6 18L18 6M6 6l12 12"
-                  : "M4 6h16M4 12h16M4 18h16"
-              }
-            />
-          </svg>
-        </button>
+          {/* Toggle móvil */}
+          <button
+            className="lg:hidden p-2 text-gray-800"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={
+                  mobileOpen
+                    ? "M6 18L18 6M6 6l12 12"
+                    : "M4 6h16M4 12h16M4 18h16"
+                }
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-sm z-20 border-t border-green-500/20">
-          <div className="flex flex-col p-4 space-y-4">
-            {/* Mobile Search */}
-            <div className="md:hidden">
-              <GlobalSearch />
-            </div>
-            
-            <Link href="/" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Home
-            </Link>
-            <Link href="/recipes" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Recipes
-            </Link>
-            <Link href="/restaurants" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Restaurants
-            </Link>
-            <Link href="/doctors" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Doctors
-            </Link>
-            <Link href="/markets" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Markets
-            </Link>
-            <Link href="/community" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Community
-            </Link>
-            <Link href="/map" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Map
-            </Link>
-            <Link href="/recommendations" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Recommendations
-            </Link>
-            <Link href="/achievements" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Achievements
-            </Link>
+      {/* Menú móvil */}
+      {mobileOpen && (
+        <nav className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
+          <ul className="flex flex-col">
+            {NAV_ITEMS.map((it) => (
+              <li key={it.href} className="border-b border-gray-100 last:border-b-0">
+                <Link
+                  href={it.href}
+                  className="block px-6 py-4 text-base font-['Playfair_Display'] font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+                >
+                  {it.label}
+                </Link>
+              </li>
+            ))}
             {user?.isAdmin && (
-              <Link href="/admin" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-                Admin
-              </Link>
+              <>
+                <li className="border-b border-gray-100">
+                  <Link
+                    href="/admin"
+                    className="block px-6 py-4 text-base font-['Playfair_Display'] font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+                  >
+                    Admin
+                  </Link>
+                </li>
+                <li className="border-b border-gray-100">
+                  <Link
+                    href="/analytics"
+                    className="block px-6 py-4 text-base font-['Playfair_Display'] font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+                  >
+                    Analytics
+                  </Link>
+                </li>
+              </>
             )}
-            {user?.isAdmin && (
-              <Link href="/analytics" className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-                Analytics
+            <li className="border-b border-gray-100">
+              <Link
+                href="/about"
+                className="block px-6 py-4 text-base font-['Playfair_Display'] font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+              >
+                About Us
               </Link>
+            </li>
+            <li>
+              <Link
+                href="/contact"
+                className="block px-6 py-4 text-base font-['Playfair_Display'] font-medium text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors duration-200"
+              >
+                Contact Us
+              </Link>
+            </li>
+          </ul>
+          <div className="p-6 bg-gray-50 border-t border-gray-200">
+            {isAuth ? (
+              <Button
+                variant="outline"
+                className="w-full text-gray-700 border-gray-300 hover:bg-gray-700 hover:text-white font-['Playfair_Display'] font-medium py-3 rounded-lg transition-all duration-200"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <LoginModal
+                  trigger={
+                    <button className="w-full text-left text-base font-['Playfair_Display'] font-medium underline text-gray-700 hover:text-green-600 py-2 transition-colors duration-200">
+                      Sign In
+                    </button>
+                  }
+                />
+                <RegisterModal
+                  trigger={
+                    <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-['Playfair_Display'] font-medium py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
+                      Join Us
+                    </Button>
+                  }
+                />
+              </div>
             )}
-            <div className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              About Us
-            </div>
-            <div className="text-white font-['Playfair_Display'] text-base font-normal cursor-pointer hover:text-green-200 transition-colors py-2">
-              Contact Us
-            </div>
-            <div className="flex items-center gap-4 pt-4 border-t border-green-500/20 sm:hidden">
-              {isAuthenticated ? (
-                <div className="flex flex-col gap-4 w-full">
-                  <span className="text-white font-['Playfair_Display'] text-sm">
-                    Welcome, {user?.username}!
-                  </span>
-                  <Button
-                    onClick={handleLogout}
-                    variant="outline"
-                    className="text-white border-white hover:bg-white hover:text-green-800 font-['Playfair_Display'] text-sm font-normal w-full h-12 rounded-3xl">
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <LoginModal
-                    trigger={
-                      <button className="text-white font-['Playfair_Display'] text-sm font-normal underline cursor-pointer hover:text-green-200 transition-colors">
-                        Sign In
-                      </button>
-                    }
-                  />
-                  <RegisterModal
-                    trigger={
-                      <Button className="bg-green-500 hover:bg-green-600 text-white font-['Playfair_Display'] text-sm font-normal w-[100px] h-12 rounded-3xl shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] border-0">
-                        Join Us
-                      </Button>
-                    }
-                  />
-                </>
-              )}
-            </div>
           </div>
-        </div>
+        </nav>
       )}
 
-      {/* Auth Modal */}
-      <AuthModal 
-        open={isAuthModalOpen} 
-        onOpenChange={setIsAuthModalOpen} 
-      />
-
-      {/* Chat Button - Only show for authenticated users */}
-      {isAuthenticated && <ChatButton />}
-    </>
-  );
+      {/* Chat sólo si hay usuario */}
+      {isAuth && <ChatButton />}
+    </header>
+);
 }
