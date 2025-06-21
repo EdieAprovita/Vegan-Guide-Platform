@@ -51,7 +51,7 @@ const recipeSchema = z.object({
     .array(z.string())
     .min(1, "At least one category is required")
     .max(5, "Maximum 5 categories allowed"),
-  image: z.instanceof(File).optional(),
+  image: z.any().optional(), // Use z.any() instead of z.instanceof(File) for SSR compatibility
 });
 
 type RecipeFormData = z.infer<typeof recipeSchema>;

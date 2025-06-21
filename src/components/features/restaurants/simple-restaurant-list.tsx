@@ -93,7 +93,7 @@ export function SimpleRestaurantList({
     if (mounted) {
       fetchRestaurants();
     }
-  }, [mounted, search, cuisineFilter, ratingFilter, locationFilter]);
+  }, [mounted, fetchRestaurants]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
