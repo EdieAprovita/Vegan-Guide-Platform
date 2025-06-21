@@ -5,7 +5,6 @@ import { Post, getPosts } from "@/lib/api/posts";
 import { PostCard } from "./post-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
@@ -139,34 +138,33 @@ export function PostList({
               </div>
 
               {/* Tag Filter */}
-              <Select value={tagFilter} onValueChange={(value) => {
-                setTagFilter(value);
-                handleFilterChange();
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tags" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All tags</SelectItem>
-                  {TAG_OPTIONS.map((tag) => (
-                    <SelectItem key={tag} value={tag.toLowerCase()}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={tagFilter}
+                onChange={(e) => {
+                  setTagFilter(e.target.value);
+                  handleFilterChange();
+                }}
+                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">All tags</option>
+                {TAG_OPTIONS.map((tag) => (
+                  <option key={tag} value={tag.toLowerCase()}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
 
               {/* Sort By */}
-              <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="popular">Most Liked</SelectItem>
-                  <SelectItem value="comments">Most Comments</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">Sort by</option>
+                <option value="recent">Most Recent</option>
+                <option value="popular">Most Liked</option>
+                <option value="comments">Most Comments</option>
+              </select>
 
               {/* Search Button */}
               <Button onClick={handleSearch} disabled={loading}>

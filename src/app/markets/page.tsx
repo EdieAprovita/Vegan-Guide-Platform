@@ -1,5 +1,5 @@
 import { getMarkets } from "@/lib/api/markets";
-import { MarketList } from "@/components/features/markets/market-list";
+import { SimpleMarketList } from "@/components/features/markets/simple-market-list";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -39,7 +39,7 @@ export default async function MarketsPage() {
         </div>
 
         {/* Market List */}
-        <MarketList initialMarkets={initialMarkets} />
+        <SimpleMarketList initialMarkets={initialMarkets} />
       </div>
     </div>
   );
