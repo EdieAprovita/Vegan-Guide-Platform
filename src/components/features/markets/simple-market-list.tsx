@@ -92,7 +92,7 @@ export function SimpleMarketList({
     if (mounted && initialMarkets.length === 0) {
       fetchMarkets();
     }
-  }, [mounted, search, productFilter, ratingFilter, locationFilter]);
+  }, [mounted, fetchMarkets, initialMarkets.length]);
 
   const handleSearch = (value: string) => {
     setSearch(value);

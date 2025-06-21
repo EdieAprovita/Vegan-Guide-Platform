@@ -78,6 +78,54 @@ export function SimpleRecipeList({
     });
   };
 
+  // Extract nested ternary into separate function for better readability
+  const renderRecipeContent = () => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+          {Array.from({ length: initialLimit }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[400px] bg-emerald-100 rounded-lg"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (recipes.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-emerald-600 text-lg">No recipes found.</p>
+          <p className="text-emerald-500">Try adjusting your search criteria.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {recipes.map((recipe) => (
+          <RecipeCard
+            key={recipe._id}
+            title={recipe.title}
+            description={recipe.description}
+            image={recipe.image || "/placeholder-recipe.jpg"}
+            preparationTime={recipe.preparationTime}
+            cookingTime={recipe.cookingTime}
+            servings={recipe.servings}
+            difficulty={recipe.difficulty}
+            averageRating={recipe.averageRating}
+            author={recipe.author}
+            onView={() => {
+              // Navigate to recipe detail page
+              window.location.href = `/recipes/${recipe._id}`;
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   // Prevent hydration mismatch
   if (!mounted) {
     return (
@@ -151,27 +199,7 @@ export function SimpleRecipeList({
         </select>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
-          {Array.from({ length: initialLimit }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[400px] bg-emerald-100 rounded-lg"
-            />
-          ))}
-        </div>
-      ) : recipes.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-emerald-600 text-lg">No recipes found.</p>
-          <p className="text-emerald-500">Try adjusting your search criteria.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe._id} recipe={recipe} />
-          ))}
-        </div>
-      )}
+      {renderRecipeContent()}
 
       {/* Pagination */}
       {totalPages > 1 && (

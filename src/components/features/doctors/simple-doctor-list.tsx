@@ -92,7 +92,7 @@ export function SimpleDoctorList({
     if (mounted && initialDoctors.length === 0) {
       fetchDoctors();
     }
-  }, [mounted, search, specialtyFilter, ratingFilter, locationFilter]);
+  }, [mounted, fetchDoctors, initialDoctors.length]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
