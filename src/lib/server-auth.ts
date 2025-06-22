@@ -1,6 +1,5 @@
 // Server-side authentication utilities
 import { auth } from "@/lib/auth";
-import { NextRequest } from "next/server";
 
 /**
  * Get the authenticated user's token for server-side API calls
@@ -53,7 +52,7 @@ export async function getAuthenticatedHeaders(): Promise<Record<string, string>>
 /**
  * Middleware helper to check authentication for API routes
  */
-export async function requireAuth(_request: NextRequest) {
+export async function requireAuth() {
   const session = await auth();
   
   if (!session?.user) {
@@ -72,7 +71,7 @@ export async function requireAuth(_request: NextRequest) {
 /**
  * Middleware helper to check role-based access for API routes
  */
-export async function requireRole(_request: NextRequest, requiredRole: string) {
+export async function requireRole(requiredRole: string) {
   const session = await auth();
   
   if (!session?.user) {

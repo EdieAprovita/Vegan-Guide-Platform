@@ -1,5 +1,5 @@
 import { handlers } from "@/lib/auth"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { authRateLimit, applyRateLimit } from "@/lib/rate-limit"
 
 // Apply rate limiting to authentication routes

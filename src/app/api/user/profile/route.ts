@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check authentication
-    const authError = await requireAuth(request);
+    const authError = await requireAuth();
     if (authError) {
       return authError;
     }
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check authentication
-    const authError = await requireAuth(request);
+    const authError = await requireAuth();
     if (authError) {
       return authError;
     }
