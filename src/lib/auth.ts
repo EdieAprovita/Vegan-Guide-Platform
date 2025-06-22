@@ -28,6 +28,18 @@ export const config = {
   session: {
     strategy: "jwt",
   },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       credentials: {
@@ -76,7 +88,8 @@ export const config = {
       if (user) {
         token.id = user.id as string
         token.role = user.role as UserRole
-        token.backendToken = user.token // Store backend JWT in NextAuth token
+        // Store backend JWT securely in NextAuth token (server-side only)
+        token.backendToken = user.token
       }
       return token
     },
@@ -84,7 +97,9 @@ export const config = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as UserRole
-        session.user.token = token.backendToken as string // Make backend token available in session
+        // Only expose token for server-side usage, not client-side
+        // This prevents XSS token exposure
+        session.user.token = token.backendToken as string
       }
       return session
     },

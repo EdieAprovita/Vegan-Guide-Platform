@@ -5,8 +5,22 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3,
 } as const;
 
+// Tipos para manejo de errores
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  details?: string;
+}
+
+interface ApiError extends Error {
+  response?: {
+    data?: ApiErrorResponse;
+    status?: number;
+  };
+}
+
 // Headers comunes para las requests
-export const getApiHeaders = (token?: string) => {
+export const getApiHeaders = (token?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -19,13 +33,25 @@ export const getApiHeaders = (token?: string) => {
 };
 
 // Interceptor para manejar errores de API de forma consistente
-export const handleApiError = (error: any): string => {
-  if (error.response?.data?.message) {
-    return error.response.data.message;
+export const handleApiError = (error: unknown): string => {
+  // Verificar si es un error de API con response
+  if (error && typeof error === 'object' && 'response' in error) {
+    const apiError = error as ApiError;
+    if (apiError.response?.data?.message) {
+      return apiError.response.data.message;
+    }
   }
-  if (error.message) {
+  
+  // Verificar si es un Error estándar
+  if (error instanceof Error) {
     return error.message;
   }
+  
+  // Verificar si es un string
+  if (typeof error === 'string') {
+    return error;
+  }
+  
   return 'An unexpected error occurred';
 };
 
@@ -47,8 +73,18 @@ export const apiRequest = async <T>(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      let errorData: ApiErrorResponse = {};
+      try {
+        errorData = await response.json();
+      } catch {
+        // Si no se puede parsear como JSON, usar respuesta vacía
+        errorData = {};
+      }
+      
+      const errorMessage = errorData.message || 
+                          errorData.error || 
+                          `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     const contentType = response.headers.get('content-type');
