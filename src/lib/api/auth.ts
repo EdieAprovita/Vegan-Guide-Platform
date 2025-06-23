@@ -35,9 +35,7 @@ export async function getProfile(token: string): Promise<User> {
     throw new Error("Not authenticated");
   }
 
-  // Nota: Backend no tiene endpoint para perfil actual, usando getUserProfile genérico
-  // Deberías agregar un endpoint /users/me en tu backend
-  return apiRequest<User>("/users/me", {
+  return apiRequest<User>("/users/profile", {
     headers: getApiHeaders(token),
   });
 }

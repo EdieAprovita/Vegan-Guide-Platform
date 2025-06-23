@@ -163,4 +163,27 @@ export async function rateRecipe(id: string, rating: number) {
   }
 
   return response.json();
+}
+
+export interface RecipeReview {
+  rating: number;
+  comment: string;
+}
+
+export async function addRecipeReview(id: string, review: RecipeReview) {
+  const response = await fetch(`${API_URL}/recipes/add-review/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(review),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add review");
+  }
+
+  return response.json();
 } 
