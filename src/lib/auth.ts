@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import type { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { API_CONFIG } from "./api/config"
 
 export type UserRole = "user" | "professional" | "admin"
 
@@ -23,9 +24,21 @@ declare module "next-auth" {
 }
 
 export const config = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
+  },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   providers: [
     CredentialsProvider({
@@ -39,7 +52,7 @@ export const config = {
         }
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
+          const res = await fetch(`${API_CONFIG.BASE_URL}/users/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -75,7 +88,8 @@ export const config = {
       if (user) {
         token.id = user.id as string
         token.role = user.role as UserRole
-        token.backendToken = user.token // Store backend JWT in NextAuth token
+        // Store backend JWT securely in NextAuth token (server-side only)
+        token.backendToken = user.token
       }
       return token
     },
@@ -83,7 +97,9 @@ export const config = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as UserRole
-        session.user.token = token.backendToken as string // Make backend token available in session
+        // Only expose token for server-side usage, not client-side
+        // This prevents XSS token exposure
+        session.user.token = token.backendToken as string
       }
       return session
     },

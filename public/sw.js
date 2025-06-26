@@ -3,7 +3,6 @@ const urlsToCache = [
   '/',
   '/manifest.json',
   '/logo.svg',
-  '/static/css/main.css',
 ];
 
 // Install event

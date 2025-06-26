@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  // Configuración para manejo de hidratación
+  ...(process.env.NODE_ENV === 'development' && {
+    onDemandEntries: {
+      // Reducir tiempo de espera en desarrollo
+      maxInactiveAge: 60000,
+      pagesBufferLength: 5,
+    },
+  }),
   // PWA configuration
   async headers() {
     return [

@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export interface Doctor {
   _id: string;
@@ -89,7 +89,7 @@ export async function getDoctors(params?: {
 }
 
 export async function getDoctor(id: string): Promise<Doctor> {
-  const response = await fetch(`${API_URL}/${id}`);
+  const response = await fetch(`${API_URL}/doctors/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch doctor");
   }
@@ -97,7 +97,7 @@ export async function getDoctor(id: string): Promise<Doctor> {
 }
 
 export async function searchDoctors(query: string): Promise<Doctor[]> {
-  const response = await fetch(`${API_URL}/search?q=${query}`);
+  const response = await fetch(`${API_URL}/doctors/search?q=${query}`);
   if (!response.ok) {
     throw new Error("Failed to search doctors");
   }

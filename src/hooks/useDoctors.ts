@@ -21,11 +21,15 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       setIsLoading(true);
       setError(null);
       const data = await getDoctors();
-      setDoctors(data);
+      // Ensure data is an array
+      const doctorsData = Array.isArray(data) ? data : (data?.doctors || []);
+      setDoctors(doctorsData);
     } catch (err) {
       const e = err as Error;
       setError(e.message);
       toast.error("Failed to fetch doctors");
+      // Reset to empty array on error
+      setDoctors([]);
     } finally {
       setIsLoading(false);
     }
