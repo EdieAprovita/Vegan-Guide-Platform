@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCard } from "./recipe-card";
@@ -31,6 +31,7 @@ export function RecipeList({
   initialDifficulty = "",
 }: RecipeListProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const {
     recipes,
     isLoading,
@@ -41,14 +42,23 @@ export function RecipeList({
   } = useRecipes();
 
   useEffect(() => {
-    getRecipes({
-      page: initialPage,
-      limit: initialLimit,
-      search: initialSearch,
-      category: initialCategory,
-      difficulty: initialDifficulty,
-    });
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      getRecipes({
+        page: initialPage,
+        limit: initialLimit,
+        search: initialSearch,
+        category: initialCategory,
+        difficulty: initialDifficulty,
+      }).catch((err) => {
+        console.error("Error fetching recipes:", err);
+      });
+    }
   }, [
+    mounted,
     getRecipes,
     initialPage,
     initialLimit,
@@ -64,6 +74,8 @@ export function RecipeList({
       search,
       category: initialCategory,
       difficulty: initialDifficulty,
+    }).catch((err) => {
+      console.error("Error searching recipes:", err);
     });
   };
 
@@ -74,6 +86,8 @@ export function RecipeList({
       search: initialSearch,
       category,
       difficulty: initialDifficulty,
+    }).catch((err) => {
+      console.error("Error filtering by category:", err);
     });
   };
 
@@ -84,6 +98,8 @@ export function RecipeList({
       search: initialSearch,
       category: initialCategory,
       difficulty,
+    }).catch((err) => {
+      console.error("Error filtering by difficulty:", err);
     });
   };
 
@@ -94,13 +110,40 @@ export function RecipeList({
       search: initialSearch,
       category: initialCategory,
       difficulty: initialDifficulty,
+    }).catch((err) => {
+      console.error("Error changing page:", err);
     });
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 h-10 bg-gray-200 rounded animate-pulse" />
+          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
+          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-[400px] bg-gray-200 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500 text-lg">Error loading recipes: {error}</p>
+        <Button 
+          onClick={() => window.location.reload()} 
+          className="mt-4"
+          variant="outline"
+        >
+          Try Again
+        </Button>
       </div>
     );
   }

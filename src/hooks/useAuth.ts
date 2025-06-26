@@ -89,13 +89,27 @@ export function useAuthWithRouter() {
   };
 
   const updateProfile = async (data: Partial<RegisterFormData>) => {
-    if (!session?.user?.token) {
+    if (!session?.user?.id) {
       throw new Error("Not authenticated");
     }
 
     setIsUpdatingProfile(true);
     try {
-      const updatedUser = await authApi.updateUserProfile(data, session.user.token);
+      // Use server action instead of directly exposing JWT token to client
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+
+      const updatedUser = await response.json();
       setUser(updatedUser);
       toast.success("Profile updated successfully!");
     } catch (error) {

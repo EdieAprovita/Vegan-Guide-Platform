@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { RestaurantList } from "@/components/features/restaurants/restaurant-list";
+import { SimpleRestaurantList } from "@/components/features/restaurants/simple-restaurant-list";
 import { Button } from "@/components/ui/button";
 import { Plus, Star } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default function RestaurantsPage() {
             <Link href="/restaurants/top-rated">View All</Link>
           </Button>
         </div>
-        <RestaurantList 
+        <SimpleRestaurantList 
           title="" 
           showFilters={false}
           initialRestaurants={[]}
@@ -52,7 +52,7 @@ export default function RestaurantsPage() {
             </Link>
           </Button>
         </div>
-        <RestaurantList />
+        <SimpleRestaurantList />
       </div>
     </div>
   );
