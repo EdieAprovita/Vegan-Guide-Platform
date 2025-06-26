@@ -11,10 +11,14 @@ export default async function MarketsPage() {
   let initialMarkets = [];
   
   try {
-    initialMarkets = await getMarkets();
+    const response = await getMarkets();
+    // Ensure we always pass an array
+    initialMarkets = Array.isArray(response) ? response : (response?.markets || []);
+    console.log("Server-side markets fetch result:", initialMarkets);
   } catch (error) {
     console.error('Failed to fetch markets:', error);
     // Continue with empty array, the client-side will handle the loading
+    initialMarkets = [];
   }
 
   return (

@@ -37,15 +37,26 @@ export const useRecipes = create<RecipesState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const data = await recipesApi.getRecipes(params);
+      
+      // Ensure data structure is correct
+      const recipes = data?.recipes || data || [];
+      const totalPages = data?.totalPages || 0;
+      const currentPage = data?.currentPage || 1;
+      
       set({
-        recipes: data.recipes,
-        totalPages: data.totalPages,
-        currentPage: data.currentPage,
+        recipes: Array.isArray(recipes) ? recipes : [],
+        totalPages,
+        currentPage,
         isLoading: false,
       });
     } catch (err) {
       const error = err as Error;
-      set({ error: error.message, isLoading: false });
+      // Ensure recipes is always an array, even on error
+      set({ 
+        error: error.message, 
+        isLoading: false,
+        recipes: [] // Reset to empty array on error
+      });
       throw error;
     }
   },

@@ -42,7 +42,7 @@ export function SimpleDoctorList({
   title = "Doctors"
 }: SimpleDoctorListProps) {
   const [mounted, setMounted] = useState(false);
-  const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors);
+  const [doctors, setDoctors] = useState<Doctor[]>(Array.isArray(initialDoctors) ? initialDoctors : []);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("");
@@ -58,6 +58,15 @@ export function SimpleDoctorList({
   const fetchDoctors = useCallback(async (isLoadMore = false) => {
     if (!mounted) return;
     
+    console.log("Fetching doctors with filters:", {
+      search: search.trim(),
+      specialty: specialtyFilter,
+      rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+      location: locationFilter.trim(),
+      page: isLoadMore ? page + 1 : 1,
+      limit: 12,
+    });
+    
     try {
       setLoading(true);
       const filters = {
@@ -70,19 +79,28 @@ export function SimpleDoctorList({
       };
 
       const response = await getDoctors(filters);
+      console.log("getDoctors response:", response);
+      
+      // Ensure response is an array or extract doctors array from response
+      const doctorsData = Array.isArray(response) ? response : (response?.doctors || []);
+      console.log("Processed doctors data:", doctorsData);
       
       if (isLoadMore) {
-        setDoctors(prev => [...prev, ...response]);
+        setDoctors(prev => [...(Array.isArray(prev) ? prev : []), ...doctorsData]);
         setPage(prev => prev + 1);
       } else {
-        setDoctors(response);
+        setDoctors(doctorsData);
         setPage(1);
       }
       
-      setHasMore(response.length === 12);
+      setHasMore(doctorsData.length === 12);
     } catch (error) {
       console.error("Error fetching doctors:", error);
       toast.error("Failed to load doctors");
+      // Ensure doctors is always an array on error
+      if (!isLoadMore) {
+        setDoctors([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -212,7 +230,7 @@ export function SimpleDoctorList({
             <div key={i} className="h-[320px] bg-gray-200 rounded-lg animate-pulse" />
           ))}
         </div>
-      ) : doctors.length === 0 ? (
+      ) : !doctors || !Array.isArray(doctors) || doctors.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No doctors found.</p>
           <p className="text-gray-400">Try adjusting your search criteria.</p>
@@ -220,7 +238,7 @@ export function SimpleDoctorList({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {doctors.map((doctor) => (
+            {doctors && Array.isArray(doctors) && doctors.map((doctor) => (
               <DoctorCard key={doctor._id} doctor={doctor} />
             ))}
           </div>

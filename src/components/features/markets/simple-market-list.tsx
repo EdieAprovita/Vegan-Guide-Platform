@@ -42,7 +42,7 @@ export function SimpleMarketList({
   title = "Markets"
 }: SimpleMarketListProps) {
   const [mounted, setMounted] = useState(false);
-  const [markets, setMarkets] = useState<Market[]>(initialMarkets);
+  const [markets, setMarkets] = useState<Market[]>(Array.isArray(initialMarkets) ? initialMarkets : []);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState("");
@@ -58,6 +58,15 @@ export function SimpleMarketList({
   const fetchMarkets = useCallback(async (isLoadMore = false) => {
     if (!mounted) return;
     
+    console.log("Fetching markets with filters:", {
+      search: search.trim(),
+      products: productFilter,
+      rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+      location: locationFilter.trim(),
+      page: isLoadMore ? page + 1 : 1,
+      limit: 12,
+    });
+    
     try {
       setLoading(true);
       const filters = {
@@ -70,19 +79,28 @@ export function SimpleMarketList({
       };
 
       const response = await getMarkets(filters);
+      console.log("getMarkets response:", response);
+      
+      // Ensure response is an array or extract markets array from response
+      const marketsData = Array.isArray(response) ? response : (response?.markets || []);
+      console.log("Processed markets data:", marketsData);
       
       if (isLoadMore) {
-        setMarkets(prev => [...prev, ...response]);
+        setMarkets(prev => [...(Array.isArray(prev) ? prev : []), ...marketsData]);
         setPage(prev => prev + 1);
       } else {
-        setMarkets(response);
+        setMarkets(marketsData);
         setPage(1);
       }
       
-      setHasMore(response.length === 12);
+      setHasMore(marketsData.length === 12);
     } catch (error) {
       console.error("Error fetching markets:", error);
       toast.error("Failed to load markets");
+      // Ensure markets is always an array on error
+      if (!isLoadMore) {
+        setMarkets([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -212,7 +230,7 @@ export function SimpleMarketList({
             <div key={i} className="h-[320px] bg-gray-200 rounded-lg animate-pulse" />
           ))}
         </div>
-      ) : markets.length === 0 ? (
+      ) : !markets || !Array.isArray(markets) || markets.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No markets found.</p>
           <p className="text-gray-400">Try adjusting your search criteria.</p>
@@ -220,7 +238,7 @@ export function SimpleMarketList({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {markets.map((market) => (
+            {markets && Array.isArray(markets) && markets.map((market) => (
               <MarketCard key={market._id} market={market} />
             ))}
           </div>

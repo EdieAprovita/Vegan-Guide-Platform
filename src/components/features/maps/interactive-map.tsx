@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,57 +43,36 @@ export function InteractiveMap({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  const { isLoaded, loadError, isLoading } = useGoogleMaps({
+    libraries: ["places" as any],
+  });
 
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) {
-      setError("Google Maps API key is not configured");
-      setLoading(false);
-      return;
-    }
+    if (!isLoaded || !mapRef.current) return;
 
-    const loader = new Loader({
-      apiKey: GOOGLE_MAPS_API_KEY,
-      version: "weekly",
-      libraries: ["places"],
+    const mapInstance = new google.maps.Map(mapRef.current, {
+      center: { lat: center[0], lng: center[1] },
+      zoom: zoom,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      styles: [
+        {
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }],
+        },
+      ],
     });
 
-    loader
-      .load()
-      .then(() => {
-        if (mapRef.current) {
-          const mapInstance = new google.maps.Map(mapRef.current, {
-            center: { lat: center[0], lng: center[1] },
-            zoom: zoom,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            styles: [
-              {
-                featureType: "poi",
-                elementType: "labels",
-                stylers: [{ visibility: "off" }],
-              },
-            ],
-          });
+    setMap(mapInstance);
 
-          setMap(mapInstance);
-
-          if (showInfoWindow) {
-            const infoWindowInstance = new google.maps.InfoWindow();
-            setInfoWindow(infoWindowInstance);
-          }
-
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Error loading Google Maps:", error);
-        setError("Failed to load Google Maps");
-        setLoading(false);
-      });
-  }, [center, zoom, showInfoWindow]);
+    if (showInfoWindow) {
+      const infoWindowInstance = new google.maps.InfoWindow();
+      setInfoWindow(infoWindowInstance);
+    }
+  }, [isLoaded, center, zoom, showInfoWindow]);
 
   useEffect(() => {
     if (!map || !locations.length) return;
@@ -192,19 +171,19 @@ export function InteractiveMap({
     window.open(url, "_blank");
   };
 
-  if (error) {
+  if (loadError) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
           <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Map Unavailable</h3>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600">{loadError}</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="p-8 text-center">

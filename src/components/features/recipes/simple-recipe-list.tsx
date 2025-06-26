@@ -42,6 +42,14 @@ export function SimpleRecipeList({
 
   useEffect(() => {
     if (mounted) {
+      console.log("Fetching recipes with params:", {
+        page: initialPage,
+        limit: initialLimit,
+        search: searchValue,
+        category: categoryValue,
+        difficulty: difficultyValue,
+      });
+      
       getRecipes({
         page: initialPage,
         limit: initialLimit,
@@ -80,6 +88,8 @@ export function SimpleRecipeList({
 
   // Extract nested ternary into separate function for better readability
   const renderRecipeContent = () => {
+    console.log("renderRecipeContent - recipes:", recipes, "isLoading:", isLoading, "error:", error);
+    
     if (isLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
@@ -93,7 +103,8 @@ export function SimpleRecipeList({
       );
     }
 
-    if (recipes.length === 0) {
+    // Safety check: ensure recipes is an array before checking length
+    if (!recipes || !Array.isArray(recipes) || recipes.length === 0) {
       return (
         <div className="text-center py-12">
           <p className="text-emerald-600 text-lg">No recipes found.</p>
@@ -202,7 +213,7 @@ export function SimpleRecipeList({
       {renderRecipeContent()}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {recipes && Array.isArray(recipes) && totalPages > 1 && (
         <div className="flex justify-center items-center space-x-2 mt-8">
           <Button
             variant="outline"

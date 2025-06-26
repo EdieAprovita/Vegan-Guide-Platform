@@ -11,10 +11,14 @@ export default async function DoctorsPage() {
   let initialDoctors = [];
   
   try {
-    initialDoctors = await getDoctors();
+    const response = await getDoctors();
+    // Ensure we always pass an array
+    initialDoctors = Array.isArray(response) ? response : (response?.doctors || []);
+    console.log("Server-side doctors fetch result:", initialDoctors);
   } catch (error) {
     console.error('Failed to fetch doctors:', error);
     // Continue with empty array, the client-side will handle the loading
+    initialDoctors = [];
   }
 
   return (
