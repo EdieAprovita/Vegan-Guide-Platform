@@ -43,7 +43,7 @@ export function SimpleRestaurantList({
   title = "Restaurants"
 }: SimpleRestaurantListProps) {
   const [mounted, setMounted] = useState(false);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(initialRestaurants);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>(Array.isArray(initialRestaurants) ? initialRestaurants : []);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
@@ -59,6 +59,15 @@ export function SimpleRestaurantList({
   const fetchRestaurants = useCallback(async (isLoadMore = false) => {
     if (!mounted) return;
     
+    console.log("Fetching restaurants with filters:", {
+      search: search.trim(),
+      cuisine: cuisineFilter,
+      rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+      location: locationFilter.trim(),
+      page: isLoadMore ? page + 1 : 1,
+      limit: 12,
+    });
+    
     try {
       setLoading(true);
       const filters = {
@@ -71,19 +80,28 @@ export function SimpleRestaurantList({
       };
 
       const response = await getRestaurants(filters);
+      console.log("getRestaurants response:", response);
+      
+      // Ensure response is an array or extract restaurants array from response
+      const restaurantsData = Array.isArray(response) ? response : (response?.restaurants || []);
+      console.log("Processed restaurants data:", restaurantsData);
       
       if (isLoadMore) {
-        setRestaurants(prev => [...prev, ...response.restaurants]);
+        setRestaurants(prev => [...(Array.isArray(prev) ? prev : []), ...restaurantsData]);
         setPage(prev => prev + 1);
       } else {
-        setRestaurants(response.restaurants);
+        setRestaurants(restaurantsData);
         setPage(1);
       }
       
-      setHasMore(response.restaurants.length === 12);
+      setHasMore(restaurantsData.length === 12);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
       toast.error("Failed to load restaurants");
+      // Ensure restaurants is always an array on error
+      if (!isLoadMore) {
+        setRestaurants([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -213,7 +231,7 @@ export function SimpleRestaurantList({
             <div key={i} className="h-[300px] bg-gray-200 rounded-lg animate-pulse" />
           ))}
         </div>
-      ) : restaurants.length === 0 ? (
+      ) : !restaurants || !Array.isArray(restaurants) || restaurants.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No restaurants found.</p>
           <p className="text-gray-400">Try adjusting your search criteria.</p>
@@ -221,7 +239,7 @@ export function SimpleRestaurantList({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {restaurants.map((restaurant) => (
+            {restaurants && Array.isArray(restaurants) && restaurants.map((restaurant) => (
               <RestaurantCard key={restaurant._id} restaurant={restaurant} />
             ))}
           </div>
