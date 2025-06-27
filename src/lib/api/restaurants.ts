@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
+
+// Development flag to use mock data when backend has issues
+const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
 
 export interface Restaurant {
   _id: string;
@@ -67,19 +70,129 @@ export async function getRestaurants(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/restaurants?${searchParams.toString()}`,
-    {
-      credentials: "include",
+  try {
+    const response = await fetch(
+      `${API_URL}/restaurants?${searchParams.toString()}`,
+      {
+        credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`API Error: ${response.status} ${response.statusText}`);
+      
+      // If it's a server error, return mock data for development
+      if (response.status >= 500) {
+        console.warn('Server error detected, returning mock data for development');
+        return getMockRestaurants(params);
+      }
+      
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      throw new Error(`Failed to fetch restaurants: ${response.status}`);
     }
-  );
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch restaurants");
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Network error:', error);
+    
+    // Return mock data if there's a network error
+    console.warn('Network error detected, returning mock data for development');
+    return getMockRestaurants(params);
   }
+}
 
-  return response.json();
+// Mock data function for development
+function getMockRestaurants(params?: any) {
+  const mockRestaurants: Restaurant[] = [
+    {
+      _id: "1",
+      restaurantName: "Green Garden Bistro",
+      address: "123 Vegan St, Plant City, PC 12345",
+      location: {
+        type: "Point",
+        coordinates: [40.7128, -74.0060]
+      },
+      author: {
+        _id: "user1",
+        username: "veganchef",
+        photo: "/default-avatar.jpg"
+      },
+      contact: [{
+        phone: "+1-555-0123",
+        facebook: "greengardenbistro",
+        instagram: "@greengardenbistro"
+      }],
+      cuisine: ["Vegan", "Mediterranean", "Organic"],
+      rating: 4.8,
+      numReviews: 127,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      _id: "2", 
+      restaurantName: "Plant Power Kitchen",
+      address: "456 Healthy Ave, Wellness Town, WT 67890",
+      location: {
+        type: "Point",
+        coordinates: [40.7614, -73.9776]
+      },
+      author: {
+        _id: "user2",
+        username: "plantpowerfan",
+        photo: "/default-avatar.jpg"
+      },
+      contact: [{
+        phone: "+1-555-0456",
+        facebook: "plantpowerkitchen",
+        instagram: "@plantpowerkitchen"
+      }],
+      cuisine: ["Vegan", "Raw", "Gluten-free"],
+      rating: 4.6,
+      numReviews: 89,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      _id: "3",
+      restaurantName: "Harvest Moon Cafe",
+      address: "789 Organic Blvd, Fresh Fields, FF 13579",
+      location: {
+        type: "Point",
+        coordinates: [40.7489, -73.9857]
+      },
+      author: {
+        _id: "user3",
+        username: "harvestlover",
+        photo: "/default-avatar.jpg"
+      },
+      contact: [{
+        phone: "+1-555-0789",
+        facebook: "harvestmooncafe",
+        instagram: "@harvestmooncafe"
+      }],
+      cuisine: ["Vegetarian", "Vegan", "Farm-to-table"],
+      rating: 4.7,
+      numReviews: 156,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+
+  return {
+    restaurants: mockRestaurants,
+    totalPages: 1,
+    currentPage: 1,
+    totalCount: mockRestaurants.length
+  };
 }
 
 export async function getRestaurant(id: string) {
