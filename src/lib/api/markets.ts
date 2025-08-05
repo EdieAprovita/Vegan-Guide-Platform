@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Market {
   _id: string;
@@ -77,101 +77,44 @@ export async function getMarkets(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/markets?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch markets");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }
 
 export async function getMarket(id: string) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch market");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Market>>(`/markets/${id}`);
 }
 
-export async function createMarket(data: CreateMarketData) {
-  const response = await fetch(`${API_URL}/markets`, {
+export async function createMarket(data: CreateMarketData, token?: string) {
+  return apiRequest<BackendResponse<Market>>(`/markets`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create market");
-  }
-
-  return response.json();
 }
 
-export async function updateMarket(id: string, data: Partial<CreateMarketData>) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
+export async function updateMarket(id: string, data: Partial<CreateMarketData>, token?: string) {
+  return apiRequest<BackendResponse<Market>>(`/markets/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update market");
-  }
-
-  return response.json();
 }
 
-export async function deleteMarket(id: string) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
+export async function deleteMarket(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/markets/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete market");
-  }
-
-  return response.json();
 }
 
 export async function addMarketReview(
   id: string,
-  review: { rating: number; comment: string }
-): Promise<Market> {
-  const response = await fetch(`${API_URL}/markets/add-review/${id}`, {
+  review: MarketReview,
+  token?: string
+) {
+  return apiRequest<BackendResponse<Market>>(`/markets/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 } 

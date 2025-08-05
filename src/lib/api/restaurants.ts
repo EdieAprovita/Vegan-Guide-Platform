@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api/v1';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 // Development flag to use mock data when backend has issues
 const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
@@ -71,33 +71,7 @@ export async function getRestaurants(params?: {
   if (params?.location) searchParams.append("location", params.location);
 
   try {
-    const response = await fetch(
-      `${API_URL}/restaurants?${searchParams.toString()}`,
-      {
-        credentials: "include",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} ${response.statusText}`);
-      
-      // If it's a server error, return mock data for development
-      if (response.status >= 500) {
-        console.warn('Server error detected, returning mock data for development');
-        return getMockRestaurants(params);
-      }
-      
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error(`Failed to fetch restaurants: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    return await apiRequest<BackendListResponse<Restaurant>>(`/restaurants?${searchParams.toString()}`);
   } catch (error) {
     console.error('Network error:', error);
     
@@ -108,7 +82,14 @@ export async function getRestaurants(params?: {
 }
 
 // Mock data function for development
-function getMockRestaurants(params?: any) {
+function getMockRestaurants(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  cuisine?: string;
+  rating?: number;
+  location?: string;
+}) {
   const mockRestaurants: Restaurant[] = [
     {
       _id: "1",
@@ -188,103 +169,47 @@ function getMockRestaurants(params?: any) {
   ];
 
   return {
-    restaurants: mockRestaurants,
-    totalPages: 1,
-    currentPage: 1,
-    totalCount: mockRestaurants.length
+    success: true,
+    message: "Restaurants fetched successfully (mock data)",
+    data: mockRestaurants
   };
 }
 
 export async function getRestaurant(id: string) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch restaurant");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`);
 }
 
 export async function getTopRatedRestaurants(limit: number = 10) {
-  const response = await fetch(`${API_URL}/restaurants/top-rated?limit=${limit}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch top rated restaurants");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Restaurant>>(`/restaurants/top-rated?limit=${limit}`);
 }
 
-export async function createRestaurant(data: CreateRestaurantData) {
-  const response = await fetch(`${API_URL}/restaurants`, {
+export async function createRestaurant(data: CreateRestaurantData, token?: string) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create restaurant");
-  }
-
-  return response.json();
 }
 
-export async function updateRestaurant(id: string, data: Partial<CreateRestaurantData>) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
+export async function updateRestaurant(id: string, data: Partial<CreateRestaurantData>, token?: string) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update restaurant");
-  }
-
-  return response.json();
 }
 
-export async function deleteRestaurant(id: string) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
+export async function deleteRestaurant(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/restaurants/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete restaurant");
-  }
-
-  return response.json();
 }
 
-export async function addRestaurantReview(id: string, review: RestaurantReview) {
-  const response = await fetch(`${API_URL}/restaurants/add-review/${id}`, {
+export async function addRestaurantReview(id: string, review: RestaurantReview, token?: string) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 } 

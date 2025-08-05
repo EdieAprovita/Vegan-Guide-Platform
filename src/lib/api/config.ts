@@ -1,9 +1,57 @@
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5001/api/v1',
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
 } as const;
+
+// Tipos para respuestas paginadas (para mantener compatibilidad)
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+// Tipo para las respuestas estándar del backend
+export interface BackendResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
+
+// Tipo para respuestas de listas del backend
+export interface BackendListResponse<T> extends BackendResponse<T[]> {}
+
+// Helper para extraer datos de respuestas del backend
+export function extractBackendData<T>(response: BackendResponse<T>): T {
+  return response.data;
+}
+
+// Helper para extraer arrays de respuestas del backend
+export function extractBackendListData<T>(response: BackendListResponse<T>): T[] {
+  return response.data;
+}
+
+// Helper universal para procesar respuestas del backend (maneja ambos formatos)
+export function processBackendResponse<T>(response: any): T[] | T {
+  // Si es el formato {success: true, data: ...}
+  if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+    return response.data;
+  }
+  // Si es el formato de recetas parcial {success: true, data: ...} sin message
+  if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+    return response.data;
+  }
+  // Si es formato directo (para compatibilidad)
+  if (Array.isArray(response)) {
+    return response;
+  }
+  // Si es objeto directo
+  return response;
+}
 
 // Tipos para manejo de errores
 interface ApiErrorResponse {

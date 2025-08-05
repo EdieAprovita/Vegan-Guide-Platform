@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Animal {
   name: string;
@@ -87,98 +87,40 @@ export async function getSanctuaries(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/sanctuaries?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch sanctuaries");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`);
 }
 
-export async function getSanctuary(id: string): Promise<Sanctuary> {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch sanctuary");
-  }
-
-  return response.json();
+export async function getSanctuary(id: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/${id}`);
 }
 
-export async function createSanctuary(data: CreateSanctuaryData) {
-  const response = await fetch(`${API_URL}/sanctuaries`, {
+export async function createSanctuary(data: CreateSanctuaryData, token?: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function updateSanctuary(id: string, data: Partial<CreateSanctuaryData>) {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
+export async function updateSanctuary(id: string, data: Partial<CreateSanctuaryData>, token?: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function deleteSanctuary(id: string) {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
+export async function deleteSanctuary(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/sanctuaries/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function addSanctuaryReview(id: string, review: SanctuaryReview) {
-  const response = await fetch(`${API_URL}/sanctuaries/add-review/${id}`, {
+export async function addSanctuaryReview(id: string, review: SanctuaryReview, token?: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 }

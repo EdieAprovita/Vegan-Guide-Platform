@@ -1,7 +1,7 @@
 import { getMarkets } from "@/lib/api/markets";
 import { SimpleMarketList } from "@/components/features/markets/simple-market-list";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 // Force dynamic rendering
@@ -24,6 +24,16 @@ export default async function MarketsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
+        {/* Back to Home Button */}
+        <div className="mb-6">
+          <Button asChild variant="outline" size="sm" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+            <Link href="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

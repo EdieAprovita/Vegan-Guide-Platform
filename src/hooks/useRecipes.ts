@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 import * as recipesApi from "@/lib/api/recipes";
-import type { Recipe, CreateRecipeData } from "@/lib/api/recipes";
+import type { Recipe, CreateRecipeData, RecipeReview } from "@/lib/api/recipes";
+import { processBackendResponse } from "@/lib/api/config";
 
 interface RecipesState {
   recipes: Recipe[];
@@ -22,7 +23,7 @@ interface RecipesState {
   createRecipe: (data: CreateRecipeData) => Promise<void>;
   updateRecipe: (id: string, data: Partial<CreateRecipeData>) => Promise<void>;
   deleteRecipe: (id: string) => Promise<void>;
-  rateRecipe: (id: string, rating: number) => Promise<void>;
+  addRecipeReview: (id: string, review: RecipeReview, token?: string) => Promise<void>;
 }
 
 export const useRecipes = create<RecipesState>((set) => ({
@@ -36,26 +37,26 @@ export const useRecipes = create<RecipesState>((set) => ({
   getRecipes: async (params) => {
     try {
       set({ isLoading: true, error: null });
-      const data = await recipesApi.getRecipes(params);
+      const response = await recipesApi.getRecipes(params);
       
-      // Ensure data structure is correct
-      const recipes = data?.recipes || data || [];
-      const totalPages = data?.totalPages || 0;
-      const currentPage = data?.currentPage || 1;
+      // Use the universal helper to process backend response
+      const recipes = processBackendResponse<Recipe>(response) as Recipe[];
+      
+      console.log('getRecipes - processed response:', { recipes: recipes.length });
       
       set({
         recipes: Array.isArray(recipes) ? recipes : [],
-        totalPages,
-        currentPage,
+        totalPages: 1, // Backend doesn't implement pagination yet
+        currentPage: 1,
         isLoading: false,
       });
     } catch (err) {
       const error = err as Error;
-      // Ensure recipes is always an array, even on error
+      console.error('getRecipes error:', error);
       set({ 
         error: error.message, 
         isLoading: false,
-        recipes: [] // Reset to empty array on error
+        recipes: []
       });
       throw error;
     }
@@ -64,7 +65,8 @@ export const useRecipes = create<RecipesState>((set) => ({
   getRecipe: async (id) => {
     try {
       set({ isLoading: true, error: null });
-      const recipe = await recipesApi.getRecipe(id);
+      const response = await recipesApi.getRecipe(id);
+      const recipe = processBackendResponse<Recipe>(response) as Recipe;
       set({ currentRecipe: recipe, isLoading: false });
     } catch (err) {
       const error = err as Error;
@@ -123,10 +125,10 @@ export const useRecipes = create<RecipesState>((set) => ({
     }
   },
 
-  rateRecipe: async (id, rating) => {
+  addRecipeReview: async (id, review, token) => {
     try {
       set({ isLoading: true, error: null });
-      const updatedRecipe = await recipesApi.rateRecipe(id, rating);
+      const updatedRecipe = await recipesApi.addRecipeReview(id, review, token);
       set((state) => ({
         recipes: state.recipes.map((recipe) =>
           recipe._id === id ? updatedRecipe : recipe

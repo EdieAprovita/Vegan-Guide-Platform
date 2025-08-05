@@ -121,12 +121,15 @@ export function SimpleRecipeList({
             title={recipe.title}
             description={recipe.description}
             image={recipe.image || "/placeholder-recipe.jpg"}
-            preparationTime={recipe.preparationTime}
+            preparationTime={recipe.preparationTime || 10} // Default to 10 if not available
             cookingTime={recipe.cookingTime}
-            servings={recipe.servings}
-            difficulty={recipe.difficulty}
-            averageRating={recipe.averageRating}
-            author={recipe.author}
+            servings={recipe.servings || 4} // Default to 4 if not available
+            difficulty={recipe.difficulty || "medium"} // Default to medium if not available
+            averageRating={recipe.averageRating || recipe.rating || 0} // Use rating if averageRating not available
+            author={{
+              username: typeof recipe.author === 'string' ? 'Recipe Author' : recipe.author.username,
+              photo: typeof recipe.author === 'string' ? undefined : recipe.author.photo
+            }}
             onView={() => {
               // Navigate to recipe detail page
               window.location.href = `/recipes/${recipe._id}`;

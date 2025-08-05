@@ -82,8 +82,8 @@ export function SimpleRestaurantList({
       const response = await getRestaurants(filters);
       console.log("getRestaurants response:", response);
       
-      // Ensure response is an array or extract restaurants array from response
-      const restaurantsData = Array.isArray(response) ? response : (response?.restaurants || []);
+      // Extract restaurants from backend response format {success: true, data: [...]}
+      const restaurantsData = Array.isArray(response) ? response : (response?.data || []);
       console.log("Processed restaurants data:", restaurantsData);
       
       if (isLoadMore) {

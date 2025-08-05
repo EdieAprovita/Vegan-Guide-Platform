@@ -81,8 +81,8 @@ export function SimpleMarketList({
       const response = await getMarkets(filters);
       console.log("getMarkets response:", response);
       
-      // Ensure response is an array or extract markets array from response
-      const marketsData = Array.isArray(response) ? response : (response?.markets || []);
+      // Extract markets from backend response format {success: true, data: [...]}
+      const marketsData = Array.isArray(response) ? response : (response?.data || []);
       console.log("Processed markets data:", marketsData);
       
       if (isLoadMore) {

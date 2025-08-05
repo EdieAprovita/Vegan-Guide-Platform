@@ -18,6 +18,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
   };
 
   const getProductBadges = (products: string[]) => {
+    if (!products || !Array.isArray(products)) return [];
     return products.slice(0, 3).map((product, index) => (
       <Badge key={index} variant="secondary" className="text-xs">
         {product}
@@ -26,6 +27,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
   };
 
   const getTodayHours = () => {
+    if (!market.hours || !Array.isArray(market.hours)) return null;
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const todayHours = market.hours.find(hour => 
       hour.day.toLowerCase() === today
@@ -59,7 +61,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           {/* Product Badges */}
           <div className="flex flex-wrap gap-1">
             {getProductBadges(market.products)}
-            {market.products.length > 3 && (
+            {market.products && market.products.length > 3 && (
               <Badge variant="outline" className="text-xs">
                 +{market.products.length - 3} more
               </Badge>
@@ -75,7 +77,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           )}
 
           {/* Contact Information */}
-          {market.contact.length > 0 && (
+          {market.contact && market.contact.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               {market.contact[0].phone && (
                 <div className="flex items-center gap-1">
@@ -93,7 +95,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           )}
 
           {/* Social Links */}
-          {market.contact.length > 0 && market.contact[0].website && (
+          {market.contact && market.contact.length > 0 && market.contact[0].website && (
             <div className="flex gap-2">
               <Button
                 asChild
