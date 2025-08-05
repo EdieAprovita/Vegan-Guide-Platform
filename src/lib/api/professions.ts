@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Profession {
   _id: string;
@@ -75,100 +75,42 @@ export async function getProfessions(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/professions?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professions");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
 }
 
 export async function getProfession(id: string): Promise<Profession> {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch profession");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`);
 }
 
-export async function createProfession(data: CreateProfessionData) {
-  const response = await fetch(`${API_URL}/professions`, {
+export async function createProfession(data: CreateProfessionData, token?: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create profession");
-  }
-
-  return response.json();
 }
 
-export async function updateProfession(id: string, data: Partial<CreateProfessionData>) {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
+export async function updateProfession(id: string, data: Partial<CreateProfessionData>, token?: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update profession");
-  }
-
-  return response.json();
 }
 
-export async function deleteProfession(id: string) {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
+export async function deleteProfession(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/professions/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete profession");
-  }
-
-  return response.json();
 }
 
-export async function addProfessionReview(id: string, review: ProfessionReview) {
-  const response = await fetch(`${API_URL}/professions/add-review/${id}`, {
+export async function addProfessionReview(id: string, review: ProfessionReview, token?: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 }
 
 // Professional Profiles API
@@ -264,80 +206,32 @@ export async function getProfessionalProfiles(params?: {
   if (params?.availability !== undefined) searchParams.append("availability", params.availability.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/professionalProfile?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professional profiles");
-  }
-
-  return response.json();
+  return apiRequest<PaginatedResponse<ProfessionalProfile>>(`/professionalProfile?${searchParams.toString()}`);
 }
 
 export async function getProfessionalProfile(id: string): Promise<ProfessionalProfile> {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professional profile");
-  }
-
-  return response.json();
+  return apiRequest<ProfessionalProfile>(`/professionalProfile/${id}`);
 }
 
-export async function createProfessionalProfile(data: CreateProfessionalProfileData) {
-  const response = await fetch(`${API_URL}/professionalProfile`, {
+export async function createProfessionalProfile(data: CreateProfessionalProfileData, token?: string) {
+  return apiRequest<ProfessionalProfile>(`/professionalProfile`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create professional profile");
-  }
-
-  return response.json();
 }
 
-export async function updateProfessionalProfile(id: string, data: Partial<CreateProfessionalProfileData>) {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
+export async function updateProfessionalProfile(id: string, data: Partial<CreateProfessionalProfileData>, token?: string) {
+  return apiRequest<ProfessionalProfile>(`/professionalProfile/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update professional profile");
-  }
-
-  return response.json();
 }
 
-export async function deleteProfessionalProfile(id: string) {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
+export async function deleteProfessionalProfile(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/professionalProfile/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete professional profile");
-  }
-
-  return response.json();
 }

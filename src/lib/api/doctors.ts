@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Doctor {
   _id: string;
@@ -73,101 +73,44 @@ export async function getDoctors(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/doctors?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch doctors");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
 
-export async function getDoctor(id: string): Promise<Doctor> {
-  const response = await fetch(`${API_URL}/doctors/${id}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch doctor");
-  }
-  return response.json();
+export async function getDoctor(id: string) {
+  return apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`);
 }
 
-export async function searchDoctors(query: string): Promise<Doctor[]> {
-  const response = await fetch(`${API_URL}/doctors/search?q=${query}`);
-  if (!response.ok) {
-    throw new Error("Failed to search doctors");
-  }
-  return response.json();
+export async function searchDoctors(query: string) {
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?search=${query}`);
 }
 
-export async function createDoctor(data: CreateDoctorData) {
-  const response = await fetch(`${API_URL}/doctors`, {
+export async function createDoctor(data: CreateDoctorData, token?: string) {
+  return apiRequest<BackendResponse<Doctor>>(`/doctors`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create doctor");
-  }
-
-  return response.json();
 }
 
-export async function updateDoctor(id: string, data: Partial<CreateDoctorData>) {
-  const response = await fetch(`${API_URL}/doctors/${id}`, {
+export async function updateDoctor(id: string, data: Partial<CreateDoctorData>, token?: string) {
+  return apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update doctor");
-  }
-
-  return response.json();
 }
 
-export async function deleteDoctor(id: string) {
-  const response = await fetch(`${API_URL}/doctors/${id}`, {
+export async function deleteDoctor(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/doctors/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete doctor");
-  }
-
-  return response.json();
 }
 
-export async function addDoctorReview(id: string, review: DoctorReview) {
-  const response = await fetch(`${API_URL}/doctors/add-review/${id}`, {
+export async function addDoctorReview(id: string, review: DoctorReview, token?: string) {
+  return apiRequest<BackendResponse<Doctor>>(`/doctors/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 } 

@@ -45,12 +45,12 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
             <Badge variant="default" className="text-xs">
               {doctor.specialty}
             </Badge>
-            {doctor.languages.slice(0, 2).map((language, index) => (
+            {doctor.languages?.slice(0, 2).map((language, index) => (
               <Badge key={index} variant="outline" className="text-xs">
                 {language}
               </Badge>
             ))}
-            {doctor.languages.length > 2 && (
+            {doctor.languages && doctor.languages.length > 2 && (
               <Badge variant="outline" className="text-xs">
                 +{doctor.languages.length - 2} more
               </Badge>
@@ -63,7 +63,7 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
           </div>
 
           {/* Contact Information */}
-          {doctor.contact.length > 0 && (
+          {doctor.contact && doctor.contact.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               {doctor.contact[0].phone && (
                 <div className="flex items-center gap-1">
@@ -81,7 +81,7 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
           )}
 
           {/* Social Links */}
-          {doctor.contact.length > 0 && doctor.contact[0].website && (
+          {doctor.contact && doctor.contact.length > 0 && doctor.contact[0].website && (
             <div className="flex gap-2">
               <Button
                 asChild

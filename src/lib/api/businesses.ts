@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Business {
   _id: string;
@@ -73,98 +73,40 @@ export async function getBusinesses(params?: {
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/businesses?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch businesses");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Business>>(`/businesses?${searchParams.toString()}`);
 }
 
-export async function getBusiness(id: string): Promise<Business> {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch business");
-  }
-
-  return response.json();
+export async function getBusiness(id: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
 }
 
-export async function createBusiness(data: CreateBusinessData) {
-  const response = await fetch(`${API_URL}/businesses`, {
+export async function createBusiness(data: CreateBusinessData, token?: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create business");
-  }
-
-  return response.json();
 }
 
-export async function updateBusiness(id: string, data: Partial<CreateBusinessData>) {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
+export async function updateBusiness(id: string, data: Partial<CreateBusinessData>, token?: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update business");
-  }
-
-  return response.json();
 }
 
-export async function deleteBusiness(id: string) {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
+export async function deleteBusiness(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/businesses/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete business");
-  }
-
-  return response.json();
 }
 
-export async function addBusinessReview(id: string, review: BusinessReview) {
-  const response = await fetch(`${API_URL}/businesses/add-review/${id}`, {
+export async function addBusinessReview(id: string, review: BusinessReview, token?: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 }

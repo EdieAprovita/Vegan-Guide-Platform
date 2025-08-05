@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { SimpleRestaurantList } from "@/components/features/restaurants/simple-restaurant-list";
 import { Button } from "@/components/ui/button";
-import { Plus, Star } from "lucide-react";
+import { Plus, Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -12,6 +12,16 @@ export const metadata: Metadata = {
 export default function RestaurantsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Back to Home Button */}
+      <div className="mb-6">
+        <Button asChild variant="outline" size="sm" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+          <Link href="/" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
+
       {/* Hero Section */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">

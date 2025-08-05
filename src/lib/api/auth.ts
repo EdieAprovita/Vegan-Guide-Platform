@@ -30,12 +30,12 @@ export async function logout() {
   });
 }
 
-export async function getProfile(token: string): Promise<User> {
+export async function getProfile(userId: string, token: string): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>("/users/profile", {
+  return apiRequest<User>(`/users/${userId}`, {
     headers: getApiHeaders(token),
   });
 }

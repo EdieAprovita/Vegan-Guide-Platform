@@ -81,8 +81,8 @@ export function SimpleDoctorList({
       const response = await getDoctors(filters);
       console.log("getDoctors response:", response);
       
-      // Ensure response is an array or extract doctors array from response
-      const doctorsData = Array.isArray(response) ? response : (response?.doctors || []);
+      // Extract doctors from backend response format {success: true, data: [...]}
+      const doctorsData = Array.isArray(response) ? response : (response?.data || []);
       console.log("Processed doctors data:", doctorsData);
       
       if (isLoadMore) {

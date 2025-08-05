@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
 
 export interface Post {
   _id: string;
@@ -49,126 +49,54 @@ export async function getPosts(params?: {
   if (params?.tags) searchParams.append("tags", params.tags);
   if (params?.author) searchParams.append("author", params.author);
 
-  const response = await fetch(
-    `${API_URL}/posts?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch posts");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
 }
 
 export async function getPost(id: string) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch post");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}`);
 }
 
-export async function createPost(data: CreatePostData) {
-  const response = await fetch(`${API_URL}/posts`, {
+export async function createPost(data: CreatePostData, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create post");
-  }
-
-  return response.json();
 }
 
-export async function updatePost(id: string, data: Partial<CreatePostData>) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
+export async function updatePost(id: string, data: Partial<CreatePostData>, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update post");
-  }
-
-  return response.json();
 }
 
-export async function deletePost(id: string) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
+export async function deletePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/posts/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete post");
-  }
-
-  return response.json();
 }
 
-export async function likePost(id: string) {
-  const response = await fetch(`${API_URL}/posts/like/${id}`, {
+export async function likePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/like/${id}`, {
     method: "POST",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to like post");
-  }
-
-  return response.json();
 }
 
-export async function addComment(id: string, data: CreateCommentData) {
-  const response = await fetch(`${API_URL}/posts/add-comment/${id}`, {
+export async function addComment(id: string, data: CreateCommentData, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/comment/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add comment");
-  }
-
-  return response.json();
 }
 
-export async function deleteComment(postId: string, commentId: string) {
-  const response = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}`, {
+export async function deleteComment(postId: string, commentId: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/${postId}/comments/${commentId}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete comment");
-  }
-
-  return response.json();
 } 

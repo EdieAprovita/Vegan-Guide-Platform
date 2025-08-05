@@ -8,6 +8,7 @@ import {
   addDoctorReview,
   Doctor,
 } from "@/lib/api/doctors";
+import { processBackendResponse } from "@/lib/api/config";
 import { toast } from "sonner";
 
 export function useDoctors(initialDoctors: Doctor[] = []) {
@@ -20,15 +21,13 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getDoctors();
-      // Ensure data is an array
-      const doctorsData = Array.isArray(data) ? data : (data?.doctors || []);
-      setDoctors(doctorsData);
+      const response = await getDoctors();
+      const doctors = processBackendResponse<Doctor>(response) as Doctor[];
+      setDoctors(Array.isArray(doctors) ? doctors : []);
     } catch (err) {
       const e = err as Error;
       setError(e.message);
       toast.error("Failed to fetch doctors");
-      // Reset to empty array on error
       setDoctors([]);
     } finally {
       setIsLoading(false);
@@ -39,8 +38,9 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getDoctor(id);
-      setCurrentDoctor(data);
+      const response = await getDoctor(id);
+      const doctor = processBackendResponse<Doctor>(response) as Doctor;
+      setCurrentDoctor(doctor);
     } catch (err) {
       const e = err as Error;
       setError(e.message);
@@ -54,8 +54,9 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await searchDoctors(query);
-      setDoctors(data);
+      const response = await searchDoctors(query);
+      const doctors = processBackendResponse<Doctor>(response) as Doctor[];
+      setDoctors(Array.isArray(doctors) ? doctors : []);
     } catch (err) {
       const e = err as Error;
       setError(e.message);
