@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, PaginatedResponse } from './config';
+import { apiRequest, getApiHeaders } from './config';
 
 export interface Recipe {
   _id: string;

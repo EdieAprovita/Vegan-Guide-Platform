@@ -43,7 +43,7 @@ export function GlobalSearch() {
       // Search restaurants
       try {
         const restaurants = await getRestaurants({ search: searchQuery, limit: 5 });
-        const restaurantResults = (restaurants.restaurants || restaurants).map((restaurant: Record<string, unknown>) => ({
+        const restaurantResults = (restaurants.data || []).map((restaurant) => ({
           id: restaurant._id as string,
           type: "restaurant" as const,
           title: restaurant.restaurantName as string,
@@ -61,7 +61,7 @@ export function GlobalSearch() {
       // Search recipes
       try {
         const recipes = await getRecipes({ search: searchQuery, limit: 5 });
-        const recipeResults = (recipes.recipes || recipes).map((recipe: Record<string, unknown>) => ({
+        const recipeResults = (recipes.data || []).map((recipe) => ({
           id: recipe._id as string,
           type: "recipe" as const,
           title: recipe.title as string,
@@ -78,7 +78,7 @@ export function GlobalSearch() {
       // Search doctors
       try {
         const doctors = await getDoctors({ search: searchQuery, limit: 5 });
-        const doctorResults = (doctors.doctors || doctors).map((doctor: Record<string, unknown>) => ({
+        const doctorResults = (doctors.data || []).map((doctor) => ({
           id: doctor._id as string,
           type: "doctor" as const,
           title: `Dr. ${doctor.name as string}`,
@@ -96,7 +96,7 @@ export function GlobalSearch() {
       // Search markets
       try {
         const markets = await getMarkets({ search: searchQuery, limit: 5 });
-        const marketResults = (markets.markets || markets).map((market: Record<string, unknown>) => ({
+        const marketResults = (markets.data || []).map((market) => ({
           id: market._id as string,
           type: "market" as const,
           title: market.marketName as string,

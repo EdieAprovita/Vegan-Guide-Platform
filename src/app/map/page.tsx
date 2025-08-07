@@ -29,7 +29,7 @@ export default function MapPage() {
   });
 
   const { isLoaded, loadError, isLoading } = useGoogleMaps({
-    libraries: ["places" as any],
+    libraries: ["places" as const],
   });
 
   const initMap = useCallback(() => {
