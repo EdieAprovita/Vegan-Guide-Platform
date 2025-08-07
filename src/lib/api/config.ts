@@ -23,7 +23,7 @@ export interface BackendResponse<T> {
 }
 
 // Tipo para respuestas de listas del backend
-export interface BackendListResponse<T> extends BackendResponse<T[]> {}
+export type BackendListResponse<T> = BackendResponse<T[]>;
 
 // Helper para extraer datos de respuestas del backend
 export function extractBackendData<T>(response: BackendResponse<T>): T {
@@ -36,21 +36,21 @@ export function extractBackendListData<T>(response: BackendListResponse<T>): T[]
 }
 
 // Helper universal para procesar respuestas del backend (maneja ambos formatos)
-export function processBackendResponse<T>(response: any): T[] | T {
+export function processBackendResponse<T>(response: unknown): T[] | T {
   // Si es el formato {success: true, data: ...}
   if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-    return response.data;
+    return (response as { success: boolean; data: T[] | T }).data;
   }
   // Si es el formato de recetas parcial {success: true, data: ...} sin message
-  if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
-    return response.data;
+  if (response && typeof response === 'object' && 'data' in response && Array.isArray((response as { data: unknown }).data)) {
+    return (response as { data: T[] }).data;
   }
   // Si es formato directo (para compatibilidad)
   if (Array.isArray(response)) {
-    return response;
+    return response as T[];
   }
   // Si es objeto directo
-  return response;
+  return response as T;
 }
 
 // Tipos para manejo de errores

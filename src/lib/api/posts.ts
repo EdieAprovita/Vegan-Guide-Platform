@@ -86,6 +86,13 @@ export async function likePost(id: string, token?: string) {
   });
 }
 
+export async function unlikePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/unlike/${id}`, {
+    method: "DELETE",
+    headers: getApiHeaders(token),
+  });
+}
+
 export async function addComment(id: string, data: CreateCommentData, token?: string) {
   return apiRequest<BackendResponse<Post>>(`/posts/comment/${id}`, {
     method: "POST",

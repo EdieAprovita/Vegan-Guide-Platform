@@ -1,12 +1,18 @@
 import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { Review } from '@/types';
 
 // Development flag to use mock data when backend has issues
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
 
 export interface Restaurant {
   _id: string;
   restaurantName: string;
+  name: string; // Alias for restaurantName for compatibility
   address: string;
+  city?: string; // City for display purposes
+  country?: string; // Country for display purposes
+  phone?: string; // Direct phone access for compatibility
+  website?: string; // Website URL
   location?: {
     type: string;
     coordinates: [number, number];
@@ -22,14 +28,10 @@ export interface Restaurant {
     instagram?: string;
   }[];
   cuisine: string[];
+  image?: string; // Restaurant image
   rating: number;
   numReviews: number;
-  reviews: {
-    user: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }[];
+  reviews: Review[];
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +49,7 @@ export interface CreateRestaurantData {
     instagram?: string;
   }[];
   cuisine: string[];
+  image?: string;
 }
 
 export interface RestaurantReview {
@@ -77,24 +80,22 @@ export async function getRestaurants(params?: {
     
     // Return mock data if there's a network error
     console.warn('Network error detected, returning mock data for development');
-    return getMockRestaurants(params);
+    return getMockRestaurants();
   }
 }
 
 // Mock data function for development
-function getMockRestaurants(params?: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  cuisine?: string;
-  rating?: number;
-  location?: string;
-}) {
+function getMockRestaurants() {
   const mockRestaurants: Restaurant[] = [
     {
       _id: "1",
       restaurantName: "Green Garden Bistro",
-      address: "123 Vegan St, Plant City, PC 12345",
+      name: "Green Garden Bistro",
+      address: "123 Vegan St",
+      city: "Plant City",
+      country: "USA",
+      phone: "+1-555-0123",
+      website: "https://greengardenbistro.com",
       location: {
         type: "Point",
         coordinates: [40.7128, -74.0060]
@@ -110,6 +111,7 @@ function getMockRestaurants(params?: {
         instagram: "@greengardenbistro"
       }],
       cuisine: ["Vegan", "Mediterranean", "Organic"],
+      image: "/placeholder-recipe.jpg",
       rating: 4.8,
       numReviews: 127,
       reviews: [],
@@ -119,7 +121,12 @@ function getMockRestaurants(params?: {
     {
       _id: "2", 
       restaurantName: "Plant Power Kitchen",
-      address: "456 Healthy Ave, Wellness Town, WT 67890",
+      name: "Plant Power Kitchen",
+      address: "456 Healthy Ave",
+      city: "Wellness Town",
+      country: "USA",
+      phone: "+1-555-0456",
+      website: "https://plantpowerkitchen.com",
       location: {
         type: "Point",
         coordinates: [40.7614, -73.9776]
@@ -135,6 +142,7 @@ function getMockRestaurants(params?: {
         instagram: "@plantpowerkitchen"
       }],
       cuisine: ["Vegan", "Raw", "Gluten-free"],
+      image: "/placeholder-recipe.jpg",
       rating: 4.6,
       numReviews: 89,
       reviews: [],
@@ -144,7 +152,12 @@ function getMockRestaurants(params?: {
     {
       _id: "3",
       restaurantName: "Harvest Moon Cafe",
-      address: "789 Organic Blvd, Fresh Fields, FF 13579",
+      name: "Harvest Moon Cafe",
+      address: "789 Organic Blvd",
+      city: "Fresh Fields",
+      country: "USA",
+      phone: "+1-555-0789",
+      website: "https://harvestmooncafe.com",
       location: {
         type: "Point",
         coordinates: [40.7489, -73.9857]
@@ -160,6 +173,7 @@ function getMockRestaurants(params?: {
         instagram: "@harvestmooncafe"
       }],
       cuisine: ["Vegetarian", "Vegan", "Farm-to-table"],
+      image: "/placeholder-recipe.jpg",
       rating: 4.7,
       numReviews: 156,
       reviews: [],

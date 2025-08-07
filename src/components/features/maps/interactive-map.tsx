@@ -29,7 +29,7 @@ interface InteractiveMapProps {
   onLocationClick?: (location: Location) => void;
 }
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+// const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export function InteractiveMap({
   locations,
@@ -45,7 +45,7 @@ export function InteractiveMap({
   const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
   
   const { isLoaded, loadError, isLoading } = useGoogleMaps({
-    libraries: ["places" as any],
+    libraries: ["places" as const],
   });
 
   useEffect(() => {

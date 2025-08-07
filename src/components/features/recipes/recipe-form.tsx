@@ -73,7 +73,7 @@ export function RecipeForm({
       title: initialData?.title || "",
       description: initialData?.description || "",
       ingredients: initialData?.ingredients || [""],
-      instructions: initialData?.instructions || [""],
+      instructions: Array.isArray(initialData?.instructions) ? initialData.instructions : (initialData?.instructions ? [initialData.instructions] : [""]),
       preparationTime: initialData?.preparationTime || 0,
       cookingTime: initialData?.cookingTime || 0,
       servings: initialData?.servings || 1,
