@@ -2,7 +2,6 @@ import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from 
 import { Review } from '@/types';
 
 // Development flag to use mock data when backend has issues
-// const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
 
 export interface Restaurant {
   _id: string;
