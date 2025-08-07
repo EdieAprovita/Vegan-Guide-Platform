@@ -66,13 +66,13 @@ export function MarketList({
       const response = await getMarkets(params);
       
       if (reset) {
-        setMarkets(response.markets || response);
+        setMarkets(response.data || response);
         setPage(1);
       } else {
-        setMarkets(prev => [...prev, ...(response.markets || response)]);
+        setMarkets(prev => [...prev, ...(response.data || response)]);
       }
 
-      setHasMore((response.markets || response).length === 12);
+      setHasMore((response.data || response).length === 12);
     } catch {
       toast.error("Failed to load markets");
     } finally {

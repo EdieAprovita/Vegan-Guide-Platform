@@ -3,6 +3,17 @@
 import { create } from "zustand";
 import * as postsApi from "@/lib/api/posts";
 import type { Post, CreatePostData, CreateCommentData } from "@/lib/api/posts";
+
+interface Comment {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+    photo?: string;
+  };
+  content: string;
+  createdAt: string;
+}
 import { processBackendResponse } from "@/lib/api/config";
 
 interface PostsState {
@@ -173,7 +184,7 @@ export const usePosts = create<PostsState>((set) => ({
     try {
       const response = await postsApi.addComment(id, comment, token);
       // The backend returns the updated comments array
-      const comments = processBackendResponse<any[]>(response) as any[];
+      const comments = processBackendResponse<Comment[]>(response) as Comment[];
       set((state) => ({
         posts: state.posts.map((post) =>
           post._id === id ? { ...post, comments } : post

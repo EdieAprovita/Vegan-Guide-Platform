@@ -1,4 +1,4 @@
-import { getMarkets } from "@/lib/api/markets";
+import { getMarkets, Market } from "@/lib/api/markets";
 import { SimpleMarketList } from "@/components/features/markets/simple-market-list";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
@@ -8,12 +8,12 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 export default async function MarketsPage() {
-  let initialMarkets = [];
+  let initialMarkets: Market[] = [];
   
   try {
     const response = await getMarkets();
     // Ensure we always pass an array
-    initialMarkets = Array.isArray(response) ? response : (response?.markets || []);
+    initialMarkets = Array.isArray(response) ? response : (response?.data || []);
     console.log("Server-side markets fetch result:", initialMarkets);
   } catch (error) {
     console.error('Failed to fetch markets:', error);

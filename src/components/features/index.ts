@@ -6,6 +6,10 @@ export { RestaurantList } from "./restaurants/restaurant-list";
 export { RestaurantCard } from "./restaurants/restaurant-card";
 export { ReviewSystem } from "./reviews/review-system";
 export { GlobalSearch } from "./search/global-search";
+export { BusinessList } from "./businesses/business-list";
+export { BusinessCard } from "./businesses/business-card";
+export { BusinessForm } from "./businesses/business-form";
+export { BusinessDetailClient } from "./businesses/business-detail-client";
 
 // Phase 2 Components
 export { DoctorList } from "./doctors/doctor-list";

@@ -209,14 +209,14 @@ export function RecipeList({
                 title={recipe.title}
                 description={recipe.description}
                 image={recipe.image || "/placeholder-recipe.jpg"}
-                preparationTime={recipe.preparationTime}
+                preparationTime={recipe.preparationTime || 0}
                 cookingTime={recipe.cookingTime}
-                servings={recipe.servings}
-                difficulty={recipe.difficulty}
-                averageRating={recipe.averageRating}
+                servings={recipe.servings || 1}
+                difficulty={recipe.difficulty || "medium"}
+                averageRating={recipe.averageRating || recipe.rating}
                 author={{
-                  username: recipe.author.username,
-                  photo: recipe.author.photo,
+                  username: "Recipe Author",
+                  photo: undefined,
                 }}
                 onView={() => router.push(`/recipes/${recipe._id}`)}
               />

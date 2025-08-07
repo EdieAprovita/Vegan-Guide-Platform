@@ -57,13 +57,13 @@ export function PostList({
       const response = await getPosts(params);
       
       if (reset) {
-        setPosts(response.posts || response);
+        setPosts(response.data || response);
         setPage(1);
       } else {
-        setPosts(prev => [...prev, ...(response.posts || response)]);
+        setPosts(prev => [...prev, ...(response.data || response)]);
       }
 
-      setHasMore((response.posts || response).length === 12);
+      setHasMore((response.data || response).length === 12);
     } catch {
       toast.error("Failed to load posts");
     } finally {

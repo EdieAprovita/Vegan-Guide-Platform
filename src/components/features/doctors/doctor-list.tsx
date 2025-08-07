@@ -66,13 +66,13 @@ export function DoctorList({
       const response = await getDoctors(params);
       
       if (reset) {
-        setDoctors(response.doctors || response);
+        setDoctors(response.data || response);
         setPage(1);
       } else {
-        setDoctors(prev => [...prev, ...(response.doctors || response)]);
+        setDoctors(prev => [...prev, ...(response.data || response)]);
       }
 
-      setHasMore((response.doctors || response).length === 12);
+      setHasMore((response.data || response).length === 12);
     } catch {
       toast.error("Failed to load doctors");
     } finally {
