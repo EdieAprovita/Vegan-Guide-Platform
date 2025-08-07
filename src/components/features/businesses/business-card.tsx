@@ -67,7 +67,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         </div>
 
-        {business.budget && (
+        {business.budget !== undefined && business.budget !== null && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Presupuesto:</span>
             <Badge variant="outline" className="text-xs">
