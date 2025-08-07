@@ -21,6 +21,7 @@ export default function MapPage() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<MarkerData[]>([]);
+  const [markerInstances, setMarkerInstances] = useState<google.maps.Marker[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     restaurants: true,
@@ -29,7 +30,7 @@ export default function MapPage() {
   });
 
   const { isLoaded, loadError, isLoading } = useGoogleMaps({
-    libraries: ["places" as any],
+    libraries: ["places" as const],
   });
 
   const initMap = useCallback(() => {
@@ -80,17 +81,37 @@ export default function MapPage() {
     }
   }, [map]);
 
+  // Clean up markers when component unmounts or map changes
+  useEffect(() => {
+    return () => {
+      markerInstances.forEach(marker => {
+        marker.setMap(null);
+      });
+    };
+  }, [markerInstances]);
+
+  // Manage markers based on filters and data
   useEffect(() => {
     if (map && markers.length > 0 && google && google.maps) {
+      // Clear existing markers
+      markerInstances.forEach(marker => {
+        marker.setMap(null);
+      });
+
+      // Create new markers based on filters
+      const newMarkers: google.maps.Marker[] = [];
       markers.forEach((markerData) => {
         if (filters[markerData.type]) {
-          new google.maps.Marker({
+          const marker = new google.maps.Marker({
             position: markerData.position,
             map: map,
             title: markerData.name,
           });
+          newMarkers.push(marker);
         }
       });
+
+      setMarkerInstances(newMarkers);
     }
   }, [map, markers, filters]);
 

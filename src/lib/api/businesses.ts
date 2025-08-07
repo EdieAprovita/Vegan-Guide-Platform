@@ -80,33 +80,33 @@ export async function getBusiness(id: string) {
   return apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
 }
 
-export async function createBusiness(data: CreateBusinessData, token?: string) {
+export async function createBusiness(data: CreateBusinessData) {
   return apiRequest<BackendResponse<Business>>(`/businesses`, {
     method: "POST",
-    headers: getApiHeaders(token),
+    headers: getApiHeaders(),
     body: JSON.stringify(data),
   });
 }
 
-export async function updateBusiness(id: string, data: Partial<CreateBusinessData>, token?: string) {
+export async function updateBusiness(id: string, data: Partial<CreateBusinessData>) {
   return apiRequest<BackendResponse<Business>>(`/businesses/${id}`, {
     method: "PUT",
-    headers: getApiHeaders(token),
+    headers: getApiHeaders(),
     body: JSON.stringify(data),
   });
 }
 
-export async function deleteBusiness(id: string, token?: string) {
+export async function deleteBusiness(id: string) {
   return apiRequest<BackendResponse<void>>(`/businesses/${id}`, {
     method: "DELETE",
-    headers: getApiHeaders(token),
+    headers: getApiHeaders(),
   });
 }
 
-export async function addBusinessReview(id: string, review: BusinessReview, token?: string) {
+export async function addBusinessReview(id: string, review: BusinessReview) {
   return apiRequest<BackendResponse<Business>>(`/businesses/add-review/${id}`, {
     method: "POST",
-    headers: getApiHeaders(token),
+    headers: getApiHeaders(),
     body: JSON.stringify(review),
   });
 }

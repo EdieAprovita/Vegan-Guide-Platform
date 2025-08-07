@@ -127,8 +127,8 @@ export function SimpleRecipeList({
             difficulty={recipe.difficulty || "medium"} // Default to medium if not available
             averageRating={recipe.averageRating || recipe.rating || 0} // Use rating if averageRating not available
             author={{
-              username: typeof recipe.author === 'string' ? 'Recipe Author' : recipe.author.username,
-              photo: typeof recipe.author === 'string' ? undefined : recipe.author.photo
+              username: 'Recipe Author',
+              photo: undefined
             }}
             onView={() => {
               // Navigate to recipe detail page

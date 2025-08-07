@@ -20,7 +20,7 @@ interface RecipeDetailClientProps {
 }
 
 export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
-  const { currentRecipe, isLoading, error, getRecipe, rateRecipe } = useRecipes();
+  const { currentRecipe, isLoading, error, getRecipe } = useRecipes();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
     easy: "text-green-500",
     medium: "text-yellow-500",
     hard: "text-red-500",
-  }[currentRecipe.difficulty];
+  }[currentRecipe?.difficulty || "easy"];
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -78,24 +78,14 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <div className="flex items-center gap-4 mb-4">
-              {currentRecipe.author.photo ? (
-                <Image
-                  src={currentRecipe.author.photo}
-                  alt={currentRecipe.author.username}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <span className="text-lg font-medium text-emerald-700">
-                    {currentRecipe.author.username[0]}
-                  </span>
-                </div>
-              )}
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                <span className="text-lg font-medium text-emerald-700">
+                  A
+                </span>
+              </div>
               <div>
                 <p className="text-sm opacity-90">Recipe by</p>
-                <p className="font-medium">{currentRecipe.author.username}</p>
+                <p className="font-medium">Author</p>
               </div>
             </div>
             <h1 className="text-4xl font-bold font-['Playfair_Display']">
@@ -110,7 +100,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <div>
               <p className="text-sm opacity-70">Total Time</p>
               <p className="font-medium">
-                {currentRecipe.preparationTime + currentRecipe.cookingTime} min
+                {(currentRecipe.preparationTime || 0) + currentRecipe.cookingTime} min
               </p>
             </div>
           </div>
@@ -135,7 +125,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <div>
               <p className="text-sm opacity-70">Rating</p>
               <p className="font-medium">
-                {currentRecipe.averageRating.toFixed(1)}
+                {(currentRecipe.averageRating || currentRecipe.rating)?.toFixed(1) || "N/A"}
               </p>
             </div>
           </div>
@@ -186,18 +176,9 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <h2 className="text-2xl font-bold font-['Playfair_Display'] text-emerald-800 mb-4">
               Instructions
             </h2>
-            <ol className="space-y-4">
-              {currentRecipe.instructions.map((instruction, index) => (
-                <li
-                  key={index}
-                  className="flex gap-4 text-emerald-600 leading-relaxed">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center font-medium text-emerald-700">
-                    {index + 1}
-                  </span>
-                  {instruction}
-                </li>
-              ))}
-            </ol>
+            <div className="text-emerald-600 leading-relaxed whitespace-pre-line">
+              {currentRecipe.instructions}
+            </div>
           </div>
 
           {user && (
@@ -210,16 +191,10 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
                   <Button
                     key={rating}
                     variant="ghost"
-                    onClick={() => rateRecipe(currentRecipe._id, rating)}
+                    onClick={() => {/* TODO: implement rating */}}
                     className="text-yellow-400 hover:text-yellow-500">
                     <Star
-                      className={`w-8 h-8 ${
-                        currentRecipe.ratings.some(
-                          (r) => r.user === user.id && r.rating >= rating
-                        )
-                          ? "fill-current"
-                          : ""
-                      }`}
+                      className="w-8 h-8"
                     />
                   </Button>
                 ))}

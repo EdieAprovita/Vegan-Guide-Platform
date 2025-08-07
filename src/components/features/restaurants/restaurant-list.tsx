@@ -67,13 +67,13 @@ export function RestaurantList({
       const response = await getRestaurants(params);
       
       if (reset) {
-        setRestaurants(response.restaurants || response);
+        setRestaurants(response.data || []);
         setPage(1);
       } else {
-        setRestaurants(prev => [...prev, ...(response.restaurants || response)]);
+        setRestaurants(prev => [...prev, ...(response.data || [])]);
       }
 
-      setHasMore((response.restaurants || response).length === 12);
+      setHasMore((response.data || []).length === 12);
     } catch {
       toast.error("Failed to load restaurants");
     } finally {

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { getRestaurant, addRestaurantReview } from "@/lib/api/restaurants";
-import { Restaurant } from "@/types";
+import { getRestaurant, addRestaurantReview, Restaurant } from "@/lib/api/restaurants";
+import { extractBackendData } from "@/lib/api/config";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -20,8 +20,8 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
   useEffect(() => {
     const loadRestaurant = async () => {
       try {
-        const data = await getRestaurant(restaurantId);
-        setRestaurant(data);
+        const response = await getRestaurant(restaurantId);
+        setRestaurant(extractBackendData(response));
       } catch {
         toast.error("Failed to load restaurant details");
         setRestaurant(null);
@@ -39,8 +39,8 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
     try {
       await addRestaurantReview(restaurantId, { rating, comment });
       toast.success("Review added successfully");
-      const data = await getRestaurant(restaurantId);
-      setRestaurant(data);
+      const response = await getRestaurant(restaurantId);
+      setRestaurant(extractBackendData(response));
     } catch {
       toast.error("Failed to add review");
     }

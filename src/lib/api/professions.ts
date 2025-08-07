@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse, PaginatedResponse } from './config';
 
 export interface Profession {
   _id: string;
@@ -78,7 +78,7 @@ export async function getProfessions(params?: {
   return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
 }
 
-export async function getProfession(id: string): Promise<Profession> {
+export async function getProfession(id: string) {
   return apiRequest<BackendResponse<Profession>>(`/professions/${id}`);
 }
 
@@ -209,8 +209,8 @@ export async function getProfessionalProfiles(params?: {
   return apiRequest<PaginatedResponse<ProfessionalProfile>>(`/professionalProfile?${searchParams.toString()}`);
 }
 
-export async function getProfessionalProfile(id: string): Promise<ProfessionalProfile> {
-  return apiRequest<ProfessionalProfile>(`/professionalProfile/${id}`);
+export async function getProfessionalProfile(id: string) {
+  return apiRequest<BackendResponse<ProfessionalProfile>>(`/professionalProfile/${id}`);
 }
 
 export async function createProfessionalProfile(data: CreateProfessionalProfileData, token?: string) {

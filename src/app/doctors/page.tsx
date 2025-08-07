@@ -2,18 +2,18 @@ import { SimpleDoctorList } from "@/components/features/doctors/simple-doctor-li
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getDoctors } from "@/lib/api/doctors";
+import { getDoctors, Doctor } from "@/lib/api/doctors";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export default async function DoctorsPage() {
-  let initialDoctors = [];
+  let initialDoctors: Doctor[] = [];
   
   try {
     const response = await getDoctors();
     // Ensure we always pass an array
-    initialDoctors = Array.isArray(response) ? response : (response?.doctors || []);
+    initialDoctors = Array.isArray(response) ? response : (response?.data || []);
     console.log("Server-side doctors fetch result:", initialDoctors);
   } catch (error) {
     console.error('Failed to fetch doctors:', error);
