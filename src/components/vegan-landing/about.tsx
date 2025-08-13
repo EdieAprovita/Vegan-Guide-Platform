@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export function About() {
   return (
@@ -68,7 +68,7 @@ export function About() {
       </div>
 
       <div className="w-full max-w-[400px] sm:max-w-[500px] lg:w-[500px] h-[280px] sm:h-[350px] lg:h-[484px] relative overflow-hidden bg-green-100 rounded-lg shadow-lg">
-        <Image
+        <SafeImage
           src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
           alt="Colorful plant-based meal prep containers"
           className="w-full h-full object-cover"

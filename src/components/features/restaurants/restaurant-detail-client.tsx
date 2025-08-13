@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { getRestaurant, addRestaurantReview, Restaurant } from "@/lib/api/restaurants";
+import { Review } from "@/lib/api/reviews";
 import { extractBackendData } from "@/lib/api/config";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
@@ -35,9 +36,9 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
     }
   }, [restaurantId]);
 
-  const handleAddReview = async (rating: number, comment: string) => {
+  const handleAddReview = async (data: { rating: number; comment: string }) => {
     try {
-      await addRestaurantReview(restaurantId, { rating, comment });
+      await addRestaurantReview(restaurantId, { rating: data.rating, comment: data.comment });
       toast.success("Review added successfully");
       const response = await getRestaurant(restaurantId);
       setRestaurant(extractBackendData(response));
@@ -53,6 +54,24 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
   if (!restaurant) {
     return notFound();
   }
+
+  // Convert restaurant reviews to Review format
+  const adaptedReviews: Review[] = restaurant.reviews?.map((review, index: number) => ({
+    _id: `${restaurant._id}-${index}`,
+    user: { 
+      _id: 'anonymous',
+      username: 'Usuario Anónimo',
+      photo: undefined
+    },
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.createdAt || new Date().toISOString(),
+    updatedAt: review.createdAt || new Date().toISOString(),
+    resourceType: 'restaurant' as const,
+    resourceId: restaurant._id,
+    helpful: [],
+    helpfulCount: 0
+  })) || [];
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -109,10 +128,7 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
           </div>
           <div className="p-8 border-t border-gray-200">
             <ReviewSystem
-              itemType="Restaurant"
-              reviews={restaurant.reviews}
-              averageRating={restaurant.rating}
-              numReviews={restaurant.numReviews}
+              reviews={adaptedReviews}
               onReviewSubmit={handleAddReview}
             />
           </div>

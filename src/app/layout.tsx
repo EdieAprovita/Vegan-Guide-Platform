@@ -1,21 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import {
-  Geist,
-  Geist_Mono,
+  Inter,
+  JetBrains_Mono,
   Clicker_Script,
   Playfair_Display,
 } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPrompt } from "@/components/features/pwa/install-prompt";
+import { DebugInfo } from "@/components/ui/debug-info";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
@@ -128,11 +129,12 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}
         suppressHydrationWarning>
         <Providers>
           {children}
           <InstallPrompt />
+          <DebugInfo />
         </Providers>
       </body>
     </html>

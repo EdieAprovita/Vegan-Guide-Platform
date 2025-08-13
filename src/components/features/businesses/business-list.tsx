@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, SlidersHorizontal } from 'lucide-react';
+import { useState } from 'react';
+import { Search, MapPin, SlidersHorizontal } from 'lucide-react';
 import { BusinessCard } from './business-card';
 import { useBusinesses } from '@/hooks/useBusinesses';
 import { Input } from '@/components/ui/input';
@@ -31,38 +31,26 @@ interface BusinessListProps {
   limit?: number;
 }
 
-export function BusinessList({ 
+export const BusinessList = ({ 
   title = 'Negocios Veganos', 
   showFilters = true,
   limit 
-}: BusinessListProps) {
+}: BusinessListProps) => {
   const [search, setSearch] = useState('');
   const [typeBusiness, setTypeBusiness] = useState<string>('');
   const [rating, setRating] = useState<number>();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  const { businesses, isLoading, error, getBusinesses } = useBusinesses();
-
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        await getBusinesses({
-          search: search || undefined,
-          typeBusiness: typeBusiness || undefined,
-          rating: rating || undefined,
-          limit: limit || undefined,
-        });
-      } catch (err) {
-        console.error('Error fetching businesses:', err);
-      }
-    };
-
-    fetchBusinesses();
-  }, [search, typeBusiness, rating, limit, getBusinesses]);
+  const { businesses, loading, error } = useBusinesses({
+    search: search || undefined,
+    typeBusiness: typeBusiness || undefined,
+    rating: rating || undefined,
+    limit: limit || undefined,
+  });
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Search is handled by the useEffect hook via dependency array
+    // Search is handled by the useBusinesses hook via dependency array
   };
 
   const clearFilters = () => {
@@ -94,7 +82,7 @@ export function BusinessList({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
         <div className="text-sm text-gray-600">
-          {isLoading ? 'Cargando...' : `${businesses.length} negocios encontrados`}
+          {loading ? 'Cargando...' : `${businesses.length} negocios encontrados`}
         </div>
       </div>
 
@@ -220,7 +208,7 @@ export function BusinessList({
       )}
 
       {/* Business Grid */}
-      {isLoading ? (
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
@@ -257,4 +245,4 @@ export function BusinessList({
       )}
     </div>
   );
-}
+};

@@ -113,7 +113,7 @@ export default function MapPage() {
 
       setMarkerInstances(newMarkers);
     }
-  }, [map, markers, filters]);
+  }, [map, markers, filters, markerInstances]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
