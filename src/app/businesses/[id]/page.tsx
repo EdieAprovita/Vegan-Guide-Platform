@@ -8,7 +8,7 @@ interface BusinessDetailPageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: BusinessDetailPageProps): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `Negocio | Verde Guide`,
     description: 'Detalles del negocio vegano seleccionado.',
@@ -16,15 +16,15 @@ export async function generateMetadata({ params }: BusinessDetailPageProps): Pro
 }
 
 export default async function BusinessDetailPage({ params }: BusinessDetailPageProps) {
-  const { id } = await params;
+  const resolvedParams = await params;
   
-  if (!id) {
+  if (!resolvedParams.id) {
     notFound();
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BusinessDetailClient businessId={id} />
+      <BusinessDetailClient businessId={resolvedParams.id} />
     </div>
   );
 }

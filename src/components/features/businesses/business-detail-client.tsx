@@ -1,58 +1,43 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit } from 'lucide-react';
+import { Review } from '@/lib/api/reviews';
 import Link from 'next/link';
-import { useBusinesses } from '@/hooks/useBusinesses';
-import { useAuthWithRouter } from '@/hooks/useAuth';
+import { useBusiness, useBusinessMutations } from '@/hooks/useBusinesses';
+import { useAuthStore } from '@/lib/store/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReviewSystem } from '@/components/features/reviews/review-system';
 import { BusinessReview } from '@/lib/api/businesses';
-import { toast } from 'sonner';
 
 interface BusinessDetailClientProps {
   businessId: string;
 }
 
-export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) {
-  const { currentBusiness, isLoading, error, getBusiness, addBusinessReview } = useBusinesses();
-  const { user, isAuthenticated } = useAuthWithRouter();
+export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) => {
+  const { business, loading, error } = useBusiness(businessId);
+  const { addReview, loading: mutationLoading } = useBusinessMutations();
+  const { user, isAuthenticated } = useAuthStore();
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewData, setReviewData] = useState({ rating: 0, comment: '' });
-  const [submittingReview, setSubmittingReview] = useState(false);
 
-  useEffect(() => {
-    if (businessId) {
-      getBusiness(businessId).catch(console.error);
-    }
-  }, [businessId, getBusiness]);
-
-  const handleAddReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentBusiness || reviewData.rating === 0 || !reviewData.comment.trim()) {
-      toast.error('Por favor completa todos los campos');
-      return;
-    }
+  const handleAddReview = async (reviewData: { rating: number; comment: string }) => {
+    if (!business) return;
 
     try {
-      setSubmittingReview(true);
       const review: BusinessReview = {
         rating: reviewData.rating,
-        comment: reviewData.comment.trim(),
+        comment: reviewData.comment,
       };
       
-      await addBusinessReview(currentBusiness._id, review);
+      await addReview(business._id, review);
       setShowReviewForm(false);
-      setReviewData({ rating: 0, comment: '' });
-      toast.success('Review agregada exitosamente');
+      // Optionally refresh the business data
+      window.location.reload();
     } catch (error) {
       console.error('Error adding review:', error);
-      toast.error('Error al agregar la review');
-    } finally {
-      setSubmittingReview(false);
     }
   };
 
@@ -61,9 +46,27 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
     return 'Lunes a Viernes: 9:00 AM - 6:00 PM'; // Simplified - implement proper formatting
   };
 
-  const canEditBusiness = user && (user.role === 'admin' || currentBusiness?.author._id === user.id);
+  const canEditBusiness = user?.role === 'admin' || business?.author._id === user?._id;
 
-  if (isLoading) {
+  // Convert BusinessReview to Review format
+  const adaptedReviews: Review[] = business?.reviews?.map((review, index) => ({
+    _id: `business-review-${index}`, // Generate temporary ID
+    user: {
+      _id: 'anonymous',
+      username: 'Usuario Anónimo',
+      photo: undefined
+    },
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    resourceType: 'business' as const,
+    resourceId: business._id,
+    helpful: [],
+    helpfulCount: 0
+  })) || [];
+
+  if (loading) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
@@ -96,7 +99,7 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
     );
   }
 
-  if (error || !currentBusiness) {
+  if (error || !business) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="p-8 text-center">
@@ -128,7 +131,7 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
         {canEditBusiness && (
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/businesses/${currentBusiness._id}/edit`} className="flex items-center gap-2">
+              <Link href={`/businesses/${business._id}/edit`} className="flex items-center gap-2">
                 <Edit className="h-4 w-4" />
                 Editar
               </Link>
@@ -144,22 +147,22 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
           {/* Business Image */}
           <div className="relative h-64 md:h-80 overflow-hidden rounded-lg">
             <img
-              src={currentBusiness.image || '/placeholder-business.jpg'}
-              alt={currentBusiness.namePlace}
+              src={business.image || '/placeholder-business.jpg'}
+              alt={business.namePlace}
               className="w-full h-full object-cover"
             />
             <div className="absolute top-4 left-4">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                {currentBusiness.typeBusiness}
+                {business.typeBusiness}
               </Badge>
             </div>
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-gray-900">
-                {currentBusiness.rating?.toFixed(1) || 'N/A'}
+                {business.rating?.toFixed(1) || 'N/A'}
               </span>
               <span className="text-sm text-gray-600">
-                ({currentBusiness.numReviews || 0})
+                ({business.numReviews || 0})
               </span>
             </div>
           </div>
@@ -167,29 +170,29 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
           {/* Business Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">{currentBusiness.namePlace}</CardTitle>
+              <CardTitle className="text-2xl">{business.namePlace}</CardTitle>
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="h-4 w-4" />
-                <span>{currentBusiness.address}</span>
+                <span>{business.address}</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  <span>{currentBusiness.numReviews || 0} reviews</span>
+                  <span>{business.numReviews || 0} reviews</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>{formatBusinessHours(currentBusiness.hours)}</span>
+                  <span>{formatBusinessHours(business.hours)}</span>
                 </div>
               </div>
 
-              {currentBusiness.budget && (
+              {business.budget && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Presupuesto estimado:</span>
                   <Badge variant="outline" className="text-sm">
-                    ${currentBusiness.budget.toLocaleString()}
+                    ${business.budget.toLocaleString()}
                   </Badge>
                 </div>
               )}
@@ -198,11 +201,11 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
                 <p className="text-sm text-gray-600 mb-2">Creado por:</p>
                 <div className="flex items-center gap-2">
                   <img
-                    src={currentBusiness.author.photo || '/default-avatar.jpg'}
-                    alt={currentBusiness.author.username}
+                    src={business.author.photo || '/default-avatar.jpg'}
+                    alt={business.author.username}
                     className="w-8 h-8 rounded-full object-cover"
                   />
-                  <span className="font-medium text-gray-900">{currentBusiness.author.username}</span>
+                  <span className="font-medium text-gray-900">{business.author.username}</span>
                 </div>
               </div>
             </CardContent>
@@ -224,89 +227,15 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Review Form */}
-              {showReviewForm && (
-                <form onSubmit={handleAddReview} className="mb-6 p-4 border rounded-lg">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Calificación</label>
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
-                            className="p-1"
-                          >
-                            <Star
-                              className={`h-6 w-6 ${
-                                star <= reviewData.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Comentario</label>
-                      <textarea
-                        rows={4}
-                        value={reviewData.comment}
-                        onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Comparte tu experiencia..."
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button type="submit" disabled={submittingReview}>
-                        {submittingReview ? 'Enviando...' : 'Publicar Review'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setShowReviewForm(false);
-                          setReviewData({ rating: 0, comment: '' });
-                        }}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              )}
-
-              {/* Reviews List */}
-              <div className="space-y-4">
-                {currentBusiness.reviews && currentBusiness.reviews.length > 0 ? (
-                  currentBusiness.reviews.map((review, index) => (
-                    <div key={index} className="border-b pb-4 last:border-b-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-4 w-4 ${
-                                star <= review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-600">{review.date}</span>
-                      </div>
-                      <p className="text-gray-700">{review.comment}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-600 text-center py-4">
-                    No hay reviews aún. ¡Sé el primero en compartir tu experiencia!
-                  </p>
-                )}
-              </div>
+              <ReviewSystem
+                resourceType="business"
+                resourceId={business._id}
+                reviews={adaptedReviews}
+                showForm={showReviewForm}
+                onFormCancel={() => setShowReviewForm(false)}
+                onReviewSubmit={handleAddReview}
+                isSubmitting={mutationLoading}
+              />
             </CardContent>
           </Card>
         </div>
@@ -319,9 +248,9 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
               <CardTitle className="text-lg">Información de Contacto</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {currentBusiness.contact && currentBusiness.contact.length > 0 && (
+              {business.contact && business.contact.length > 0 && (
                 <>
-                  {currentBusiness.contact[0].phone && (
+                  {business.contact[0].phone && (
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-gray-500" />
                       <div>
@@ -329,15 +258,15 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.location.href = `tel:${currentBusiness.contact[0].phone}`}
+                          onClick={() => window.location.href = `tel:${business.contact[0].phone}`}
                         >
-                          {currentBusiness.contact[0].phone}
+                          {business.contact[0].phone}
                         </Button>
                       </div>
                     </div>
                   )}
 
-                  {currentBusiness.contact[0].email && (
+                  {business.contact[0].email && (
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-gray-500" />
                       <div>
@@ -345,15 +274,15 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.location.href = `mailto:${currentBusiness.contact[0].email}`}
+                          onClick={() => window.location.href = `mailto:${business.contact[0].email}`}
                         >
-                          {currentBusiness.contact[0].email}
+                          {business.contact[0].email}
                         </Button>
                       </div>
                     </div>
                   )}
 
-                  {currentBusiness.contact[0].website && (
+                  {business.contact[0].website && (
                     <div className="flex items-center gap-3">
                       <Globe className="h-4 w-4 text-gray-500" />
                       <div>
@@ -361,7 +290,7 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.open(currentBusiness.contact[0].website, '_blank')}
+                          onClick={() => window.open(business.contact[0].website, '_blank')}
                         >
                           Visitar sitio web
                         </Button>
@@ -373,11 +302,11 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
 
               {/* Quick Actions */}
               <div className="pt-4 border-t space-y-2">
-                {currentBusiness.contact?.[0]?.phone && (
+                {business.contact?.[0]?.phone && (
                   <Button
                     variant="default"
                     className="w-full"
-                    onClick={() => window.location.href = `tel:${currentBusiness.contact[0].phone}`}
+                    onClick={() => window.location.href = `tel:${business.contact[0].phone}`}
                   >
                     <Phone className="h-4 w-4 mr-2" />
                     Llamar Ahora
@@ -388,7 +317,7 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    const query = encodeURIComponent(`${currentBusiness.namePlace} ${currentBusiness.address}`);
+                    const query = encodeURIComponent(`${business.namePlace} ${business.address}`);
                     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
                   }}
                 >
@@ -407,13 +336,13 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
             <CardContent>
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">{formatBusinessHours(currentBusiness.hours)}</span>
+                <span className="text-gray-700">{formatBusinessHours(business.hours)}</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Map Preview (if location available) */}
-          {currentBusiness.location && (
+          {business.location && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Ubicación</CardTitle>
@@ -429,4 +358,4 @@ export function BusinessDetailClient({ businessId }: BusinessDetailClientProps) 
       </div>
     </div>
   );
-}
+};

@@ -11,7 +11,7 @@ interface BusinessCardProps {
   business: Business;
 }
 
-export function BusinessCard({ business }: BusinessCardProps) {
+export const BusinessCard = ({ business }: BusinessCardProps) => {
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`;
   };
@@ -67,7 +67,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </div>
         </div>
 
-        {business.budget !== undefined && business.budget !== null && (
+        {business.budget && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Presupuesto:</span>
             <Badge variant="outline" className="text-xs">
@@ -98,4 +98,4 @@ export function BusinessCard({ business }: BusinessCardProps) {
       </CardContent>
     </Card>
   );
-}
+};

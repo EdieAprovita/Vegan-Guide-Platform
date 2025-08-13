@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Clock, Phone, Mail, Globe, ImageIcon } from 'lucide-react';
-import { useBusinesses } from '@/hooks/useBusinesses';
+import { MapPin, Phone, Mail, Globe, ImageIcon } from 'lucide-react';
+import { useBusinessMutations } from '@/hooks/useBusinesses';
 import { CreateBusinessData } from '@/lib/api/businesses';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea'; // TODO: Use when implementing textarea fields
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,9 +33,9 @@ interface BusinessFormProps {
   onSuccess?: () => void;
 }
 
-export function BusinessForm({ mode, initialData, onSuccess }: BusinessFormProps) {
+export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps) => {
   const router = useRouter();
-  const { createBusiness, isLoading } = useBusinesses();
+  const { createBusiness, loading } = useBusinessMutations();
   
   const [formData, setFormData] = useState<CreateBusinessData>({
     namePlace: initialData?.namePlace || '',
@@ -87,9 +87,9 @@ export function BusinessForm({ mode, initialData, onSuccess }: BusinessFormProps
 
     try {
       if (mode === 'create') {
-        await createBusiness(formData);
+        const newBusiness = await createBusiness(formData);
         toast.success('Negocio creado exitosamente');
-        router.push('/businesses');
+        router.push(`/businesses/${newBusiness._id}`);
       }
       
       onSuccess?.();
@@ -99,7 +99,7 @@ export function BusinessForm({ mode, initialData, onSuccess }: BusinessFormProps
     }
   };
 
-  const handleInputChange = (field: keyof CreateBusinessData, value: any) => {
+  const handleInputChange = (field: keyof CreateBusinessData, value: string | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -300,12 +300,12 @@ export function BusinessForm({ mode, initialData, onSuccess }: BusinessFormProps
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          disabled={isLoading}
+          disabled={loading}
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading} className="min-w-32">
-          {isLoading ? (
+        <Button type="submit" disabled={loading} className="min-w-32">
+          {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               {mode === 'create' ? 'Creando...' : 'Actualizando...'}
@@ -317,4 +317,4 @@ export function BusinessForm({ mode, initialData, onSuccess }: BusinessFormProps
       </div>
     </form>
   );
-}
+};

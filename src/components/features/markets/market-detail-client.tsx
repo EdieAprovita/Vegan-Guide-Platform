@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { getMarket, addMarketReview, Market } from "@/lib/api/markets";
+import { Review } from "@/lib/api/reviews";
 import { extractBackendData } from "@/lib/api/config";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
@@ -35,9 +36,9 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
     }
   }, [marketId]);
 
-  const handleAddReview = async (rating: number, comment: string) => {
+  const handleAddReview = async (data: { rating: number; comment: string }) => {
     try {
-      await addMarketReview(marketId, { rating, comment });
+      await addMarketReview(marketId, { rating: data.rating, comment: data.comment });
       toast.success("Review added successfully");
       const response = await getMarket(marketId);
       setMarket(extractBackendData(response));
@@ -53,6 +54,24 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
   if (!market) {
     return notFound();
   }
+
+  // Convert market reviews to Review format
+  const adaptedReviews: Review[] = market.reviews?.map((review: { user: string; rating: number; comment: string; date: string }, index: number) => ({
+    _id: `${market._id}-${index}`,
+    user: { 
+      _id: `user-${review.user}`,
+      username: review.user,
+      photo: undefined
+    },
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.date,
+    updatedAt: review.date,
+    resourceType: 'market' as const,
+    resourceId: market._id,
+    helpful: [],
+    helpfulCount: 0
+  })) || [];
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -109,19 +128,7 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
           </div>
           <div className="p-8 border-t border-gray-200">
             <ReviewSystem
-              itemType="Market"
-              reviews={market.reviews.map((review: { user: string; rating: number; comment: string; date: string }) => ({
-                _id: `${market._id}-${review.date}`,
-                user: { 
-                  _id: `user-${review.user}`,
-                  username: review.user 
-                },
-                rating: review.rating,
-                comment: review.comment,
-                createdAt: review.date
-              }))}
-              averageRating={market.rating}
-              numReviews={market.numReviews}
+              reviews={adaptedReviews}
               onReviewSubmit={handleAddReview}
             />
           </div>

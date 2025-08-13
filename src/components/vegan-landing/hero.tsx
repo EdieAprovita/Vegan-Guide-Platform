@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export function Hero() {
   return (
     <div className="w-full min-h-screen relative flex flex-col justify-center">
       {/* Background Image */}
-      <Image
+      <SafeImage
         src="https://images.pexels.com/photos/750952/pexels-photo-750952.jpeg"
         alt="Fresh green vegetables"
         className="w-full h-full object-cover absolute top-0 left-0 z-10"
