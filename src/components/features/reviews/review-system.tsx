@@ -31,8 +31,8 @@ interface ReviewSystemProps {
 
 export const ReviewSystem = ({
   reviews,
-  resourceType: _resourceType, // eslint-disable-line @typescript-eslint/no-unused-vars
-  resourceId: _resourceId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  resourceType: _resourceType,
+  resourceId: _resourceId,
   onReviewUpdate,
   showStats = true,
   showForm = false,

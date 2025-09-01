@@ -32,7 +32,7 @@ export default function TestImagesPage() {
       case "lazy":
         return <LazyImage {...commonProps} />;
       default:
-        return <Image {...commonProps} />;
+        return <Image {...commonProps} alt="Test image" />;
     }
   };
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { MapPin, Star, Users, Clock, DollarSign, Utensils, Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { MapPin, Star, Clock, Utensils, Heart, Users, MessageCircle, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,10 +82,12 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
         <div className="flex flex-col sm:flex-row">
           {/* Image */}
           <div className="relative w-full sm:w-48 h-48 sm:h-32 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
-            <img
+            <Image
               src={result.image || '/placeholder-image.jpg'}
               alt={result.title || 'Result image'}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              sizes="(max-width: 640px) 100vw, 192px"
             />
             
             {/* Resource Type Badge */}
@@ -301,17 +304,16 @@ export const SearchResults = ({
 
       {/* Results Grid */}
       <div className="space-y-4">
-        {results.map((result) => (
-          <SearchResultCard key={result._id} result={result} />
-        ))}
-
-        {/* Loading Skeletons */}
-        {isLoading && (
-          <div className="space-y-4">
+        {isLoading ? (
+          <>
             {[...Array(results.length > 0 ? 3 : 6)].map((_, i) => (
-              <SearchResultSkeleton key={i} />
+              <SearchResultSkeleton key={`skeleton-${i}`} />
             ))}
-          </div>
+          </>
+        ) : (
+          results.map((result) => (
+            <SearchResultCard key={result._id} result={result} />
+          ))
         )}
       </div>
 
