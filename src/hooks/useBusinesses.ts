@@ -43,6 +43,7 @@ export function useBusinesses(filters?: {
 
   useEffect(() => {
     fetchBusinesses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters?.page, filters?.limit, filters?.search, filters?.typeBusiness, filters?.rating, filters?.location]);
 
   return { businesses, loading, error, refetch: fetchBusinesses };

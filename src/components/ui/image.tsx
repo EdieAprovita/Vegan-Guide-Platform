@@ -143,6 +143,7 @@ export function Image({
   // Use native img if Next.js Image is not available or there are errors
   if (!useNextImage || hasError) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
         alt={alt || 'Image'}
@@ -169,7 +170,6 @@ export function Image({
   // Use Next.js Image when available
   try {
     // Use dynamic import instead of require
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const NextImage = require('next/image').default;
     
     return (
@@ -203,6 +203,7 @@ export function Image({
     // Fallback to native img if Next.js Image fails
     console.warn('Next.js Image failed, falling back to native img:', error);
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
         alt={alt || 'Image'}

@@ -123,6 +123,7 @@ export function SafeImage({
   // Si Next.js Image no está disponible o hay errores, usar img nativo
   if (!shouldUseNextImage || hasError) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
         alt={alt || 'Image'}
@@ -147,7 +148,6 @@ export function SafeImage({
   // Usar Next.js Image cuando esté disponible
   try {
     // Use dynamic import instead of require
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const NextImage = require('next/image').default;
     
     return (
@@ -179,6 +179,7 @@ export function SafeImage({
     // Fallback a img nativo si Next.js Image falla
     console.warn('Next.js Image failed, falling back to native img:', error);
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
         alt={alt || 'Image'}

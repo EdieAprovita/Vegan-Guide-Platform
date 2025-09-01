@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { MapPin, Phone, Mail, Globe, ImageIcon } from 'lucide-react';
 import { useBusinessMutations } from '@/hooks/useBusinesses';
 import { CreateBusinessData } from '@/lib/api/businesses';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// import { Textarea } from '@/components/ui/textarea'; // TODO: Use when implementing textarea fields
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -230,10 +230,12 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
             <div className="mt-4">
               <Label>Vista Previa</Label>
               <div className="mt-2 h-48 overflow-hidden rounded-lg border">
-                <img
+                <Image
                   src={formData.image}
                   alt="Preview"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 400px"
                   onError={(e) => {
                     e.currentTarget.src = '/placeholder-business.jpg';
                   }}

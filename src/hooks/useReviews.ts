@@ -111,7 +111,7 @@ export function useReviews({
     } finally {
       setLoading(false);
     }
-  }, [resourceType, resourceId, limit]);
+  }, [resourceType, resourceId, limit, reviews.length]);
 
   const fetchStats = useCallback(async () => {
     if (!resourceId) return;

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Clock, Phone, Star, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,10 +27,12 @@ export const BusinessCard = ({ business }: BusinessCardProps) => {
     <Card className="group hover:shadow-lg transition-shadow duration-300 bg-white border-gray-200">
       <CardHeader className="relative p-0">
         <div className="relative h-48 overflow-hidden rounded-t-lg">
-          <img
+          <Image
             src={business.image || '/placeholder-business.jpg'}
             alt={business.namePlace}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -67,7 +70,7 @@ export const BusinessCard = ({ business }: BusinessCardProps) => {
           </div>
         </div>
 
-        {business.budget && (
+        {Boolean(business.budget) && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Presupuesto:</span>
             <Badge variant="outline" className="text-xs">

@@ -65,6 +65,7 @@ export function useAdvancedSearch() {
   // Load aggregations when filters change (excluding query)
   useEffect(() => {
     loadAggregations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     searchState.filters.resourceTypes,
     searchState.filters.location,

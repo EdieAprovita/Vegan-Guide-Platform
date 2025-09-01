@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReviewSystem } from '@/components/features/reviews/review-system';
 import { BusinessReview } from '@/lib/api/businesses';
+import Image from 'next/image';
 
 interface BusinessDetailClientProps {
   businessId: string;
@@ -146,10 +147,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
         <div className="lg:col-span-2 space-y-6">
           {/* Business Image */}
           <div className="relative h-64 md:h-80 overflow-hidden rounded-lg">
-            <img
+            <Image
               src={business.image || '/placeholder-business.jpg'}
               alt={business.namePlace}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
             />
             <div className="absolute top-4 left-4">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
@@ -188,7 +191,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                 </div>
               </div>
 
-              {business.budget && (
+              {Boolean(business.budget) && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Presupuesto estimado:</span>
                   <Badge variant="outline" className="text-sm">
@@ -200,10 +203,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
               <div className="pt-4 border-t">
                 <p className="text-sm text-gray-600 mb-2">Creado por:</p>
                 <div className="flex items-center gap-2">
-                  <img
+                  <Image
                     src={business.author.photo || '/default-avatar.jpg'}
                     alt={business.author.username}
-                    className="w-8 h-8 rounded-full object-cover"
+                    width={32}
+                    height={32}
+                    className="rounded-full object-cover"
                   />
                   <span className="font-medium text-gray-900">{business.author.username}</span>
                 </div>
