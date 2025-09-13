@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader, Library } from "@googlemaps/js-api-loader";
+import { GOOGLE_MAPS_CONFIG } from "@/lib/config/maps";
 
 interface UseGoogleMapsOptions {
   libraries?: Library[];
@@ -14,13 +15,14 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    try {
+      const apiKey = GOOGLE_MAPS_CONFIG.apiKey;
 
-    if (!apiKey) {
-      setLoadError("Google Maps API key is not configured");
-      setIsLoading(false);
-      return;
-    }
+      if (!apiKey) {
+        setLoadError("Google Maps API key is not configured");
+        setIsLoading(false);
+        return;
+      }
 
     // Check if Google Maps is already loaded
     if (window.google && window.google.maps) {
@@ -64,6 +66,11 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
         setLoadError("Failed to load Google Maps");
         setIsLoading(false);
       });
+    } catch (error) {
+      console.error("Error initializing Google Maps:", error);
+      setLoadError("Failed to initialize Google Maps");
+      setIsLoading(false);
+    }
   }, [options.version, options.libraries]);
 
   return { isLoaded, loadError, isLoading };
