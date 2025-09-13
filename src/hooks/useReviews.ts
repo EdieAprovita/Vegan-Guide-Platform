@@ -60,36 +60,9 @@ export function useReviews({
       setLoading(true);
       setError(null);
 
-      let response;
-      
-      // Fetch reviews based on resource type
-      switch (resourceType) {
-        case 'restaurant':
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        case 'recipe':
-          // Implement recipe reviews when API is available
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        case 'market':
-          // Implement market reviews when API is available
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        case 'doctor':
-          // Implement doctor reviews when API is available
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        case 'business':
-          // Implement business reviews when API is available
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        case 'sanctuary':
-          // Implement sanctuary reviews when API is available
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-          break;
-        default:
-          response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-      }
+      // Currently all resource types use the same endpoint
+      // TODO: Implement specific endpoints when APIs become available for other resource types
+      const response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
 
       const newReviews = response.data || [];
       
@@ -166,17 +139,9 @@ export function useReviews({
       setLoading(true);
       setError(null);
 
-      let response;
-      
-      // Create review based on resource type
-      switch (resourceType) {
-        case 'restaurant':
-          response = await createRestaurantReview(resourceId, data, token);
-          break;
-        default:
-          // For other resource types, use a generic endpoint
-          response = await createRestaurantReview(resourceId, data, token);
-      }
+      // Currently all resource types use the same endpoint
+      // TODO: Implement specific endpoints when APIs become available for other resource types
+      const response = await createRestaurantReview(resourceId, data, token);
 
       if (response?.data) {
         const newReview = response.data;
