@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, MapPin, Target, Search } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 
 export interface SelectedLocation {
   lat: number;
@@ -54,6 +55,11 @@ export function LocationPicker({
   const [showResults, setShowResults] = useState(false);
 
   const { userCoords, getCurrentPosition, loading: locationLoading } = useUserLocation();
+
+  // Ensure Google Maps (including Places) is ready before using Places APIs
+  const { isLoaded, isLoading } = useGoogleMaps({
+    libraries: [...GOOGLE_MAPS_CONFIG.libraries],
+  });
 
   // Memoized marker for selected location
   const markerLocations = useMemo((): Location[] => {
@@ -115,13 +121,17 @@ export function LocationPicker({
 
       // Get address for current location
       try {
-        const geocoder = new google.maps.Geocoder();
-        const response = await geocoder.geocode({ location: { lat, lng } });
+        if ((window as any).google?.maps?.Geocoder) {
+          const geocoder = new google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat, lng } });
 
-        if (response.results[0]) {
-          newLocation.address = response.results[0].formatted_address;
-          newLocation.formattedAddress = response.results[0].formatted_address;
-          newLocation.placeId = response.results[0].place_id;
+          if (response.results[0]) {
+            newLocation.address = response.results[0].formatted_address;
+            newLocation.formattedAddress = response.results[0].formatted_address;
+            newLocation.placeId = response.results[0].place_id;
+          }
+        } else {
+          newLocation.address = 'Mi ubicación actual';
         }
       } catch (error) {
         console.error('Error getting current location address:', error);
@@ -147,6 +157,13 @@ export function LocationPicker({
     setIsSearching(true);
 
     try {
+      // Guard: Only proceed if Google Maps Places is available
+      if (typeof window === 'undefined' || !(window as any).google?.maps?.places || !isLoaded) {
+        setIsSearching(false);
+        setSearchResults([]);
+        setShowResults(false);
+        return;
+      }
       // Use Google Places API for search
       const service = new google.maps.places.PlacesService(document.createElement('div'));
 
@@ -245,7 +262,7 @@ export function LocationPicker({
               placeholder={placeholder}
               value={searchQuery}
               onChange={handleSearchChange}
-              disabled={disabled}
+              disabled={disabled || isLoading || !isLoaded}
               className="pl-10 pr-4"
             />
             {isSearching && (
@@ -261,7 +278,7 @@ export function LocationPicker({
                   key={`${result.place_id}-${index}`}
                   type="button"
                   onClick={() => handleSelectSearchResult(result)}
-                  disabled={disabled}
+                  disabled={disabled || isLoading || !isLoaded}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none transition-colors"
                 >
                   <div className="flex items-start gap-3">
@@ -291,7 +308,7 @@ export function LocationPicker({
           variant="outline"
           size="sm"
           onClick={handleUseCurrentLocation}
-          disabled={disabled || locationLoading}
+          disabled={disabled || locationLoading || isLoading || !isLoaded}
           className="w-full sm:w-auto"
         >
           {locationLoading ? (
