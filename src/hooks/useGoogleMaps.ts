@@ -25,7 +25,7 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
       }
 
     // Check if Google Maps is already loaded
-    if (window.google && window.google.maps) {
+    if (window.google?.maps) {
       setIsLoaded(true);
       setIsLoading(false);
       return;
@@ -36,7 +36,7 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
     if (existingScript) {
       // Script is already being loaded, wait for it
       const checkLoaded = () => {
-        if (window.google && window.google.maps) {
+        if (window.google?.maps) {
           setIsLoaded(true);
           setIsLoading(false);
         } else {
@@ -53,21 +53,34 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
       libraries: options.libraries || ["places" as Library],
     });
 
-    loader
-      .load()
+    const loadPromise = loader.load();
+
+    if (!loadPromise) {
+      setLoadError("Failed to initialize Google Maps loader");
+      setIsLoading(false);
+      return;
+    }
+
+    loadPromise
       .then(() => {
-        console.log("Google Maps loaded successfully");
-        console.log("google.maps available:", !!window.google?.maps);
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Google Maps loaded successfully");
+          console.log("google.maps available:", !!window.google?.maps);
+        }
         setIsLoaded(true);
         setIsLoading(false);
       })
-      .catch((error) => {
-        console.error("Error loading Google Maps:", error);
+      .catch((error: Error) => {
+        if (process.env.NODE_ENV !== 'test') {
+          console.error("Error loading Google Maps:", error);
+        }
         setLoadError("Failed to load Google Maps");
         setIsLoading(false);
       });
     } catch (error) {
-      console.error("Error initializing Google Maps:", error);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error("Error initializing Google Maps:", error);
+      }
       setLoadError("Failed to initialize Google Maps");
       setIsLoading(false);
     }

@@ -113,31 +113,17 @@ describe('useGoogleMaps Hook', () => {
     });
   });
 
-  test('should handle API key configuration error', async () => {
-    // Mock the config to throw an error when accessing apiKey
-    const errorConfig = {
-      get apiKey() {
-        throw new Error('Google Maps API key is required');
-      },
-      libraries: ['places', 'geometry'] as const,
-    };
-
-    // Temporarily replace the mock
-    const originalMock = require('@/lib/config/maps');
-    jest.doMock('@/lib/config/maps', () => ({
-      GOOGLE_MAPS_CONFIG: errorConfig,
-    }));
+  test('should handle loader initialization error', async () => {
+    // Mock loader.load to return undefined
+    mockLoader.load.mockReturnValueOnce(undefined);
 
     const { result } = renderHook(() => useGoogleMaps());
 
     await waitFor(() => {
-      expect(result.current.loadError).toBe('Failed to initialize Google Maps');
+      expect(result.current.loadError).toBe('Failed to initialize Google Maps loader');
     });
 
     expect(result.current.isLoaded).toBe(false);
     expect(result.current.isLoading).toBe(false);
-
-    // Restore original mock
-    jest.doMock('@/lib/config/maps', () => originalMock);
   });
 });
