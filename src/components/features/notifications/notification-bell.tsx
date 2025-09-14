@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuthStore } from "@/lib/store/auth";
 import Link from "next/link";
 
@@ -68,7 +64,7 @@ export function NotificationBell() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -95,9 +91,9 @@ export function NotificationBell() {
         <Button variant="ghost" size="sm" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
@@ -105,18 +101,16 @@ export function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-4 border-b">
+        <div className="border-b p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
-            {unreadCount > 0 && (
-              <Badge variant="destructive">{unreadCount} unread</Badge>
-            )}
+            {unreadCount > 0 && <Badge variant="destructive">{unreadCount} unread</Badge>}
           </div>
         </div>
         <div className="max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <Bell className="mx-auto mb-2 h-8 w-8 text-gray-400" />
               <p className="text-sm">No notifications</p>
             </div>
           ) : (
@@ -124,16 +118,16 @@ export function NotificationBell() {
               {notifications.slice(0, 5).map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors ${
+                  className={`p-4 transition-colors hover:bg-gray-50 ${
                     !notification.read ? "bg-blue-50" : ""
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="mb-1 text-sm font-medium text-gray-900">
                         {notification.title}
                       </h4>
-                      <p className="text-sm text-gray-600 mb-1 line-clamp-2">
+                      <p className="mb-1 line-clamp-2 text-sm text-gray-600">
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -141,7 +135,7 @@ export function NotificationBell() {
                       </p>
                     </div>
                     {!notification.read && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></div>
                     )}
                   </div>
                 </div>
@@ -150,10 +144,10 @@ export function NotificationBell() {
           )}
         </div>
         {notifications.length > 0 && (
-          <div className="p-4 border-t">
+          <div className="border-t p-4">
             <Link
               href="/notifications"
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
               onClick={() => setIsOpen(false)}
             >
               View all notifications
@@ -163,4 +157,4 @@ export function NotificationBell() {
       </PopoverContent>
     </Popover>
   );
-} 
+}

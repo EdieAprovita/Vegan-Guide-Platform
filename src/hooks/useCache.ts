@@ -29,7 +29,7 @@ export function useCache<T>(
       if (cached) {
         const item: CacheItem<T> = JSON.parse(cached);
         const now = Date.now();
-        
+
         if (now - item.timestamp < item.ttl) {
           return item.data;
         } else {
@@ -43,18 +43,21 @@ export function useCache<T>(
     return null;
   }, [cacheKey]);
 
-  const setCachedData = useCallback((data: T) => {
-    try {
-      const cacheItem: CacheItem<T> = {
-        data,
-        timestamp: Date.now(),
-        ttl,
-      };
-      localStorage.setItem(`cache_${cacheKey}`, JSON.stringify(cacheItem));
-    } catch (error) {
-      console.warn("Failed to write to cache:", error);
-    }
-  }, [cacheKey, ttl]);
+  const setCachedData = useCallback(
+    (data: T) => {
+      try {
+        const cacheItem: CacheItem<T> = {
+          data,
+          timestamp: Date.now(),
+          ttl,
+        };
+        localStorage.setItem(`cache_${cacheKey}`, JSON.stringify(cacheItem));
+      } catch (error) {
+        console.warn("Failed to write to cache:", error);
+      }
+    },
+    [cacheKey, ttl]
+  );
 
   const clearCache = useCallback(() => {
     try {
@@ -67,7 +70,7 @@ export function useCache<T>(
   const refetch = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await fetchFunction();
       setData(result);
@@ -104,8 +107,8 @@ export function useCache<T>(
 export function clearAllCache() {
   try {
     const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.startsWith('cache_')) {
+    keys.forEach((key) => {
+      if (key.startsWith("cache_")) {
         localStorage.removeItem(key);
       }
     });
@@ -118,9 +121,9 @@ export function clearAllCache() {
 export function getCacheSize(): number {
   try {
     const keys = Object.keys(localStorage);
-    return keys.filter(key => key.startsWith('cache_')).length;
+    return keys.filter((key) => key.startsWith("cache_")).length;
   } catch (error) {
     console.warn("Failed to get cache size:", error);
     return 0;
   }
-} 
+}

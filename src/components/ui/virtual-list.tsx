@@ -66,10 +66,7 @@ export function VirtualList<T>({
           }}
         >
           {visibleItems.map((item, index) => (
-            <div
-              key={startIndex + index}
-              style={{ height: itemHeight }}
-            >
+            <div key={startIndex + index} style={{ height: itemHeight }}>
               {renderItem(item, startIndex + index)}
             </div>
           ))}
@@ -140,12 +137,7 @@ export function VirtualInfiniteList<T>({
   hasMore: boolean;
   threshold?: number;
 }) {
-  const { loadingRef, isLoading } = useInfiniteScroll(
-    items,
-    loadMore,
-    hasMore,
-    threshold
-  );
+  const { loadingRef, isLoading } = useInfiniteScroll(items, loadMore, hasMore, threshold);
 
   // Add loading item to the end of items if hasMore
   const itemsWithLoading = hasMore ? [...items, null as T | null] : items;
@@ -156,7 +148,7 @@ export function VirtualInfiniteList<T>({
         <div ref={loadingRef} className="p-4 text-center">
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>
               <span className="ml-2">Loading more...</span>
             </div>
           ) : (
@@ -178,4 +170,4 @@ export function VirtualInfiniteList<T>({
       overscan={overscan}
     />
   );
-} 
+}

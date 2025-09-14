@@ -1,10 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
-import {
-  Loader,
-  Map as MapIcon,
-} from "lucide-react";
+import { Loader, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 
 interface MarkerData {
@@ -34,8 +31,8 @@ export default function MapPage() {
   });
 
   const initMap = useCallback(() => {
-    console.log("initMap called - isLoaded:", isLoaded, "google:", typeof google !== 'undefined');
-    if (isLoaded && mapRef.current && typeof google !== 'undefined' && google.maps) {
+    console.log("initMap called - isLoaded:", isLoaded, "google:", typeof google !== "undefined");
+    if (isLoaded && mapRef.current && typeof google !== "undefined" && google.maps) {
       console.log("Creating map instance...");
       const mapInstance = new google.maps.Map(mapRef.current, {
         center: { lat: 40.7128, lng: -74.006 },
@@ -50,8 +47,8 @@ export default function MapPage() {
       console.log("Cannot create map - conditions not met:", {
         isLoaded,
         hasMapRef: !!mapRef.current,
-        hasGoogle: typeof google !== 'undefined',
-        hasMaps: typeof google !== 'undefined' && !!google.maps
+        hasGoogle: typeof google !== "undefined",
+        hasMaps: typeof google !== "undefined" && !!google.maps,
       });
     }
   }, [isLoaded]);
@@ -64,9 +61,14 @@ export default function MapPage() {
     try {
       // MOCK DATA
       const mockData = [
-        { id: "1", type: "restaurants", name: "Vegan Delight", position: { lat: 40.72, lng: -74.01 } },
+        {
+          id: "1",
+          type: "restaurants",
+          name: "Vegan Delight",
+          position: { lat: 40.72, lng: -74.01 },
+        },
         { id: "2", type: "markets", name: "Green Market", position: { lat: 40.73, lng: -73.99 } },
-        { id: "3", type: "doctors", name: "Dr. Plant", position: { lat: 40.71, lng: -74.00 } },
+        { id: "3", type: "doctors", name: "Dr. Plant", position: { lat: 40.71, lng: -74.0 } },
       ] as MarkerData[];
       setMarkers(mockData);
       toast.success("Locations loaded successfully");
@@ -84,7 +86,7 @@ export default function MapPage() {
   // Clean up markers when component unmounts or map changes
   useEffect(() => {
     return () => {
-      markerInstances.forEach(marker => {
+      markerInstances.forEach((marker) => {
         marker.setMap(null);
       });
     };
@@ -94,7 +96,7 @@ export default function MapPage() {
   useEffect(() => {
     if (map && markers.length > 0 && google && google.maps) {
       // Clear existing markers
-      markerInstances.forEach(marker => {
+      markerInstances.forEach((marker) => {
         marker.setMap(null);
       });
 
@@ -126,28 +128,26 @@ export default function MapPage() {
 
   return (
     <div className="flex h-screen">
-      <div className="w-1/3 p-4 overflow-y-auto bg-white shadow-lg z-10">
-        <h1 className="text-2xl font-bold mb-4">Explore</h1>
+      <div className="z-10 w-1/3 overflow-y-auto bg-white p-4 shadow-lg">
+        <h1 className="mb-4 text-2xl font-bold">Explore</h1>
         <form onSubmit={handleSearch} className="mb-4">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search locations..."
-            className="w-full p-2 border rounded"
+            className="w-full rounded border p-2"
           />
         </form>
         <div className="mb-4">
-          <h2 className="font-semibold mb-2">Filters</h2>
+          <h2 className="mb-2 font-semibold">Filters</h2>
           <div className="flex flex-col gap-2">
             {Object.keys(filters).map((filter) => (
               <label key={filter} className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={filters[filter as keyof typeof filters]}
-                  onChange={() =>
-                    handleFilterChange(filter as keyof typeof filters)
-                  }
+                  onChange={() => handleFilterChange(filter as keyof typeof filters)}
                 />
                 {filter.charAt(0).toUpperCase() + filter.slice(1)}
               </label>
@@ -157,12 +157,12 @@ export default function MapPage() {
         <div>
           {isLoading && (
             <div className="flex items-center justify-center p-4">
-              <Loader className="animate-spin mr-2" />
+              <Loader className="mr-2 animate-spin" />
               <span>Loading Google Maps...</span>
             </div>
           )}
           {loadError && (
-            <div className="p-4 text-red-600 bg-red-50 rounded">
+            <div className="rounded bg-red-50 p-4 text-red-600">
               <p>Error loading map: {loadError}</p>
             </div>
           )}
@@ -171,7 +171,7 @@ export default function MapPage() {
               {markers
                 .filter((m) => filters[m.type])
                 .map((marker) => (
-                  <li key={marker.id} className="p-2 border-b hover:bg-gray-50">
+                  <li key={marker.id} className="border-b p-2 hover:bg-gray-50">
                     <h3 className="font-semibold">{marker.name}</h3>
                     <p className="text-sm text-gray-600 capitalize">{marker.type}</p>
                   </li>
@@ -180,19 +180,19 @@ export default function MapPage() {
           )}
         </div>
       </div>
-      <div ref={mapRef} className="w-2/3 h-full">
+      <div ref={mapRef} className="h-full w-2/3">
         {isLoading && (
-          <div className="h-full w-full flex items-center justify-center bg-gray-200">
+          <div className="flex h-full w-full items-center justify-center bg-gray-200">
             <div className="text-center">
-              <Loader className="animate-spin w-8 h-8 mx-auto mb-2" />
+              <Loader className="mx-auto mb-2 h-8 w-8 animate-spin" />
               <p>Loading map...</p>
             </div>
           </div>
         )}
         {loadError && (
-          <div className="h-full w-full flex items-center justify-center bg-red-50">
+          <div className="flex h-full w-full items-center justify-center bg-red-50">
             <div className="text-center text-red-600">
-              <MapIcon className="w-16 h-16 mx-auto mb-2" />
+              <MapIcon className="mx-auto mb-2 h-16 w-16" />
               <p>Failed to load map</p>
             </div>
           </div>
@@ -200,4 +200,4 @@ export default function MapPage() {
       </div>
     </div>
   );
-} 
+}

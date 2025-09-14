@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { InteractiveMap, Location } from './interactive-map';
-import { useUserLocation } from '@/hooks/useGeolocation';
-import { GOOGLE_MAPS_CONFIG } from '@/lib/config/maps';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, MapPin, Target, Search } from 'lucide-react';
-import { useDebouncedCallback } from 'use-debounce';
-import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { InteractiveMap, Location } from "./interactive-map";
+import { useUserLocation } from "@/hooks/useGeolocation";
+import { GOOGLE_MAPS_CONFIG } from "@/lib/config/maps";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, MapPin, Target, Search } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
+import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 
 export interface SelectedLocation {
   lat: number;
@@ -36,12 +36,12 @@ export function LocationPicker({
   onLocationSelect,
   onLocationChange,
   initialLocation = GOOGLE_MAPS_CONFIG.defaultCenter,
-  height = '300px',
-  className = '',
+  height = "300px",
+  className = "",
   showSearch = true,
   showCurrentLocationButton = true,
-  placeholder = 'Buscar ubicación...',
-  label = 'Seleccionar ubicación',
+  placeholder = "Buscar ubicación...",
+  label = "Seleccionar ubicación",
   disabled = false,
 }: LocationPickerProps) {
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation>({
@@ -49,7 +49,7 @@ export function LocationPicker({
     lng: initialLocation.lng,
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<google.maps.places.PlaceResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -65,48 +65,55 @@ export function LocationPicker({
   const markerLocations = useMemo((): Location[] => {
     if (!selectedLocation) return [];
 
-    return [{
-      id: 'selected-location',
-      name: selectedLocation.formattedAddress || 'Ubicación seleccionada',
-      address: selectedLocation.address || `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`,
-      type: 'business' as const,
-      coordinates: [selectedLocation.lat, selectedLocation.lng],
-      url: '#',
-    }];
+    return [
+      {
+        id: "selected-location",
+        name: selectedLocation.formattedAddress || "Ubicación seleccionada",
+        address:
+          selectedLocation.address ||
+          `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`,
+        type: "business" as const,
+        coordinates: [selectedLocation.lat, selectedLocation.lng],
+        url: "#",
+      },
+    ];
   }, [selectedLocation]);
 
   // Handle map click
-  const handleMapClick = useCallback(async (event: google.maps.MapMouseEvent) => {
-    if (disabled) return;
+  const handleMapClick = useCallback(
+    async (event: google.maps.MapMouseEvent) => {
+      if (disabled) return;
 
-    const clickedLocation = event.latLng;
-    if (!clickedLocation) return;
+      const clickedLocation = event.latLng;
+      if (!clickedLocation) return;
 
-    const lat = clickedLocation.lat();
-    const lng = clickedLocation.lng();
+      const lat = clickedLocation.lat();
+      const lng = clickedLocation.lng();
 
-    const newLocation: SelectedLocation = { lat, lng };
+      const newLocation: SelectedLocation = { lat, lng };
 
-    // Try to get address using Geocoding API
-    try {
-      const geocoder = new google.maps.Geocoder();
-      const response = await geocoder.geocode({ location: { lat, lng } });
+      // Try to get address using Geocoding API
+      try {
+        const geocoder = new google.maps.Geocoder();
+        const response = await geocoder.geocode({ location: { lat, lng } });
 
-      if (response.results[0]) {
-        newLocation.address = response.results[0].formatted_address;
-        newLocation.formattedAddress = response.results[0].formatted_address;
-        newLocation.placeId = response.results[0].place_id;
+        if (response.results[0]) {
+          newLocation.address = response.results[0].formatted_address;
+          newLocation.formattedAddress = response.results[0].formatted_address;
+          newLocation.placeId = response.results[0].place_id;
+        }
+      } catch (error) {
+        console.error("Error getting address:", error);
+        newLocation.address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
       }
-    } catch (error) {
-      console.error('Error getting address:', error);
-      newLocation.address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
 
-    setSelectedLocation(newLocation);
-    onLocationSelect(newLocation);
-    onLocationChange?.(newLocation);
-    setShowResults(false);
-  }, [disabled, onLocationSelect, onLocationChange]);
+      setSelectedLocation(newLocation);
+      onLocationSelect(newLocation);
+      onLocationChange?.(newLocation);
+      setShowResults(false);
+    },
+    [disabled, onLocationSelect, onLocationChange]
+  );
 
   // Handle using current location
   const handleUseCurrentLocation = useCallback(async () => {
@@ -131,18 +138,18 @@ export function LocationPicker({
             newLocation.placeId = response.results[0].place_id;
           }
         } else {
-          newLocation.address = 'Mi ubicación actual';
+          newLocation.address = "Mi ubicación actual";
         }
       } catch (error) {
-        console.error('Error getting current location address:', error);
-        newLocation.address = 'Mi ubicación actual';
+        console.error("Error getting current location address:", error);
+        newLocation.address = "Mi ubicación actual";
       }
 
       setSelectedLocation(newLocation);
       onLocationSelect(newLocation);
       onLocationChange?.(newLocation);
     } catch (error) {
-      console.error('Error getting current location:', error);
+      console.error("Error getting current location:", error);
     }
   }, [disabled, getCurrentPosition, onLocationSelect, onLocationChange]);
 
@@ -158,14 +165,14 @@ export function LocationPicker({
 
     try {
       // Guard: Only proceed if Google Maps Places is available
-      if (typeof window === 'undefined' || !(window as any).google?.maps?.places || !isLoaded) {
+      if (typeof window === "undefined" || !(window as any).google?.maps?.places || !isLoaded) {
         setIsSearching(false);
         setSearchResults([]);
         setShowResults(false);
         return;
       }
       // Use Google Places API for search
-      const service = new google.maps.places.PlacesService(document.createElement('div'));
+      const service = new google.maps.places.PlacesService(document.createElement("div"));
 
       const request: google.maps.places.TextSearchRequest = {
         query: query,
@@ -186,7 +193,7 @@ export function LocationPicker({
         setIsSearching(false);
       });
     } catch (error) {
-      console.error('Error searching places:', error);
+      console.error("Error searching places:", error);
       setIsSearching(false);
       setSearchResults([]);
       setShowResults(false);
@@ -194,47 +201,53 @@ export function LocationPicker({
   }, 500);
 
   // Handle search input change
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    debouncedSearch(value);
-  }, [debouncedSearch]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
   // Handle selecting a search result
-  const handleSelectSearchResult = useCallback((place: google.maps.places.PlaceResult) => {
-    if (disabled || !place.geometry?.location) return;
+  const handleSelectSearchResult = useCallback(
+    (place: google.maps.places.PlaceResult) => {
+      if (disabled || !place.geometry?.location) return;
 
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
 
-    const newLocation: SelectedLocation = {
-      lat,
-      lng,
-      address: place.formatted_address || place.name,
-      formattedAddress: place.formatted_address,
-      placeId: place.place_id,
-    };
+      const newLocation: SelectedLocation = {
+        lat,
+        lng,
+        address: place.formatted_address || place.name,
+        formattedAddress: place.formatted_address,
+        placeId: place.place_id,
+      };
 
-    setSelectedLocation(newLocation);
-    setSearchQuery(place.name || place.formatted_address || '');
-    setShowResults(false);
+      setSelectedLocation(newLocation);
+      setSearchQuery(place.name || place.formatted_address || "");
+      setShowResults(false);
 
-    onLocationSelect(newLocation);
-    onLocationChange?.(newLocation);
-  }, [disabled, onLocationSelect, onLocationChange]);
+      onLocationSelect(newLocation);
+      onLocationChange?.(newLocation);
+    },
+    [disabled, onLocationSelect, onLocationChange]
+  );
 
   // Handle clicking outside to close results
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.search-container')) {
+      if (!target.closest(".search-container")) {
         setShowResults(false);
       }
     };
 
     if (showResults) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showResults]);
 
@@ -243,10 +256,8 @@ export function LocationPicker({
       {/* Label and Instructions */}
       {label && (
         <div>
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </Label>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</Label>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Haz clic en el mapa para seleccionar una ubicación o usa la búsqueda
           </p>
         </div>
@@ -254,41 +265,41 @@ export function LocationPicker({
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="relative search-container">
+        <div className="search-container relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <Input
               type="text"
               placeholder={placeholder}
               value={searchQuery}
               onChange={handleSearchChange}
               disabled={disabled || isLoading || !isLoaded}
-              className="pl-10 pr-4"
+              className="pr-4 pl-10"
             />
             {isSearching && (
-              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform animate-spin text-gray-400" />
             )}
           </div>
 
           {/* Search Results */}
           {showResults && searchResults.length > 0 && (
-            <div className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-48 overflow-y-auto">
+            <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
               {searchResults.map((result, index) => (
                 <button
                   key={`${result.place_id}-${index}`}
                   type="button"
                   onClick={() => handleSelectSearchResult(result)}
                   disabled={disabled || isLoading || !isLoaded}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none transition-colors"
+                  className="w-full px-4 py-2 text-left transition-colors hover:bg-gray-50 focus:bg-gray-50 focus:outline-none dark:hover:bg-gray-700 dark:focus:bg-gray-700"
                 >
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                         {result.name}
                       </p>
                       {result.formatted_address && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <p className="truncate text-xs text-gray-500 dark:text-gray-400">
                           {result.formatted_address}
                         </p>
                       )}
@@ -312,9 +323,9 @@ export function LocationPicker({
           className="w-full sm:w-auto"
         >
           {locationLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <Target className="h-4 w-4 mr-2" />
+            <Target className="mr-2 h-4 w-4" />
           )}
           Usar mi ubicación actual
         </Button>
@@ -328,7 +339,7 @@ export function LocationPicker({
         height={height}
         onMapClick={handleMapClick}
         showCurrentLocation={showCurrentLocationButton}
-        className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+        className="border-2 border-dashed border-gray-300 transition-colors hover:border-blue-400 dark:border-gray-600 dark:hover:border-blue-500"
         controls={{
           zoomControl: true,
           streetViewControl: false,
@@ -339,18 +350,19 @@ export function LocationPicker({
 
       {/* Selected Location Info */}
       {selectedLocation && (
-        <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-start gap-3">
-            <MapPin className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+            <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Ubicación seleccionada
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                {selectedLocation.formattedAddress || selectedLocation.address ||
+              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {selectedLocation.formattedAddress ||
+                  selectedLocation.address ||
                   `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
                 Coordenadas: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
               </p>
             </div>

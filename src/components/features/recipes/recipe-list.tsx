@@ -32,14 +32,7 @@ export function RecipeList({
 }: RecipeListProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const {
-    recipes,
-    isLoading,
-    error,
-    totalPages,
-    currentPage,
-    getRecipes,
-  } = useRecipes();
+  const { recipes, isLoading, error, totalPages, currentPage, getRecipes } = useRecipes();
 
   useEffect(() => {
     setMounted(true);
@@ -119,14 +112,14 @@ export function RecipeList({
   if (!mounted) {
     return (
       <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 h-10 bg-gray-200 rounded animate-pulse" />
-          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
-          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="h-10 flex-1 animate-pulse rounded bg-gray-200" />
+          <div className="h-10 w-full animate-pulse rounded bg-gray-200 sm:w-[180px]" />
+          <div className="h-10 w-full animate-pulse rounded bg-gray-200 sm:w-[180px]" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-[400px] bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="h-[400px] animate-pulse rounded-lg bg-gray-200" />
           ))}
         </div>
       </div>
@@ -135,13 +128,9 @@ export function RecipeList({
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-500 text-lg">Error loading recipes: {error}</p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          className="mt-4"
-          variant="outline"
-        >
+      <div className="py-8 text-center">
+        <p className="text-lg text-red-500">Error loading recipes: {error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4" variant="outline">
           Try Again
         </Button>
       </div>
@@ -150,7 +139,7 @@ export function RecipeList({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
           <Input
             type="text"
@@ -159,11 +148,9 @@ export function RecipeList({
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500" />
         </div>
-        <Select
-          defaultValue={initialCategory}
-          onValueChange={handleCategoryChange}>
+        <Select defaultValue={initialCategory} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -176,9 +163,7 @@ export function RecipeList({
             <SelectItem value="snack">Snack</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          defaultValue={initialDifficulty}
-          onValueChange={handleDifficultyChange}>
+        <Select defaultValue={initialDifficulty} onValueChange={handleDifficultyChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
@@ -192,17 +177,14 @@ export function RecipeList({
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+        <div className="grid animate-pulse grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: initialLimit }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[400px] bg-emerald-100 rounded-lg"
-            />
+            <div key={i} className="h-[400px] rounded-lg bg-emerald-100" />
           ))}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recipes.map((recipe) => (
               <RecipeCard
                 key={recipe._id}
@@ -232,11 +214,8 @@ export function RecipeList({
                     key={page}
                     variant={page === currentPage ? "default" : "outline"}
                     onClick={() => handlePageChange(page)}
-                    className={
-                      page === currentPage
-                        ? "bg-emerald-600 hover:bg-emerald-700"
-                        : ""
-                    }>
+                    className={page === currentPage ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                  >
                     {page}
                   </Button>
                 );
@@ -247,4 +226,4 @@ export function RecipeList({
       )}
     </div>
   );
-} 
+}

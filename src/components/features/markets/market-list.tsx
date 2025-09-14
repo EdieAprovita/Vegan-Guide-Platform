@@ -5,7 +5,13 @@ import { Market, getMarkets } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Store } from "lucide-react";
 import { toast } from "sonner";
@@ -27,7 +33,7 @@ const PRODUCT_OPTIONS = [
   "Bakery",
   "Beverages",
   "Supplements",
-  "Other"
+  "Other",
 ];
 
 const RATING_OPTIONS = [
@@ -37,10 +43,10 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function MarketList({ 
-  initialMarkets = [], 
+export function MarketList({
+  initialMarkets = [],
   showFilters = true,
-  title = "Markets"
+  title = "Markets",
 }: MarketListProps) {
   const [markets, setMarkets] = useState<Market[]>(initialMarkets);
   const [loading, setLoading] = useState(false);
@@ -50,35 +56,38 @@ export function MarketList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadMarkets = useCallback(async (reset = false) => {
-    setLoading(true);
-    try {
-      const currentPage = reset ? 1 : page;
-      const params: Record<string, string | number> = {
-        page: currentPage,
-        limit: 12,
-      };
+  const loadMarkets = useCallback(
+    async (reset = false) => {
+      setLoading(true);
+      try {
+        const currentPage = reset ? 1 : page;
+        const params: Record<string, string | number> = {
+          page: currentPage,
+          limit: 12,
+        };
 
-      if (search) params.search = search;
-      if (productFilter) params.products = productFilter;
-      if (ratingFilter) params.rating = parseInt(ratingFilter);
+        if (search) params.search = search;
+        if (productFilter) params.products = productFilter;
+        if (ratingFilter) params.rating = parseInt(ratingFilter);
 
-      const response = await getMarkets(params);
-      
-      if (reset) {
-        setMarkets(response.data || response);
-        setPage(1);
-      } else {
-        setMarkets(prev => [...prev, ...(response.data || response)]);
+        const response = await getMarkets(params);
+
+        if (reset) {
+          setMarkets(response.data || response);
+          setPage(1);
+        } else {
+          setMarkets((prev) => [...prev, ...(response.data || response)]);
+        }
+
+        setHasMore((response.data || response).length === 12);
+      } catch {
+        toast.error("Failed to load markets");
+      } finally {
+        setLoading(false);
       }
-
-      setHasMore((response.data || response).length === 12);
-    } catch {
-      toast.error("Failed to load markets");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, productFilter, ratingFilter]);
+    },
+    [page, search, productFilter, ratingFilter]
+  );
 
   useEffect(() => {
     if (initialMarkets.length === 0) {
@@ -96,7 +105,7 @@ export function MarketList({
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
       loadMarkets(false);
     }
   };
@@ -106,19 +115,17 @@ export function MarketList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">
-          {markets.length} markets found
-        </div>
+        <div className="text-sm text-gray-600">{markets.length} markets found</div>
       </div>
 
       {/* Search and Filters */}
       {showFilters && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search markets..."
                   value={search}
@@ -129,10 +136,13 @@ export function MarketList({
               </div>
 
               {/* Product Filter */}
-              <Select value={productFilter} onValueChange={(value) => {
-                setProductFilter(value);
-                handleFilterChange();
-              }}>
+              <Select
+                value={productFilter}
+                onValueChange={(value) => {
+                  setProductFilter(value);
+                  handleFilterChange();
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Products" />
                 </SelectTrigger>
@@ -147,10 +157,13 @@ export function MarketList({
               </Select>
 
               {/* Rating Filter */}
-              <Select value={ratingFilter} onValueChange={(value) => {
-                setRatingFilter(value);
-                handleFilterChange();
-              }}>
+              <Select
+                value={ratingFilter}
+                onValueChange={(value) => {
+                  setRatingFilter(value);
+                  handleFilterChange();
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Rating" />
                 </SelectTrigger>
@@ -174,7 +187,7 @@ export function MarketList({
 
       {/* Market Grid */}
       {markets.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {markets.map((market) => (
             <MarketCard key={market._id} market={market} />
           ))}
@@ -182,11 +195,9 @@ export function MarketList({
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No markets found</h3>
-            <p className="text-gray-600">
-              Try adjusting your search criteria or filters.
-            </p>
+            <Store className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-medium text-gray-900">No markets found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria or filters.</p>
           </CardContent>
         </Card>
       )}
@@ -194,16 +205,11 @@ export function MarketList({
       {/* Load More Button */}
       {hasMore && markets.length > 0 && (
         <div className="text-center">
-          <Button
-            onClick={handleLoadMore}
-            disabled={loading}
-            variant="outline"
-            className="px-8"
-          >
+          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
             {loading ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}
     </div>
   );
-} 
+}

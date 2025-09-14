@@ -1,4 +1,10 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse, PaginatedResponse } from './config';
+import {
+  apiRequest,
+  getApiHeaders,
+  BackendListResponse,
+  BackendResponse,
+  PaginatedResponse,
+} from "./config";
 
 export interface Profession {
   _id: string;
@@ -90,7 +96,11 @@ export async function createProfession(data: CreateProfessionData, token?: strin
   });
 }
 
-export async function updateProfession(id: string, data: Partial<CreateProfessionData>, token?: string) {
+export async function updateProfession(
+  id: string,
+  data: Partial<CreateProfessionData>,
+  token?: string
+) {
   return apiRequest<BackendResponse<Profession>>(`/professions/${id}`, {
     method: "PUT",
     headers: getApiHeaders(token),
@@ -203,17 +213,23 @@ export async function getProfessionalProfiles(params?: {
   if (params?.search) searchParams.append("search", params.search);
   if (params?.profession) searchParams.append("profession", params.profession);
   if (params?.skills) searchParams.append("skills", params.skills);
-  if (params?.availability !== undefined) searchParams.append("availability", params.availability.toString());
+  if (params?.availability !== undefined)
+    searchParams.append("availability", params.availability.toString());
   if (params?.location) searchParams.append("location", params.location);
 
-  return apiRequest<PaginatedResponse<ProfessionalProfile>>(`/professionalProfile?${searchParams.toString()}`);
+  return apiRequest<PaginatedResponse<ProfessionalProfile>>(
+    `/professionalProfile?${searchParams.toString()}`
+  );
 }
 
 export async function getProfessionalProfile(id: string) {
   return apiRequest<BackendResponse<ProfessionalProfile>>(`/professionalProfile/${id}`);
 }
 
-export async function createProfessionalProfile(data: CreateProfessionalProfileData, token?: string) {
+export async function createProfessionalProfile(
+  data: CreateProfessionalProfileData,
+  token?: string
+) {
   return apiRequest<ProfessionalProfile>(`/professionalProfile`, {
     method: "POST",
     headers: getApiHeaders(token),
@@ -221,7 +237,11 @@ export async function createProfessionalProfile(data: CreateProfessionalProfileD
   });
 }
 
-export async function updateProfessionalProfile(id: string, data: Partial<CreateProfessionalProfileData>, token?: string) {
+export async function updateProfessionalProfile(
+  id: string,
+  data: Partial<CreateProfessionalProfileData>,
+  token?: string
+) {
   return apiRequest<ProfessionalProfile>(`/professionalProfile/${id}`, {
     method: "PUT",
     headers: getApiHeaders(token),

@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  getDoctors,
-  getDoctor,
-  searchDoctors,
-  addDoctorReview,
-  Doctor,
-} from "@/lib/api/doctors";
+import { getDoctors, getDoctor, searchDoctors, addDoctorReview, Doctor } from "@/lib/api/doctors";
 import { processBackendResponse } from "@/lib/api/config";
 import { toast } from "sonner";
 
@@ -92,4 +86,4 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
     handleSearch,
     handleAddReview,
   };
-} 
+}

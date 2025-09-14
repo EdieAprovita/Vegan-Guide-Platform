@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Review } from '@/lib/api/reviews';
-import { useAuthStore } from '@/lib/store/auth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ReviewForm } from './review-form';
-import { ReviewCard } from './review-card';
-import { ReviewStats } from './review-stats';
-import { useReviews } from '@/hooks/useReviews';
+import { useState } from "react";
+import { Review } from "@/lib/api/reviews";
+import { useAuthStore } from "@/lib/store/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReviewForm } from "./review-form";
+import { ReviewCard } from "./review-card";
+import { ReviewStats } from "./review-stats";
+import { useReviews } from "@/hooks/useReviews";
 
 interface EnhancedReviewSystemProps {
   reviews: Review[];
@@ -38,10 +38,7 @@ export const EnhancedReviewSystem = ({
   const [editingReview, setEditingReview] = useState<Review | null>(null);
 
   // Use the useReviews hook for additional functionality
-  const {
-    stats: hookStats,
-    loading: statsLoading,
-  } = useReviews({
+  const { stats: hookStats, loading: statsLoading } = useReviews({
     resourceType,
     resourceId,
     autoFetch: false, // Don't auto-fetch since we're passing reviews as props
@@ -52,9 +49,9 @@ export const EnhancedReviewSystem = ({
 
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / reviews.length;
-    
+
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(review => {
+    reviews.forEach((review) => {
       distribution[review.rating as keyof typeof distribution]++;
     });
 
@@ -71,7 +68,8 @@ export const EnhancedReviewSystem = ({
   };
 
   const stats = hookStats || calculateStats();
-  const userHasReviewed = isAuthenticated && reviews.some(review => review.user._id === user?._id);
+  const userHasReviewed =
+    isAuthenticated && reviews.some((review) => review.user._id === user?._id);
 
   const handleAddReview = async (reviewData: { rating: number; comment: string }) => {
     if (onReviewSubmit) {
@@ -82,26 +80,24 @@ export const EnhancedReviewSystem = ({
     onReviewUpdate?.();
   };
 
-
   const handleDeleteReview = () => {
     onReviewUpdate?.();
   };
 
-
   const canEditReview = (review: Review) => {
-    return user && (user._id === review.user._id || user.role === 'admin');
+    return user && (user._id === review.user._id || user.role === "admin");
   };
 
   if (statsLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-4">
                 <div className="animate-pulse space-y-3">
-                  <div className="h-8 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-8 rounded bg-gray-200"></div>
+                  <div className="h-4 w-3/4 rounded bg-gray-200"></div>
                 </div>
               </CardContent>
             </Card>
@@ -119,8 +115,8 @@ export const EnhancedReviewSystem = ({
           averageRating={stats.averageRating}
           totalReviews={stats.totalReviews}
           ratingDistribution={stats.ratingDistribution}
-          helpfulVotes={'helpfulVotes' in stats ? stats.helpfulVotes : 0}
-          totalVotes={'totalVotes' in stats ? stats.totalVotes : 0}
+          helpfulVotes={"helpfulVotes" in stats ? stats.helpfulVotes : 0}
+          totalVotes={"totalVotes" in stats ? stats.totalVotes : 0}
           showDetails={true}
         />
       )}
@@ -128,9 +124,7 @@ export const EnhancedReviewSystem = ({
       {/* Add Review Button */}
       {isAuthenticated && !userHasReviewed && !localShowForm && (
         <div className="text-center">
-          <Button onClick={() => setLocalShowForm(true)}>
-            Escribir Review
-          </Button>
+          <Button onClick={() => setLocalShowForm(true)}>Escribir Review</Button>
         </div>
       )}
 
@@ -139,15 +133,19 @@ export const EnhancedReviewSystem = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {editingReview ? 'Editar Review' : 'Escribir Review'}
+              {editingReview ? "Editar Review" : "Escribir Review"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ReviewForm
-              initialData={editingReview ? {
-                rating: editingReview.rating,
-                comment: editingReview.comment,
-              } : undefined}
+              initialData={
+                editingReview
+                  ? {
+                      rating: editingReview.rating,
+                      comment: editingReview.comment,
+                    }
+                  : undefined
+              }
               onSubmit={handleAddReview}
               onCancel={() => {
                 setLocalShowForm(false);

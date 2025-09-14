@@ -44,7 +44,7 @@ export function SafeImage({
     }
 
     // Si es una data URL, usarla directamente
-    if (src.startsWith('data:')) {
+    if (src.startsWith("data:")) {
       setImageSrc(src);
       setIsLoading(false);
       return;
@@ -53,7 +53,10 @@ export function SafeImage({
     // Verificar si Next.js Image está disponible
     try {
       // Check if we're in a Next.js environment
-      if (typeof window !== 'undefined' && (window as Window & { __NEXT_DATA__?: unknown }).__NEXT_DATA__) {
+      if (
+        typeof window !== "undefined" &&
+        (window as Window & { __NEXT_DATA__?: unknown }).__NEXT_DATA__
+      ) {
         setShouldUseNextImage(true);
       } else {
         setShouldUseNextImage(false);
@@ -63,13 +66,13 @@ export function SafeImage({
     }
 
     const img = new window.Image();
-    
+
     const handleLoad = () => {
       setImageSrc(src);
       setIsLoading(false);
       setHasError(false);
     };
-    
+
     const handleError = () => {
       console.warn(`Failed to load image: ${src}`);
       setImageSrc(fallback);
@@ -79,7 +82,7 @@ export function SafeImage({
 
     img.onload = handleLoad;
     img.onerror = handleError;
-    
+
     // Agregar timeout para evitar esperas infinitas
     const timeout = setTimeout(() => {
       if (isLoading) {
@@ -97,20 +100,15 @@ export function SafeImage({
   }, [src, fallback, placeholder, isLoading]);
 
   if (isLoading) {
-    return (
-      <Skeleton 
-        className={cn("animate-pulse", className)} 
-        style={{ width, height }}
-      />
-    );
+    return <Skeleton className={cn("animate-pulse", className)} style={{ width, height }} />;
   }
 
   // Si hay error y no hay fallback válido, mostrar skeleton
   if (hasError && (!fallback || fallback === placeholder)) {
     return (
-      <div 
+      <div
         className={cn(
-          "bg-gray-200 flex items-center justify-center text-gray-500 text-sm",
+          "flex items-center justify-center bg-gray-200 text-sm text-gray-500",
           className
         )}
         style={{ width, height }}
@@ -126,12 +124,8 @@ export function SafeImage({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
-        alt={alt || 'Image'}
-        className={cn(
-          "transition-opacity duration-300",
-          hasError && "opacity-50",
-          className
-        )}
+        alt={alt || "Image"}
+        className={cn("transition-opacity duration-300", hasError && "opacity-50", className)}
         width={width}
         height={height}
         loading={priority ? "eager" : "lazy"}
@@ -148,25 +142,21 @@ export function SafeImage({
   // Usar Next.js Image cuando esté disponible
   try {
     // Use dynamic import instead of require
-    const NextImage = require('next/image').default;
-    
+    const NextImage = require("next/image").default;
+
     return (
       <NextImage
         src={imageSrc}
-        alt={alt || 'Image'}
-        className={cn(
-          "transition-opacity duration-300",
-          hasError && "opacity-50",
-          className
-        )}
-        width={fill ? undefined : (width || 200)}
-        height={fill ? undefined : (height || 200)}
+        alt={alt || "Image"}
+        className={cn("transition-opacity duration-300", hasError && "opacity-50", className)}
+        width={fill ? undefined : width || 200}
+        height={fill ? undefined : height || 200}
         fill={fill}
         sizes={sizes}
         quality={quality}
         loading={priority ? "eager" : "lazy"}
         priority={priority}
-        unoptimized={imageSrc.startsWith('data:')}
+        unoptimized={imageSrc.startsWith("data:")}
         onError={() => {
           if (!hasError) {
             setHasError(true);
@@ -177,17 +167,13 @@ export function SafeImage({
     );
   } catch (error) {
     // Fallback a img nativo si Next.js Image falla
-    console.warn('Next.js Image failed, falling back to native img:', error);
+    console.warn("Next.js Image failed, falling back to native img:", error);
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageSrc}
-        alt={alt || 'Image'}
-        className={cn(
-          "transition-opacity duration-300",
-          hasError && "opacity-50",
-          className
-        )}
+        alt={alt || "Image"}
+        className={cn("transition-opacity duration-300", hasError && "opacity-50", className)}
         width={width}
         height={height}
         loading={priority ? "eager" : "lazy"}

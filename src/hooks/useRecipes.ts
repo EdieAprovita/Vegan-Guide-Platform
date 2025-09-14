@@ -38,12 +38,12 @@ export const useRecipes = create<RecipesState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await recipesApi.getRecipes(params);
-      
+
       // Use the universal helper to process backend response
       const recipes = processBackendResponse<Recipe>(response) as Recipe[];
-      
-      console.log('getRecipes - processed response:', { recipes: recipes.length });
-      
+
+      console.log("getRecipes - processed response:", { recipes: recipes.length });
+
       set({
         recipes: Array.isArray(recipes) ? recipes : [],
         totalPages: 1, // Backend doesn't implement pagination yet
@@ -52,11 +52,11 @@ export const useRecipes = create<RecipesState>((set) => ({
       });
     } catch (err) {
       const error = err as Error;
-      console.error('getRecipes error:', error);
-      set({ 
-        error: error.message, 
+      console.error("getRecipes error:", error);
+      set({
+        error: error.message,
         isLoading: false,
-        recipes: []
+        recipes: [],
       });
       throw error;
     }
@@ -95,11 +95,8 @@ export const useRecipes = create<RecipesState>((set) => ({
       set({ isLoading: true, error: null });
       const updatedRecipe = await recipesApi.updateRecipe(id, data);
       set((state) => ({
-        recipes: state.recipes.map((recipe) =>
-          recipe._id === id ? updatedRecipe : recipe
-        ),
-        currentRecipe:
-          state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
+        recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
+        currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
         isLoading: false,
       }));
     } catch (err) {
@@ -130,11 +127,8 @@ export const useRecipes = create<RecipesState>((set) => ({
       set({ isLoading: true, error: null });
       const updatedRecipe = await recipesApi.addRecipeReview(id, review, token);
       set((state) => ({
-        recipes: state.recipes.map((recipe) =>
-          recipe._id === id ? updatedRecipe : recipe
-        ),
-        currentRecipe:
-          state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
+        recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
+        currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
         isLoading: false,
       }));
     } catch (err) {
@@ -143,4 +137,4 @@ export const useRecipes = create<RecipesState>((set) => ({
       throw error;
     }
   },
-})); 
+}));

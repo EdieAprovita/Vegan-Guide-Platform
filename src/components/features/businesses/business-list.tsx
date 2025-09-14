@@ -1,28 +1,34 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, MapPin, SlidersHorizontal } from 'lucide-react';
-import { BusinessCard } from './business-card';
-import { useBusinesses } from '@/hooks/useBusinesses';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from "react";
+import { Search, MapPin, SlidersHorizontal } from "lucide-react";
+import { BusinessCard } from "./business-card";
+import { useBusinesses } from "@/hooks/useBusinesses";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BUSINESS_TYPES = [
-  'Tienda de Alimentos',
-  'Restaurante', 
-  'Café',
-  'Panadería',
-  'Suplementos',
-  'Ropa y Accesorios',
-  'Belleza y Cuidado',
-  'Servicios',
-  'Fitness y Bienestar',
-  'Educación',
-  'Otro'
+  "Tienda de Alimentos",
+  "Restaurante",
+  "Café",
+  "Panadería",
+  "Suplementos",
+  "Ropa y Accesorios",
+  "Belleza y Cuidado",
+  "Servicios",
+  "Fitness y Bienestar",
+  "Educación",
+  "Otro",
 ];
 
 interface BusinessListProps {
@@ -31,13 +37,13 @@ interface BusinessListProps {
   limit?: number;
 }
 
-export const BusinessList = ({ 
-  title = 'Negocios Veganos', 
+export const BusinessList = ({
+  title = "Negocios Veganos",
   showFilters = true,
-  limit 
+  limit,
 }: BusinessListProps) => {
-  const [search, setSearch] = useState('');
-  const [typeBusiness, setTypeBusiness] = useState<string>('');
+  const [search, setSearch] = useState("");
+  const [typeBusiness, setTypeBusiness] = useState<string>("");
   const [rating, setRating] = useState<number>();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
@@ -54,8 +60,8 @@ export const BusinessList = ({
   };
 
   const clearFilters = () => {
-    setSearch('');
-    setTypeBusiness('');
+    setSearch("");
+    setTypeBusiness("");
     setRating(undefined);
   };
 
@@ -65,11 +71,7 @@ export const BusinessList = ({
     return (
       <Card className="p-6 text-center">
         <p className="text-red-600">Error al cargar negocios: {error}</p>
-        <Button 
-          variant="outline" 
-          onClick={() => window.location.reload()}
-          className="mt-2"
-        >
+        <Button variant="outline" onClick={() => window.location.reload()} className="mt-2">
           Reintentar
         </Button>
       </Card>
@@ -82,18 +84,18 @@ export const BusinessList = ({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
         <div className="text-sm text-gray-600">
-          {loading ? 'Cargando...' : `${businesses.length} negocios encontrados`}
+          {loading ? "Cargando..." : `${businesses.length} negocios encontrados`}
         </div>
       </div>
 
       {/* Search and Filters */}
       {showFilters && (
         <Card>
-          <CardContent className="p-4 space-y-4">
+          <CardContent className="space-y-4 p-4">
             {/* Main Search */}
             <form onSubmit={handleSearchSubmit} className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   type="text"
                   placeholder="Buscar negocios..."
@@ -120,7 +122,7 @@ export const BusinessList = ({
 
             {/* Advanced Filters */}
             {showAdvancedFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Tipo de Negocio</label>
                   <Select value={typeBusiness} onValueChange={setTypeBusiness}>
@@ -140,7 +142,10 @@ export const BusinessList = ({
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Calificación Mínima</label>
-                  <Select value={rating?.toString() || ''} onValueChange={(value) => setRating(value ? Number(value) : undefined)}>
+                  <Select
+                    value={rating?.toString() || ""}
+                    onValueChange={(value) => setRating(value ? Number(value) : undefined)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Cualquier calificación" />
                     </SelectTrigger>
@@ -154,11 +159,7 @@ export const BusinessList = ({
                 </div>
 
                 <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    className="w-full"
-                  >
+                  <Button variant="outline" onClick={clearFilters} className="w-full">
                     Limpiar Filtros
                   </Button>
                 </div>
@@ -172,8 +173,8 @@ export const BusinessList = ({
                   <Badge variant="secondary" className="flex items-center gap-1">
                     Búsqueda: {search}
                     <button
-                      onClick={() => setSearch('')}
-                      className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                      onClick={() => setSearch("")}
+                      className="ml-1 rounded-full p-0.5 hover:bg-gray-200"
                     >
                       ×
                     </button>
@@ -183,8 +184,8 @@ export const BusinessList = ({
                   <Badge variant="secondary" className="flex items-center gap-1">
                     Tipo: {typeBusiness}
                     <button
-                      onClick={() => setTypeBusiness('')}
-                      className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                      onClick={() => setTypeBusiness("")}
+                      className="ml-1 rounded-full p-0.5 hover:bg-gray-200"
                     >
                       ×
                     </button>
@@ -195,7 +196,7 @@ export const BusinessList = ({
                     {rating}+ estrellas
                     <button
                       onClick={() => setRating(undefined)}
-                      className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                      className="ml-1 rounded-full p-0.5 hover:bg-gray-200"
                     >
                       ×
                     </button>
@@ -209,11 +210,11 @@ export const BusinessList = ({
 
       {/* Business Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <Skeleton className="h-48 w-full" />
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="space-y-3 p-4">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <div className="flex justify-between">
@@ -227,9 +228,9 @@ export const BusinessList = ({
         </div>
       ) : businesses.length === 0 ? (
         <Card className="p-8 text-center">
-          <MapPin className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No se encontraron negocios</h3>
-          <p className="text-gray-600 mb-4">
+          <MapPin className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">No se encontraron negocios</h3>
+          <p className="mb-4 text-gray-600">
             Intenta ajustar tus filtros de búsqueda o explora diferentes tipos de negocios.
           </p>
           <Button variant="outline" onClick={clearFilters}>
@@ -237,7 +238,7 @@ export const BusinessList = ({
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {businesses.map((business) => (
             <BusinessCard key={business._id} business={business} />
           ))}

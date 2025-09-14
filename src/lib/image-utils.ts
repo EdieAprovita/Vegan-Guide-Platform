@@ -20,7 +20,10 @@ export interface ImageConfig {
 export function isNextImageAvailable(): boolean {
   try {
     // Check if we're in a Next.js environment
-    if (typeof window !== 'undefined' && (window as Window & { __NEXT_DATA__?: unknown }).__NEXT_DATA__) {
+    if (
+      typeof window !== "undefined" &&
+      (window as Window & { __NEXT_DATA__?: unknown }).__NEXT_DATA__
+    ) {
       return true;
     }
     return false;
@@ -34,17 +37,17 @@ export function isNextImageAvailable(): boolean {
  */
 export function isValidImageUrl(url: string): boolean {
   if (!url) return false;
-  
+
   // Allow data URLs
-  if (url.startsWith('data:')) return true;
-  
+  if (url.startsWith("data:")) return true;
+
   // Allow relative URLs
-  if (url.startsWith('/')) return true;
-  
+  if (url.startsWith("/")) return true;
+
   // Allow absolute URLs
   try {
     const parsed = new URL(url);
-    return ['http:', 'https:'].includes(parsed.protocol);
+    return ["http:", "https:"].includes(parsed.protocol);
   } catch {
     return false;
   }
@@ -84,7 +87,7 @@ export function getPlaceholderImage(width = 200, height = 200): string {
 export function preloadImage(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!isValidImageUrl(src)) {
-      reject(new Error('Invalid image URL'));
+      reject(new Error("Invalid image URL"));
       return;
     }
 
@@ -105,11 +108,11 @@ export function getOptimizedDimensions(
   maxHeight: number
 ): { width: number; height: number } {
   const aspectRatio = originalWidth / originalHeight;
-  
+
   if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
     return { width: originalWidth, height: originalHeight };
   }
-  
+
   if (maxWidth / aspectRatio <= maxHeight) {
     return { width: maxWidth, height: Math.round(maxWidth / aspectRatio) };
   } else {
@@ -122,13 +125,13 @@ export function getOptimizedDimensions(
  */
 export function shouldOptimizeImage(src: string): boolean {
   // Don't optimize data URLs
-  if (src.startsWith('data:')) return false;
-  
+  if (src.startsWith("data:")) return false;
+
   // Don't optimize SVG files
-  if (src.endsWith('.svg')) return false;
-  
+  if (src.endsWith(".svg")) return false;
+
   // Don't optimize if already optimized
-  if (src.includes('?') && (src.includes('w=') || src.includes('h='))) return false;
-  
+  if (src.includes("?") && (src.includes("w=") || src.includes("h="))) return false;
+
   return true;
 }

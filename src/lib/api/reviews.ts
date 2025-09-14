@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendResponse } from "./config";
 
 export interface Review {
   _id: string;
@@ -9,7 +9,7 @@ export interface Review {
   };
   rating: number;
   comment: string;
-  resourceType: 'restaurant' | 'recipe' | 'market' | 'doctor' | 'business' | 'sanctuary';
+  resourceType: "restaurant" | "recipe" | "market" | "doctor" | "business" | "sanctuary";
   resourceId: string;
   helpful: string[]; // Array of user IDs who found it helpful
   helpfulCount: number;
@@ -64,22 +64,31 @@ export async function removeReviewHelpful(id: string, token?: string) {
 }
 
 // Enhanced restaurant reviews with statistics
-export async function getRestaurantReviews(restaurantId: string, params?: {
-  page?: number;
-  limit?: number;
-}) {
+export async function getRestaurantReviews(
+  restaurantId: string,
+  params?: {
+    page?: number;
+    limit?: number;
+  }
+) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
 
-  return apiRequest<BackendResponse<Review[]>>(`/restaurants/${restaurantId}/reviews?${searchParams.toString()}`);
+  return apiRequest<BackendResponse<Review[]>>(
+    `/restaurants/${restaurantId}/reviews?${searchParams.toString()}`
+  );
 }
 
 export async function getRestaurantReviewStats(restaurantId: string) {
   return apiRequest<BackendResponse<ReviewStats>>(`/restaurants/${restaurantId}/reviews/stats`);
 }
 
-export async function createRestaurantReview(restaurantId: string, data: CreateReviewData, token?: string) {
+export async function createRestaurantReview(
+  restaurantId: string,
+  data: CreateReviewData,
+  token?: string
+) {
   return apiRequest<BackendResponse<Review>>(`/restaurants/${restaurantId}/reviews`, {
     method: "POST",
     headers: getApiHeaders(token),

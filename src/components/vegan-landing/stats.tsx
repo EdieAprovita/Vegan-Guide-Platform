@@ -4,87 +4,87 @@ const stats = [
   {
     number: "10,000+",
     label: "Usuarios Activos",
-    description: "Personas que confían en Verde Guide"
+    description: "Personas que confían en Verde Guide",
   },
   {
     number: "500+",
     label: "Restaurantes",
-    description: "Establecimientos veganos verificados"
+    description: "Establecimientos veganos verificados",
   },
   {
     number: "2,000+",
     label: "Recetas",
-    description: "Platos deliciosos y nutritivos"
+    description: "Platos deliciosos y nutritivos",
   },
   {
     number: "100+",
     label: "Doctores",
-    description: "Profesionales especializados"
+    description: "Profesionales especializados",
   },
   {
     number: "50+",
     label: "Mercados",
-    description: "Productores locales y orgánicos"
+    description: "Productores locales y orgánicos",
   },
   {
     number: "25+",
     label: "Santuarios",
-    description: "Organizaciones apoyadas"
-  }
+    description: "Organizaciones apoyadas",
+  },
 ];
 
 export function Stats() {
   return (
-    <div className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-24 xl:px-[93px] bg-green-600">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-green-600 px-4 py-16 sm:px-6 sm:py-20 lg:px-24 lg:py-24 xl:px-[93px]">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-white font-['Playfair_Display'] text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+        <div className="mb-16 text-center">
+          <h2 className="mb-6 font-['Playfair_Display'] text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
             Verde Guide en números
           </h2>
-          <p className="text-green-100 font-['Playfair_Display'] text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
-            Nuestra comunidad crece cada día, conectando personas, restaurantes y profesionales 
+          <p className="mx-auto max-w-3xl font-['Playfair_Display'] text-lg leading-relaxed text-green-100 sm:text-xl">
+            Nuestra comunidad crece cada día, conectando personas, restaurantes y profesionales
             comprometidos con el estilo de vida vegano.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="text-white font-['Playfair_Display'] text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">
+              <div className="mb-2 font-['Playfair_Display'] text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
                 {stat.number}
               </div>
-              <div className="text-green-100 font-['Playfair_Display'] text-sm sm:text-base font-semibold mb-1">
+              <div className="mb-1 font-['Playfair_Display'] text-sm font-semibold text-green-100 sm:text-base">
                 {stat.label}
               </div>
-              <div className="text-green-200 text-xs sm:text-sm">
-                {stat.description}
-              </div>
+              <div className="text-xs text-green-200 sm:text-sm">{stat.description}</div>
             </div>
           ))}
         </div>
 
         {/* Additional info */}
         <div className="mt-16 text-center">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-white font-['Playfair_Display'] text-2xl font-bold mb-4">
+          <div className="mx-auto max-w-4xl rounded-2xl bg-white/10 p-8 backdrop-blur-sm">
+            <h3 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-white">
               ¿Por qué elegir Verde Guide?
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-green-100">
+            <div className="grid grid-cols-1 gap-6 text-green-100 md:grid-cols-3">
               <div>
-                <div className="text-2xl mb-2">✅</div>
-                <h4 className="font-semibold mb-2">Verificado</h4>
-                <p className="text-sm">Todos nuestros establecimientos y profesionales están verificados</p>
+                <div className="mb-2 text-2xl">✅</div>
+                <h4 className="mb-2 font-semibold">Verificado</h4>
+                <p className="text-sm">
+                  Todos nuestros establecimientos y profesionales están verificados
+                </p>
               </div>
               <div>
-                <div className="text-2xl mb-2">🔄</div>
-                <h4 className="font-semibold mb-2">Actualizado</h4>
+                <div className="mb-2 text-2xl">🔄</div>
+                <h4 className="mb-2 font-semibold">Actualizado</h4>
                 <p className="text-sm">Información en tiempo real y actualizaciones constantes</p>
               </div>
               <div>
-                <div className="text-2xl mb-2">🤝</div>
-                <h4 className="font-semibold mb-2">Comunitario</h4>
+                <div className="mb-2 text-2xl">🤝</div>
+                <h4 className="mb-2 font-semibold">Comunitario</h4>
                 <p className="text-sm">Construido por y para la comunidad vegana</p>
               </div>
             </div>
@@ -93,4 +93,4 @@ export function Stats() {
       </div>
     </div>
   );
-} 
+}

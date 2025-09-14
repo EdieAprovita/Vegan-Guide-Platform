@@ -32,4 +32,4 @@ export { AnalyticsDashboard } from "./analytics/analytics-dashboard";
 export { RecommendationEngine } from "./recommendations/recommendation-engine";
 
 // Admin
-export { AdminDashboard } from "@/components/admin/admin-dashboard"; 
+export { AdminDashboard } from "@/components/admin/admin-dashboard";

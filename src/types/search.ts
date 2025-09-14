@@ -1,7 +1,14 @@
 // Search types for Phase 3 implementation
-export type ResourceType = 'restaurants' | 'recipes' | 'markets' | 'doctors' | 'businesses' | 'sanctuaries' | 'posts';
+export type ResourceType =
+  | "restaurants"
+  | "recipes"
+  | "markets"
+  | "doctors"
+  | "businesses"
+  | "sanctuaries"
+  | "posts";
 
-export type SortOption = 'relevance' | 'rating' | 'distance' | 'newest' | 'oldest';
+export type SortOption = "relevance" | "rating" | "distance" | "newest" | "oldest";
 
 export interface Coordinates {
   latitude: number;
@@ -9,7 +16,7 @@ export interface Coordinates {
 }
 
 export interface Location {
-  type: 'Point';
+  type: "Point";
   coordinates: [number, number]; // [longitude, latitude] - GeoJSON format
 }
 

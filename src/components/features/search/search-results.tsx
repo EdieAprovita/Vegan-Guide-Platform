@@ -1,14 +1,23 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { MapPin, Star, Clock, Utensils, Heart, Users, MessageCircle, DollarSign } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { SearchResult, ResourceType } from '@/types/search';
-import { formatDistance } from '@/lib/utils/geospatial';
+import Link from "next/link";
+import Image from "next/image";
+import {
+  MapPin,
+  Star,
+  Clock,
+  Utensils,
+  Heart,
+  Users,
+  MessageCircle,
+  DollarSign,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SearchResult, ResourceType } from "@/types/search";
+import { formatDistance } from "@/lib/utils/geospatial";
 
 interface SearchResultsProps {
   results: SearchResult[];
@@ -23,73 +32,76 @@ interface SearchResultsProps {
   onClearFilters: () => void;
 }
 
-const RESOURCE_TYPE_CONFIG: Record<ResourceType, {
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  href: (id: string) => string;
-}> = {
+const RESOURCE_TYPE_CONFIG: Record<
+  ResourceType,
+  {
+    icon: React.ReactNode;
+    color: string;
+    bgColor: string;
+    href: (id: string) => string;
+  }
+> = {
   restaurants: {
     icon: <Utensils className="h-4 w-4" />,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
+    color: "text-orange-600",
+    bgColor: "bg-orange-100",
     href: (id) => `/restaurants/${id}`,
   },
   recipes: {
     icon: <Heart className="h-4 w-4" />,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
+    color: "text-green-600",
+    bgColor: "bg-green-100",
     href: (id) => `/recipes/${id}`,
   },
   markets: {
     icon: <MapPin className="h-4 w-4" />,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
     href: (id) => `/markets/${id}`,
   },
   doctors: {
     icon: <Users className="h-4 w-4" />,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
+    color: "text-purple-600",
+    bgColor: "bg-purple-100",
     href: (id) => `/doctors/${id}`,
   },
   businesses: {
     icon: <MapPin className="h-4 w-4" />,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-100',
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-100",
     href: (id) => `/businesses/${id}`,
   },
   sanctuaries: {
     icon: <Heart className="h-4 w-4" />,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-100',
+    color: "text-pink-600",
+    bgColor: "bg-pink-100",
     href: (id) => `/sanctuaries/${id}`,
   },
   posts: {
     icon: <MessageCircle className="h-4 w-4" />,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
+    color: "text-gray-600",
+    bgColor: "bg-gray-100",
     href: (id) => `/posts/${id}`,
   },
 };
 
 const SearchResultCard = ({ result }: { result: SearchResult }) => {
   const config = RESOURCE_TYPE_CONFIG[result.resourceType];
-  
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200">
+    <Card className="group border-gray-200 transition-all duration-200 hover:shadow-lg">
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row">
           {/* Image */}
-          <div className="relative w-full sm:w-48 h-48 sm:h-32 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
+          <div className="relative h-48 w-full overflow-hidden rounded-t-lg sm:h-32 sm:w-48 sm:rounded-l-lg sm:rounded-tr-none">
             <Image
-              src={result.image || '/placeholder-image.jpg'}
-              alt={result.title || 'Result image'}
+              src={result.image || "/placeholder-image.jpg"}
+              alt={result.title || "Result image"}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              className="object-cover transition-transform duration-200 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, 192px"
             />
-            
+
             {/* Resource Type Badge */}
             <div className="absolute top-2 left-2">
               <Badge className={`${config.bgColor} ${config.color} border-0`}>
@@ -100,7 +112,7 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
 
             {/* Rating Badge */}
             {result.rating && (
-              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+              <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 backdrop-blur-sm">
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                 <span className="text-xs font-semibold text-gray-900">
                   {result.rating.toFixed(1)}
@@ -110,17 +122,13 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-4 space-y-2">
+          <div className="flex-1 space-y-2 p-4">
             <div className="space-y-1">
-              <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                <Link href={config.href(result._id)}>
-                  {result.title}
-                </Link>
+              <h3 className="line-clamp-1 text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                <Link href={config.href(result._id)}>{result.title}</Link>
               </h3>
-              
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {result.description}
-              </p>
+
+              <p className="line-clamp-2 text-sm text-gray-600">{result.description}</p>
             </div>
 
             {/* Metadata */}
@@ -128,7 +136,7 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
               {result.address && (
                 <div className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
-                  <span className="truncate max-w-32">{result.address}</span>
+                  <span className="max-w-32 truncate">{result.address}</span>
                 </div>
               )}
 
@@ -142,7 +150,9 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
               {result.numReviews && result.numReviews > 0 && (
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  <span>{result.numReviews} review{result.numReviews !== 1 ? 's' : ''}</span>
+                  <span>
+                    {result.numReviews} review{result.numReviews !== 1 ? "s" : ""}
+                  </span>
                 </div>
               )}
 
@@ -176,7 +186,7 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
 
               {result.ingredients && result.ingredients.length > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  {result.ingredients.slice(0, 2).join(', ')}
+                  {result.ingredients.slice(0, 2).join(", ")}
                   {result.ingredients.length > 2 && ` +${result.ingredients.length - 2}`}
                 </Badge>
               )}
@@ -185,9 +195,7 @@ const SearchResultCard = ({ result }: { result: SearchResult }) => {
             {/* Action Button */}
             <div className="pt-2">
               <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                <Link href={config.href(result._id)}>
-                  Ver detalles
-                </Link>
+                <Link href={config.href(result._id)}>Ver detalles</Link>
               </Button>
             </div>
           </div>
@@ -201,8 +209,8 @@ const SearchResultSkeleton = () => (
   <Card className="border-gray-200">
     <CardContent className="p-0">
       <div className="flex flex-col sm:flex-row">
-        <Skeleton className="w-full sm:w-48 h-48 sm:h-32 rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none" />
-        <div className="flex-1 p-4 space-y-3">
+        <Skeleton className="h-48 w-full rounded-t-lg sm:h-32 sm:w-48 sm:rounded-l-lg sm:rounded-tr-none" />
+        <div className="flex-1 space-y-3 p-4">
           <Skeleton className="h-6 w-3/4" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
@@ -247,14 +255,12 @@ export const SearchResults = ({
     return (
       <Card className="p-8 text-center">
         <div className="space-y-4">
-          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
             <MapPin className="h-8 w-8 text-gray-400" />
           </div>
-          
+
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              No se encontraron resultados
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">No se encontraron resultados</h3>
             {query ? (
               <p className="text-gray-600">
                 No encontramos resultados para &quot;<strong>{query}</strong>&quot;.
@@ -284,12 +290,10 @@ export const SearchResults = ({
       {(hasResults || isLoading) && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Resultados de búsqueda
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Resultados de búsqueda</h2>
             {!isLoading && total > 0 && (
               <Badge variant="secondary" className="text-sm">
-                {total.toLocaleString()} resultado{total !== 1 ? 's' : ''}
+                {total.toLocaleString()} resultado{total !== 1 ? "s" : ""}
               </Badge>
             )}
           </div>
@@ -311,20 +315,14 @@ export const SearchResults = ({
             ))}
           </>
         ) : (
-          results.map((result) => (
-            <SearchResultCard key={result._id} result={result} />
-          ))
+          results.map((result) => <SearchResultCard key={result._id} result={result} />)
         )}
       </div>
 
       {/* Load More */}
       {hasMore && !isLoading && (
         <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={onLoadMore}
-            className="min-w-32"
-          >
+          <Button variant="outline" onClick={onLoadMore} className="min-w-32">
             Cargar más resultados
           </Button>
         </div>
@@ -332,9 +330,9 @@ export const SearchResults = ({
 
       {/* End of Results */}
       {hasResults && !hasMore && !isLoading && (
-        <div className="text-center py-6 border-t">
+        <div className="border-t py-6 text-center">
           <p className="text-sm text-gray-500">
-            Has visto todos los {total} resultado{total !== 1 ? 's' : ''}
+            Has visto todos los {total} resultado{total !== 1 ? "s" : ""}
           </p>
         </div>
       )}

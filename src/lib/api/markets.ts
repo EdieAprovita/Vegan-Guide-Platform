@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Market {
   _id: string;
@@ -107,14 +107,10 @@ export async function deleteMarket(id: string, token?: string) {
   });
 }
 
-export async function addMarketReview(
-  id: string,
-  review: MarketReview,
-  token?: string
-) {
+export async function addMarketReview(id: string, review: MarketReview, token?: string) {
   return apiRequest<BackendResponse<Market>>(`/markets/add-review/${id}`, {
     method: "POST",
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
-} 
+}

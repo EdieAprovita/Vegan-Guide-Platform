@@ -1,34 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { MapPin, Phone, Mail, Globe, ImageIcon } from 'lucide-react';
-import { useBusinessMutations } from '@/hooks/useBusinesses';
-import { CreateBusinessData } from '@/lib/api/businesses';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { MapPin, Phone, Mail, Globe, ImageIcon } from "lucide-react";
+import { useBusinessMutations } from "@/hooks/useBusinesses";
+import { CreateBusinessData } from "@/lib/api/businesses";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const BUSINESS_TYPES = [
-  'Tienda de Alimentos',
-  'Restaurante', 
-  'Café',
-  'Panadería',
-  'Suplementos',
-  'Ropa y Accesorios',
-  'Belleza y Cuidado',
-  'Servicios',
-  'Fitness y Bienestar',
-  'Educación',
-  'Otro'
+  "Tienda de Alimentos",
+  "Restaurante",
+  "Café",
+  "Panadería",
+  "Suplementos",
+  "Ropa y Accesorios",
+  "Belleza y Cuidado",
+  "Servicios",
+  "Fitness y Bienestar",
+  "Educación",
+  "Otro",
 ];
 
 interface BusinessFormProps {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: Partial<CreateBusinessData>;
   onSuccess?: () => void;
 }
@@ -36,15 +42,15 @@ interface BusinessFormProps {
 export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps) => {
   const router = useRouter();
   const { createBusiness, loading } = useBusinessMutations();
-  
+
   const [formData, setFormData] = useState<CreateBusinessData>({
-    namePlace: initialData?.namePlace || '',
-    address: initialData?.address || '',
+    namePlace: initialData?.namePlace || "",
+    address: initialData?.address || "",
     location: initialData?.location || undefined,
-    image: initialData?.image || '',
-    contact: initialData?.contact || [{ phone: '', email: '', website: '' }],
+    image: initialData?.image || "",
+    contact: initialData?.contact || [{ phone: "", email: "", website: "" }],
     budget: initialData?.budget || 0,
-    typeBusiness: initialData?.typeBusiness || '',
+    typeBusiness: initialData?.typeBusiness || "",
     hours: initialData?.hours || [],
   });
 
@@ -54,23 +60,23 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
     const newErrors: Record<string, string> = {};
 
     if (!formData.namePlace.trim()) {
-      newErrors.namePlace = 'El nombre del negocio es requerido';
+      newErrors.namePlace = "El nombre del negocio es requerido";
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = 'La dirección es requerida';
+      newErrors.address = "La dirección es requerida";
     }
 
     if (!formData.typeBusiness) {
-      newErrors.typeBusiness = 'El tipo de negocio es requerido';
+      newErrors.typeBusiness = "El tipo de negocio es requerido";
     }
 
     if (!formData.image.trim()) {
-      newErrors.image = 'La imagen es requerida';
+      newErrors.image = "La imagen es requerida";
     }
 
     if (formData.budget < 0) {
-      newErrors.budget = 'El presupuesto debe ser un número positivo';
+      newErrors.budget = "El presupuesto debe ser un número positivo";
     }
 
     setErrors(newErrors);
@@ -79,47 +85,52 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
-      toast.error('Por favor corrige los errores del formulario');
+      toast.error("Por favor corrige los errores del formulario");
       return;
     }
 
     try {
-      if (mode === 'create') {
+      if (mode === "create") {
         const newBusiness = await createBusiness(formData);
-        toast.success('Negocio creado exitosamente');
+        toast.success("Negocio creado exitosamente");
         router.push(`/businesses/${newBusiness._id}`);
       }
-      
+
       onSuccess?.();
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(mode === 'create' ? 'Error al crear el negocio' : 'Error al actualizar el negocio');
+      console.error("Error submitting form:", error);
+      toast.error(
+        mode === "create" ? "Error al crear el negocio" : "Error al actualizar el negocio"
+      );
     }
   };
 
-  const handleInputChange = (field: keyof CreateBusinessData, value: string | number | undefined) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreateBusinessData,
+    value: string | number | undefined
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const handleContactChange = (field: 'phone' | 'email' | 'website', value: string) => {
-    setFormData(prev => ({
+  const handleContactChange = (field: "phone" | "email" | "website", value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      contact: [{ ...prev.contact[0], [field]: value }]
+      contact: [{ ...prev.contact[0], [field]: value }],
     }));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">
       {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -136,12 +147,10 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               type="text"
               placeholder="Ej: Verde Market"
               value={formData.namePlace}
-              onChange={(e) => handleInputChange('namePlace', e.target.value)}
-              className={errors.namePlace ? 'border-red-500' : ''}
+              onChange={(e) => handleInputChange("namePlace", e.target.value)}
+              className={errors.namePlace ? "border-red-500" : ""}
             />
-            {errors.namePlace && (
-              <p className="text-sm text-red-600">{errors.namePlace}</p>
-            )}
+            {errors.namePlace && <p className="text-sm text-red-600">{errors.namePlace}</p>}
           </div>
 
           <div className="space-y-2">
@@ -151,21 +160,19 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               type="text"
               placeholder="Ej: Calle 123 #45-67, Bogotá"
               value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              className={errors.address ? 'border-red-500' : ''}
+              onChange={(e) => handleInputChange("address", e.target.value)}
+              className={errors.address ? "border-red-500" : ""}
             />
-            {errors.address && (
-              <p className="text-sm text-red-600">{errors.address}</p>
-            )}
+            {errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="typeBusiness">Tipo de Negocio *</Label>
             <Select
               value={formData.typeBusiness}
-              onValueChange={(value) => handleInputChange('typeBusiness', value)}
+              onValueChange={(value) => handleInputChange("typeBusiness", value)}
             >
-              <SelectTrigger className={errors.typeBusiness ? 'border-red-500' : ''}>
+              <SelectTrigger className={errors.typeBusiness ? "border-red-500" : ""}>
                 <SelectValue placeholder="Selecciona el tipo de negocio" />
               </SelectTrigger>
               <SelectContent>
@@ -176,9 +183,7 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
                 ))}
               </SelectContent>
             </Select>
-            {errors.typeBusiness && (
-              <p className="text-sm text-red-600">{errors.typeBusiness}</p>
-            )}
+            {errors.typeBusiness && <p className="text-sm text-red-600">{errors.typeBusiness}</p>}
           </div>
 
           <div className="space-y-2">
@@ -188,16 +193,12 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               type="number"
               min="0"
               placeholder="Ej: 25"
-              value={formData.budget || ''}
-              onChange={(e) => handleInputChange('budget', Number(e.target.value) || 0)}
-              className={errors.budget ? 'border-red-500' : ''}
+              value={formData.budget || ""}
+              onChange={(e) => handleInputChange("budget", Number(e.target.value) || 0)}
+              className={errors.budget ? "border-red-500" : ""}
             />
-            {errors.budget && (
-              <p className="text-sm text-red-600">{errors.budget}</p>
-            )}
-            <p className="text-sm text-gray-500">
-              Presupuesto promedio por visita (opcional)
-            </p>
+            {errors.budget && <p className="text-sm text-red-600">{errors.budget}</p>}
+            <p className="text-sm text-gray-500">Presupuesto promedio por visita (opcional)</p>
           </div>
         </CardContent>
       </Card>
@@ -218,12 +219,10 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               type="url"
               placeholder="https://ejemplo.com/imagen.jpg"
               value={formData.image}
-              onChange={(e) => handleInputChange('image', e.target.value)}
-              className={errors.image ? 'border-red-500' : ''}
+              onChange={(e) => handleInputChange("image", e.target.value)}
+              className={errors.image ? "border-red-500" : ""}
             />
-            {errors.image && (
-              <p className="text-sm text-red-600">{errors.image}</p>
-            )}
+            {errors.image && <p className="text-sm text-red-600">{errors.image}</p>}
           </div>
 
           {formData.image && (
@@ -237,7 +236,7 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 400px"
                   onError={(e) => {
-                    e.currentTarget.src = '/placeholder-business.jpg';
+                    e.currentTarget.src = "/placeholder-business.jpg";
                   }}
                 />
               </div>
@@ -261,8 +260,8 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               id="phone"
               type="tel"
               placeholder="Ej: +57 301 234 5678"
-              value={formData.contact[0]?.phone || ''}
-              onChange={(e) => handleContactChange('phone', e.target.value)}
+              value={formData.contact[0]?.phone || ""}
+              onChange={(e) => handleContactChange("phone", e.target.value)}
             />
           </div>
 
@@ -275,8 +274,8 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               id="email"
               type="email"
               placeholder="Ej: contacto@negocio.com"
-              value={formData.contact[0]?.email || ''}
-              onChange={(e) => handleContactChange('email', e.target.value)}
+              value={formData.contact[0]?.email || ""}
+              onChange={(e) => handleContactChange("email", e.target.value)}
             />
           </div>
 
@@ -289,8 +288,8 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
               id="website"
               type="url"
               placeholder="Ej: https://www.negocio.com"
-              value={formData.contact[0]?.website || ''}
-              onChange={(e) => handleContactChange('website', e.target.value)}
+              value={formData.contact[0]?.website || ""}
+              onChange={(e) => handleContactChange("website", e.target.value)}
             />
           </div>
         </CardContent>
@@ -298,22 +297,19 @@ export const BusinessForm = ({ mode, initialData, onSuccess }: BusinessFormProps
 
       {/* Submit Button */}
       <div className="flex justify-end gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={loading}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
           Cancelar
         </Button>
         <Button type="submit" disabled={loading} className="min-w-32">
           {loading ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {mode === 'create' ? 'Creando...' : 'Actualizando...'}
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              {mode === "create" ? "Creando..." : "Actualizando..."}
             </div>
+          ) : mode === "create" ? (
+            "Crear Negocio"
           ) : (
-            mode === 'create' ? 'Crear Negocio' : 'Actualizar Negocio'
+            "Actualizar Negocio"
           )}
         </Button>
       </div>

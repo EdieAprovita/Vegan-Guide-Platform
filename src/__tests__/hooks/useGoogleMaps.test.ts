@@ -1,20 +1,22 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { renderHook, waitFor } from "@testing-library/react";
+import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 
 // Mock Google Maps API
 const mockLoader = {
   load: jest.fn(),
 };
 
-jest.mock('@googlemaps/js-api-loader', () => ({
+jest.mock("@googlemaps/js-api-loader", () => ({
   Loader: jest.fn().mockImplementation(() => mockLoader),
 }));
 
 // Create a proper mock for GOOGLE_MAPS_CONFIG with getter
-jest.mock('@/lib/config/maps', () => ({
+jest.mock("@/lib/config/maps", () => ({
   GOOGLE_MAPS_CONFIG: {
-    get apiKey() { return 'test-api-key'; },
-    libraries: ['places', 'geometry'] as const,
+    get apiKey() {
+      return "test-api-key";
+    },
+    libraries: ["places", "geometry"] as const,
   },
 }));
 
@@ -27,17 +29,17 @@ const mockGoogleMaps = {
   },
 };
 
-describe('useGoogleMaps Hook', () => {
+describe("useGoogleMaps Hook", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLoader.load.mockReset();
     // @ts-ignore
     delete window.google;
     // Reset DOM
-    document.head.innerHTML = '';
+    document.head.innerHTML = "";
   });
 
-  test('should initialize with correct default state', async () => {
+  test("should initialize with correct default state", async () => {
     // Mock successful loading
     mockLoader.load.mockResolvedValueOnce(mockGoogleMaps);
 
@@ -55,7 +57,7 @@ describe('useGoogleMaps Hook', () => {
     expect(result.current.loadError).toBeNull();
   });
 
-  test('should handle successful Google Maps loading', async () => {
+  test("should handle successful Google Maps loading", async () => {
     mockLoader.load.mockResolvedValueOnce(mockGoogleMaps);
 
     const { result } = renderHook(() => useGoogleMaps());
@@ -69,21 +71,21 @@ describe('useGoogleMaps Hook', () => {
     expect(mockLoader.load).toHaveBeenCalledTimes(1);
   });
 
-  test('should handle Google Maps loading error', async () => {
-    const errorMessage = 'Failed to load Google Maps';
+  test("should handle Google Maps loading error", async () => {
+    const errorMessage = "Failed to load Google Maps";
     mockLoader.load.mockRejectedValueOnce(new Error(errorMessage));
 
     const { result } = renderHook(() => useGoogleMaps());
 
     await waitFor(() => {
-      expect(result.current.loadError).toBe('Failed to load Google Maps');
+      expect(result.current.loadError).toBe("Failed to load Google Maps");
     });
 
     expect(result.current.isLoaded).toBe(false);
     expect(result.current.isLoading).toBe(false);
   });
 
-  test('should return immediately if Google Maps already loaded', () => {
+  test("should return immediately if Google Maps already loaded", () => {
     // @ts-ignore
     window.google = mockGoogleMaps;
 
@@ -95,8 +97,8 @@ describe('useGoogleMaps Hook', () => {
     expect(mockLoader.load).not.toHaveBeenCalled();
   });
 
-  test('should use custom libraries option', async () => {
-    const customLibraries: ['places'] = ['places'];
+  test("should use custom libraries option", async () => {
+    const customLibraries: ["places"] = ["places"];
     mockLoader.load.mockResolvedValueOnce(mockGoogleMaps);
 
     const { result } = renderHook(() => useGoogleMaps({ libraries: customLibraries }));
@@ -106,21 +108,21 @@ describe('useGoogleMaps Hook', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(require('@googlemaps/js-api-loader').Loader).toHaveBeenCalledWith({
-      apiKey: 'test-api-key',
-      version: 'weekly',
+    expect(require("@googlemaps/js-api-loader").Loader).toHaveBeenCalledWith({
+      apiKey: "test-api-key",
+      version: "weekly",
       libraries: customLibraries,
     });
   });
 
-  test('should handle loader initialization error', async () => {
+  test("should handle loader initialization error", async () => {
     // Mock loader.load to return undefined
     mockLoader.load.mockReturnValueOnce(undefined);
 
     const { result } = renderHook(() => useGoogleMaps());
 
     await waitFor(() => {
-      expect(result.current.loadError).toBe('Failed to initialize Google Maps loader');
+      expect(result.current.loadError).toBe("Failed to initialize Google Maps loader");
     });
 
     expect(result.current.isLoaded).toBe(false);

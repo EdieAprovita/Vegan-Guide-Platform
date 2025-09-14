@@ -7,11 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Send, 
-  MessageCircle, 
-  Paperclip
-} from "lucide-react";
+import { Send, MessageCircle, Paperclip } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
 
@@ -142,7 +138,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
       isRead: false,
     };
 
-    setMessages(prev => [...prev, message]);
+    setMessages((prev) => [...prev, message]);
     setNewMessage("");
 
     toast.success("Message sent!");
@@ -167,7 +163,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-4xl h-[80vh] flex flex-col">
+      <Card className="flex h-[80vh] w-full max-w-4xl flex-col">
         <CardHeader className="flex-shrink-0 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -185,19 +181,19 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
 
         <div className="flex flex-1 overflow-hidden">
           {/* Chat Rooms Sidebar */}
-          <div className="w-80 border-r flex flex-col">
-            <div className="p-4 border-b">
+          <div className="flex w-80 flex-col border-r">
+            <div className="border-b p-4">
               <Input placeholder="Search conversations..." />
             </div>
-            
+
             <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
+              <div className="space-y-1 p-2">
                 {chatRooms.map((room) => (
                   <div
                     key={room.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`cursor-pointer rounded-lg p-3 transition-colors ${
                       activeRoom?.id === room.id
-                        ? "bg-green-100 border border-green-200"
+                        ? "border border-green-200 bg-green-100"
                         : "hover:bg-gray-50"
                     }`}
                     onClick={() => {
@@ -208,14 +204,12 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {room.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
+                          <AvatarFallback>{room.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{room.name}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{room.name}</p>
                           {room.lastMessage && (
-                            <p className="text-xs text-gray-500 truncate">
+                            <p className="truncate text-xs text-gray-500">
                               {room.lastMessage.sender.username}: {room.lastMessage.content}
                             </p>
                           )}
@@ -241,16 +235,14 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-1 flex-col">
             {activeRoom ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b flex items-center justify-between">
+                <div className="flex items-center justify-between border-b p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {activeRoom.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
+                      <AvatarFallback>{activeRoom.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="font-medium">{activeRoom.name}</h3>
@@ -286,14 +278,12 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                           } rounded-lg p-3`}
                         >
                           {message.sender.id !== user?._id && (
-                            <p className="text-xs font-medium mb-1 text-gray-600">
+                            <p className="mb-1 text-xs font-medium text-gray-600">
                               {message.sender.username}
                             </p>
                           )}
                           <p className="text-sm">{message.content}</p>
-                          <p className="text-xs mt-1 opacity-70">
-                            {formatTime(message.timestamp)}
-                          </p>
+                          <p className="mt-1 text-xs opacity-70">{formatTime(message.timestamp)}</p>
                         </div>
                       </div>
                     ))}
@@ -302,7 +292,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                 </ScrollArea>
 
                 {/* Message Input */}
-                <div className="p-4 border-t">
+                <div className="border-t p-4">
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm">
                       <Paperclip className="h-4 w-4" />
@@ -322,9 +312,9 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
+              <div className="flex flex-1 items-center justify-center text-gray-500">
                 <div className="text-center">
-                  <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <MessageCircle className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <p>Select a conversation to start chatting</p>
                 </div>
               </div>
@@ -334,4 +324,4 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
       </Card>
     </div>
   );
-} 
+}

@@ -38,20 +38,20 @@ export function LazyImage({
     }
 
     // Si es una data URL, usarla directamente
-    if (src.startsWith('data:')) {
+    if (src.startsWith("data:")) {
       setImageSrc(src);
       setIsLoading(false);
       return;
     }
 
     const img = new window.Image();
-    
+
     const handleLoad = () => {
       setImageSrc(src);
       setIsLoading(false);
       setHasError(false);
     };
-    
+
     const handleError = () => {
       console.warn(`Failed to load image: ${src}`);
       setImageSrc(fallback);
@@ -61,7 +61,7 @@ export function LazyImage({
 
     img.onload = handleLoad;
     img.onerror = handleError;
-    
+
     // Agregar timeout para evitar esperas infinitas
     const timeout = setTimeout(() => {
       if (isLoading) {
@@ -79,20 +79,15 @@ export function LazyImage({
   }, [src, fallback, placeholder, isLoading]);
 
   if (isLoading) {
-    return (
-      <Skeleton 
-        className={cn("animate-pulse", className)} 
-        style={{ width, height }}
-      />
-    );
+    return <Skeleton className={cn("animate-pulse", className)} style={{ width, height }} />;
   }
 
   // Si hay error y no hay fallback válido, mostrar skeleton
   if (hasError && (!fallback || fallback === placeholder)) {
     return (
-      <div 
+      <div
         className={cn(
-          "bg-gray-200 flex items-center justify-center text-gray-500 text-sm",
+          "flex items-center justify-center bg-gray-200 text-sm text-gray-500",
           className
         )}
         style={{ width, height }}
@@ -106,16 +101,12 @@ export function LazyImage({
     <Image
       src={imageSrc}
       alt={alt}
-      className={cn(
-        "transition-opacity duration-300",
-        hasError && "opacity-50",
-        className
-      )}
+      className={cn("transition-opacity duration-300", hasError && "opacity-50", className)}
       width={width || 200}
       height={height || 200}
       loading={priority ? "eager" : "lazy"}
       priority={priority}
-      unoptimized={imageSrc.startsWith('data:')}
+      unoptimized={imageSrc.startsWith("data:")}
       onError={() => {
         if (!hasError) {
           setHasError(true);
@@ -124,4 +115,4 @@ export function LazyImage({
       }}
     />
   );
-} 
+}

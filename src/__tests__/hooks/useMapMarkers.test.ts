@@ -1,20 +1,20 @@
-import { renderHook, act } from '@testing-library/react';
-import { useMapMarkers, MarkerData } from '@/hooks/useMapMarkers';
+import { renderHook, act } from "@testing-library/react";
+import { useMapMarkers, MarkerData } from "@/hooks/useMapMarkers";
 
 // Mock useDebouncedCallback
-jest.mock('use-debounce', () => ({
+jest.mock("use-debounce", () => ({
   useDebouncedCallback: (fn: Function) => fn, // Return the function directly for testing
 }));
 
 // Mock MARKER_ICONS and MAP_OPTIONS
-jest.mock('@/lib/config/maps', () => ({
+jest.mock("@/lib/config/maps", () => ({
   MARKER_ICONS: {
-    restaurant: '/icons/markers/restaurant.png',
-    business: '/icons/markers/business.png',
-    market: '/icons/markers/market.png',
-    doctor: '/icons/markers/doctor.png',
-    sanctuary: '/icons/markers/sanctuary.png',
-    currentLocation: '/icons/markers/current-location.png',
+    restaurant: "/icons/markers/restaurant.png",
+    business: "/icons/markers/business.png",
+    market: "/icons/markers/market.png",
+    doctor: "/icons/markers/doctor.png",
+    sanctuary: "/icons/markers/sanctuary.png",
+    currentLocation: "/icons/markers/current-location.png",
   },
   MAP_OPTIONS: {
     DEFAULT_ZOOM: 12,
@@ -77,21 +77,21 @@ global.google = {
   },
 } as unknown as typeof google;
 
-describe('useMapMarkers Hook', () => {
+describe("useMapMarkers Hook", () => {
   const sampleMarkerData: MarkerData[] = [
     {
-      id: 'marker-1',
+      id: "marker-1",
       position: { lat: 4.6097, lng: -74.0817 },
-      title: 'Test Location 1',
-      content: 'Test content 1',
-      type: 'restaurant',
+      title: "Test Location 1",
+      content: "Test content 1",
+      type: "restaurant",
     },
     {
-      id: 'marker-2',
+      id: "marker-2",
       position: { lat: 4.6098, lng: -74.0818 },
-      title: 'Test Location 2',
-      content: 'Test content 2',
-      type: 'business',
+      title: "Test Location 2",
+      content: "Test content 2",
+      type: "business",
     },
   ];
 
@@ -99,21 +99,21 @@ describe('useMapMarkers Hook', () => {
     jest.clearAllMocks();
   });
 
-  test('should initialize with empty markers when no map provided', () => {
+  test("should initialize with empty markers when no map provided", () => {
     const { result } = renderHook(() => useMapMarkers(null));
 
     expect(result.current.markers).toEqual([]);
     expect(result.current.infoWindow).toBeNull();
   });
 
-  test('should create info window when map is provided', () => {
+  test("should create info window when map is provided", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     expect(result.current.infoWindow).toBe(mockInfoWindow);
     expect(global.google.maps.InfoWindow).toHaveBeenCalledTimes(1);
   });
 
-  test('should add marker correctly', () => {
+  test("should add marker correctly", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {
@@ -131,7 +131,7 @@ describe('useMapMarkers Hook', () => {
     expect(result.current.markerCount).toBe(1);
   });
 
-  test('should remove marker correctly', () => {
+  test("should remove marker correctly", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {
@@ -141,18 +141,18 @@ describe('useMapMarkers Hook', () => {
     expect(result.current.markerCount).toBe(1);
 
     act(() => {
-      result.current.removeMarker('marker-1');
+      result.current.removeMarker("marker-1");
     });
 
     expect(mockMarker.setMap).toHaveBeenCalledWith(null);
     expect(result.current.markerCount).toBe(0);
   });
 
-  test('should clear all markers', () => {
+  test("should clear all markers", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {
-      sampleMarkerData.forEach(marker => {
+      sampleMarkerData.forEach((marker) => {
         result.current.addMarker(marker);
       });
     });
@@ -167,7 +167,7 @@ describe('useMapMarkers Hook', () => {
     expect(mockMarker.setMap).toHaveBeenCalledWith(null);
   });
 
-  test('should update markers correctly', () => {
+  test("should update markers correctly", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {
@@ -178,7 +178,7 @@ describe('useMapMarkers Hook', () => {
     expect(mockMap.fitBounds).toHaveBeenCalledTimes(1);
   });
 
-  test('should handle marker click with info window', () => {
+  test("should handle marker click with info window", () => {
     const { result } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {
@@ -186,8 +186,9 @@ describe('useMapMarkers Hook', () => {
     });
 
     // Simulate marker click
-    const clickHandler = (mockMarker.addListener as jest.Mock).mock.calls
-      .find(call => call[0] === 'click')?.[1];
+    const clickHandler = (mockMarker.addListener as jest.Mock).mock.calls.find(
+      (call) => call[0] === "click"
+    )?.[1];
 
     expect(clickHandler).toBeDefined();
 
@@ -199,15 +200,17 @@ describe('useMapMarkers Hook', () => {
     expect(mockInfoWindow.open).toHaveBeenCalledWith(mockMap, mockMarker);
   });
 
-  test('should handle clustering for performance optimization', () => {
+  test("should handle clustering for performance optimization", () => {
     const manyMarkers: MarkerData[] = Array.from({ length: 100 }, (_, i) => ({
       id: `marker-${i}`,
       position: { lat: 4.6097 + i * 0.001, lng: -74.0817 + i * 0.001 },
       title: `Location ${i}`,
-      type: 'restaurant',
+      type: "restaurant",
     }));
 
-    const { result } = renderHook(() => useMapMarkers(mockMap, { enableClustering: true, maxZoom: 15 }));
+    const { result } = renderHook(() =>
+      useMapMarkers(mockMap, { enableClustering: true, maxZoom: 15 })
+    );
 
     act(() => {
       result.current.updateMarkers(manyMarkers);
@@ -217,7 +220,7 @@ describe('useMapMarkers Hook', () => {
     expect(result.current.markerCount).toBe(100);
   });
 
-  test('should cleanup markers on unmount', () => {
+  test("should cleanup markers on unmount", () => {
     const { result, unmount } = renderHook(() => useMapMarkers(mockMap));
 
     act(() => {

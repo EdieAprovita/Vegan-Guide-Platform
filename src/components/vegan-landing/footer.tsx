@@ -2,27 +2,26 @@
 
 export function Footer() {
   return (
-    <div className="w-full min-h-[400px] sm:min-h-[492px] relative px-4 sm:px-6 lg:px-24 xl:px-[93px] pt-12 sm:pt-16 lg:pt-[162px] bg-green-900">
-      <div className="w-full h-[300px] sm:h-[374px] absolute bottom-0 left-0 bg-green-800/80" />
+    <div className="relative min-h-[400px] w-full bg-green-900 px-4 pt-12 sm:min-h-[492px] sm:px-6 sm:pt-16 lg:px-24 lg:pt-[162px] xl:px-[93px]">
+      <div className="absolute bottom-0 left-0 h-[300px] w-full bg-green-800/80 sm:h-[374px]" />
 
-      <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-[68px] relative z-20">
-        <div className="flex-1 max-w-full lg:max-w-[380px] text-center lg:text-left">
-          <div className="text-white font-['Clicker_Script'] text-3xl sm:text-4xl lg:text-[54px] font-normal mb-6 sm:mb-8">
+      <div className="relative z-20 flex flex-col gap-8 sm:gap-12 lg:flex-row lg:gap-[68px]">
+        <div className="max-w-full flex-1 text-center lg:max-w-[380px] lg:text-left">
+          <div className="mb-6 font-['Clicker_Script'] text-3xl font-normal text-white sm:mb-8 sm:text-4xl lg:text-[54px]">
             Verde Guide
           </div>
 
-          <div className="text-white font-['Playfair_Display'] text-sm sm:text-base font-normal leading-relaxed mb-8 sm:mb-12">
-            Your comprehensive companion for plant-based living. We provide
-            everything you need to thrive on plants, from delicious recipes to
-            sustainable lifestyle tips. Join our community committed to health,
-            compassion, and environmental stewardship.
+          <div className="mb-8 font-['Playfair_Display'] text-sm leading-relaxed font-normal text-white sm:mb-12 sm:text-base">
+            Your comprehensive companion for plant-based living. We provide everything you need to
+            thrive on plants, from delicious recipes to sustainable lifestyle tips. Join our
+            community committed to health, compassion, and environmental stewardship.
           </div>
 
           {/* Social Media Icons */}
-          <div className="flex justify-center lg:justify-start gap-4 sm:gap-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center cursor-pointer hover:bg-green-400 transition-colors">
+          <div className="flex justify-center gap-4 sm:gap-6 lg:justify-start">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-green-500 transition-colors hover:bg-green-400 sm:h-12 sm:w-12">
               <svg
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                className="h-5 w-5 text-white sm:h-6 sm:w-6"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -30,9 +29,9 @@ export function Footer() {
               </svg>
             </div>
 
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center cursor-pointer hover:bg-green-400 transition-colors">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-green-500 transition-colors hover:bg-green-400 sm:h-12 sm:w-12">
               <svg
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                className="h-5 w-5 text-white sm:h-6 sm:w-6"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -40,9 +39,9 @@ export function Footer() {
               </svg>
             </div>
 
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center cursor-pointer hover:bg-green-400 transition-colors">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-green-500 transition-colors hover:bg-green-400 sm:h-12 sm:w-12">
               <svg
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                className="h-5 w-5 text-white sm:h-6 sm:w-6"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -50,9 +49,9 @@ export function Footer() {
               </svg>
             </div>
 
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center cursor-pointer hover:bg-green-400 transition-colors">
+            <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg bg-green-500 transition-colors hover:bg-green-400 sm:h-12 sm:w-12">
               <svg
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                className="h-5 w-5 text-white sm:h-6 sm:w-6"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -62,68 +61,60 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-8 sm:gap-12 lg:gap-[68px]">
-          <div className="min-w-0 sm:min-w-[136px] text-center sm:text-left">
-            <div className="text-white font-['Playfair_Display'] text-xl sm:text-2xl lg:text-[26px] font-bold mb-6 sm:mb-8 lg:mb-[55px]">
+        <div className="flex flex-col gap-8 sm:flex-row sm:gap-12 lg:gap-[68px]">
+          <div className="min-w-0 text-center sm:min-w-[136px] sm:text-left">
+            <div className="mb-6 font-['Playfair_Display'] text-xl font-bold text-white sm:mb-8 sm:text-2xl lg:mb-[55px] lg:text-[26px]">
               Explore
             </div>
 
-            <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal leading-relaxed lg:leading-[42px] space-y-2 sm:space-y-3">
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
-                Recipes
-              </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
-                Nutrition
-              </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
+            <div className="space-y-2 font-['Playfair_Display'] text-sm leading-relaxed font-normal text-white sm:space-y-3 sm:text-base lg:text-lg lg:leading-[42px]">
+              <div className="cursor-pointer transition-colors hover:text-green-200">Recipes</div>
+              <div className="cursor-pointer transition-colors hover:text-green-200">Nutrition</div>
+              <div className="cursor-pointer transition-colors hover:text-green-200">
                 Lifestyle Tips
               </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
-                Community
-              </div>
+              <div className="cursor-pointer transition-colors hover:text-green-200">Community</div>
             </div>
           </div>
 
-          <div className="min-w-0 sm:min-w-[136px] text-center sm:text-left">
-            <div className="text-white font-['Playfair_Display'] text-xl sm:text-2xl lg:text-[26px] font-bold mb-6 sm:mb-8 lg:mb-[55px]">
+          <div className="min-w-0 text-center sm:min-w-[136px] sm:text-left">
+            <div className="mb-6 font-['Playfair_Display'] text-xl font-bold text-white sm:mb-8 sm:text-2xl lg:mb-[55px] lg:text-[26px]">
               Company
             </div>
 
-            <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal leading-relaxed lg:leading-[42px] space-y-2 sm:space-y-3">
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
+            <div className="space-y-2 font-['Playfair_Display'] text-sm leading-relaxed font-normal text-white sm:space-y-3 sm:text-base lg:text-lg lg:leading-[42px]">
+              <div className="cursor-pointer transition-colors hover:text-green-200">
                 Our Mission
               </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
+              <div className="cursor-pointer transition-colors hover:text-green-200">
                 Privacy Policy
               </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
+              <div className="cursor-pointer transition-colors hover:text-green-200">
                 Terms of Service
               </div>
-              <div className="cursor-pointer hover:text-green-200 transition-colors">
-                FAQ
-              </div>
+              <div className="cursor-pointer transition-colors hover:text-green-200">FAQ</div>
             </div>
           </div>
 
-          <div className="min-w-0 sm:min-w-[136px] text-center sm:text-left">
-            <div className="text-white font-['Playfair_Display'] text-xl sm:text-2xl lg:text-[26px] font-bold mb-6 sm:mb-8 lg:mb-[55px]">
+          <div className="min-w-0 text-center sm:min-w-[136px] sm:text-left">
+            <div className="mb-6 font-['Playfair_Display'] text-xl font-bold text-white sm:mb-8 sm:text-2xl lg:mb-[55px] lg:text-[26px]">
               Contact Us
             </div>
 
-            <div className="max-w-full sm:max-w-[332px] space-y-4 sm:space-y-6">
-              <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal">
+            <div className="max-w-full space-y-4 sm:max-w-[332px] sm:space-y-6">
+              <div className="font-['Playfair_Display'] text-sm font-normal text-white sm:text-base lg:text-lg">
                 123 Green Street, Plant City, Earth 12345
               </div>
 
-              <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal">
+              <div className="font-['Playfair_Display'] text-sm font-normal text-white sm:text-base lg:text-lg">
                 +1 555-VERDE-99
               </div>
 
-              <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal">
+              <div className="font-['Playfair_Display'] text-sm font-normal text-white sm:text-base lg:text-lg">
                 hello@verdeguide.com
               </div>
 
-              <div className="text-white font-['Playfair_Display'] text-sm sm:text-base lg:text-lg font-normal">
+              <div className="font-['Playfair_Display'] text-sm font-normal text-white sm:text-base lg:text-lg">
                 www.verdeguide.com
               </div>
             </div>

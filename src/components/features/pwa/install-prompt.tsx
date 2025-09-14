@@ -3,14 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Download, 
-  Smartphone, 
-  X, 
-  CheckCircle,
-  Wifi,
-  WifiOff
-} from "lucide-react";
+import { Download, Smartphone, X, CheckCircle, Wifi, WifiOff } from "lucide-react";
 import { usePWA } from "@/hooks/usePWA";
 import { toast } from "sonner";
 
@@ -58,20 +51,15 @@ export function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
-      <Card className="shadow-lg border-green-200 bg-green-50/50">
+    <div className="fixed right-4 bottom-4 left-4 z-50 md:right-4 md:left-auto md:w-80">
+      <Card className="border-green-200 bg-green-50/50 shadow-lg">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Smartphone className="h-5 w-5 text-green-600" />
               Install Vegan Guide
             </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="h-6 w-6 p-0"
-            >
+            <Button variant="ghost" size="sm" onClick={handleClose} className="h-6 w-6 p-0">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -95,7 +83,7 @@ export function InstallPrompt() {
             Install Vegan Guide as a native app for a better experience:
           </p>
 
-          <ul className="text-xs text-gray-500 space-y-1">
+          <ul className="space-y-1 text-xs text-gray-500">
             <li className="flex items-center gap-2">
               <CheckCircle className="h-3 w-3 text-green-500" />
               Faster access from home screen
@@ -115,18 +103,11 @@ export function InstallPrompt() {
           </ul>
 
           <div className="flex gap-2">
-            <Button
-              onClick={handleInstall}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
+            <Button onClick={handleInstall} className="flex-1 bg-green-600 hover:bg-green-700">
+              <Download className="mr-2 h-4 w-4" />
               Install
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleDismiss}
-              className="text-gray-500"
-            >
+            <Button variant="outline" onClick={handleDismiss} className="text-gray-500">
               Later
             </Button>
           </div>
@@ -134,4 +115,4 @@ export function InstallPrompt() {
       </Card>
     </div>
   );
-} 
+}

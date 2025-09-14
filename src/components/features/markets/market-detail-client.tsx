@@ -48,7 +48,7 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
   };
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-8 animate-pulse">Loading...</div>;
+    return <div className="container mx-auto animate-pulse px-4 py-8">Loading...</div>;
   }
 
   if (!market) {
@@ -56,34 +56,37 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
   }
 
   // Convert market reviews to Review format
-  const adaptedReviews: Review[] = market.reviews?.map((review: { user: string; rating: number; comment: string; date: string }, index: number) => ({
-    _id: `${market._id}-${index}`,
-    user: { 
-      _id: `user-${review.user}`,
-      username: review.user,
-      photo: undefined
-    },
-    rating: review.rating,
-    comment: review.comment,
-    createdAt: review.date,
-    updatedAt: review.date,
-    resourceType: 'market' as const,
-    resourceId: market._id,
-    helpful: [],
-    helpfulCount: 0
-  })) || [];
+  const adaptedReviews: Review[] =
+    market.reviews?.map(
+      (review: { user: string; rating: number; comment: string; date: string }, index: number) => ({
+        _id: `${market._id}-${index}`,
+        user: {
+          _id: `user-${review.user}`,
+          username: review.user,
+          photo: undefined,
+        },
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.date,
+        updatedAt: review.date,
+        resourceType: "market" as const,
+        resourceId: market._id,
+        helpful: [],
+        helpfulCount: 0,
+      })
+    ) || [];
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         <button
           onClick={() => window.history.back()}
           className="mb-6 flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Markets
         </button>
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+        <div className="overflow-hidden rounded-xl bg-white shadow-lg">
           <div className="md:flex">
             <div className="md:flex-shrink-0">
               <Image
@@ -95,20 +98,20 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
               />
             </div>
             <div className="p-8">
-              <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">
+              <div className="text-sm font-semibold tracking-wide text-indigo-500 uppercase">
                 Market
               </div>
-              <h1 className="block mt-1 text-2xl leading-tight font-bold text-black">
+              <h1 className="mt-1 block text-2xl leading-tight font-bold text-black">
                 {market.marketName}
               </h1>
               <div className="mt-4">
                 <p className="flex items-center text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2" />
+                  <MapPin className="mr-2 h-4 w-4" />
                   {market.address}
                 </p>
                 {market.contact && market.contact.length > 0 && market.contact[0].phone && (
-                  <p className="flex items-center text-gray-600 mt-2">
-                    <Phone className="w-4 h-4 mr-2" />
+                  <p className="mt-2 flex items-center text-gray-600">
+                    <Phone className="mr-2 h-4 w-4" />
                     {market.contact[0].phone}
                   </p>
                 )}
@@ -117,23 +120,20 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
                     href={market.contact[0].website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-indigo-600 hover:text-indigo-800 mt-2"
+                    className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
                   >
-                    <Globe className="w-4 h-4 mr-2" />
+                    <Globe className="mr-2 h-4 w-4" />
                     Visit website
                   </a>
                 )}
               </div>
             </div>
           </div>
-          <div className="p-8 border-t border-gray-200">
-            <ReviewSystem
-              reviews={adaptedReviews}
-              onReviewSubmit={handleAddReview}
-            />
+          <div className="border-t border-gray-200 p-8">
+            <ReviewSystem reviews={adaptedReviews} onReviewSubmit={handleAddReview} />
           </div>
         </div>
       </div>
     </main>
   );
-} 
+}
