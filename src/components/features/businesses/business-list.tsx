@@ -6,13 +6,7 @@ import { BusinessCard } from "./business-card";
 import { useBusinesses } from "@/hooks/useBusinesses";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -125,37 +119,32 @@ export const BusinessList = ({
               <div className="grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Tipo de Negocio</label>
-                  <Select value={typeBusiness} onValueChange={setTypeBusiness}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos los tipos</SelectItem>
-                      {BUSINESS_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <select
+                    value={typeBusiness}
+                    onChange={(e) => setTypeBusiness(e.target.value)}
+                    className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
+                  >
+                    <option value="">Todos los tipos</option>
+                    {BUSINESS_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Calificación Mínima</label>
-                  <Select
+                  <select
                     value={rating?.toString() || ""}
-                    onValueChange={(value) => setRating(value ? Number(value) : undefined)}
+                    onChange={(e) => setRating(e.target.value ? Number(e.target.value) : undefined)}
+                    className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Cualquier calificación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Cualquier calificación</SelectItem>
-                      <SelectItem value="4">4+ estrellas</SelectItem>
-                      <SelectItem value="3">3+ estrellas</SelectItem>
-                      <SelectItem value="2">2+ estrellas</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <option value="">Cualquier calificación</option>
+                    <option value="4">4+ estrellas</option>
+                    <option value="3">3+ estrellas</option>
+                    <option value="2">2+ estrellas</option>
+                  </select>
                 </div>
 
                 <div className="flex items-end">

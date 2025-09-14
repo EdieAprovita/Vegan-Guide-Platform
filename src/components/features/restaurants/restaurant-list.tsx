@@ -5,13 +5,8 @@ import { Restaurant, getRestaurants } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { processBackendResponse } from "@/lib/api/config";
+// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin } from "lucide-react";
 import { toast } from "sonner";
@@ -58,10 +53,10 @@ export function RestaurantList({
   const [hasMore, setHasMore] = useState(true);
 
   const loadRestaurants = useCallback(
-    async (reset = false) => {
+    async (reset = false, pageOverride?: number) => {
       setLoading(true);
       try {
-        const currentPage = reset ? 1 : page;
+        const currentPage = reset ? 1 : (pageOverride ?? page);
         const params: Record<string, string | number> = {
           page: currentPage,
           limit: 12,
@@ -72,15 +67,17 @@ export function RestaurantList({
         if (ratingFilter) params.rating = parseInt(ratingFilter);
 
         const response = await getRestaurants(params);
+        const processed = processBackendResponse<Restaurant>(response);
+        const data = Array.isArray(processed) ? processed : processed ? [processed] : [];
 
         if (reset) {
-          setRestaurants(response.data || []);
+          setRestaurants(data);
           setPage(1);
         } else {
-          setRestaurants((prev) => [...prev, ...(response.data || [])]);
+          setRestaurants((prev) => [...prev, ...data]);
         }
 
-        setHasMore((response.data || []).length === 12);
+        setHasMore(data.length === 12);
       } catch {
         toast.error("Failed to load restaurants");
       } finally {
@@ -105,10 +102,10 @@ export function RestaurantList({
   };
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setPage((prev) => prev + 1);
-      loadRestaurants(false);
-    }
+    if (loading || !hasMore) return;
+    const next = page + 1;
+    setPage(next);
+    loadRestaurants(false, next);
   };
 
   return (
@@ -131,51 +128,43 @@ export function RestaurantList({
                   placeholder="Search restaurants..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-10"
                 />
               </div>
 
               {/* Cuisine Filter */}
-              <Select
+              <select
                 value={cuisineFilter}
-                onValueChange={(value) => {
-                  setCuisineFilter(value);
+                onChange={(e) => {
+                  setCuisineFilter(e.target.value);
                   handleFilterChange();
                 }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Cuisine type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All cuisines</SelectItem>
-                  {CUISINE_OPTIONS.map((cuisine) => (
-                    <SelectItem key={cuisine} value={cuisine.toLowerCase()}>
-                      {cuisine}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">All cuisines</option>
+                {CUISINE_OPTIONS.map((cuisine) => (
+                  <option key={cuisine} value={cuisine.toLowerCase()}>
+                    {cuisine}
+                  </option>
+                ))}
+              </select>
 
               {/* Rating Filter */}
-              <Select
+              <select
                 value={ratingFilter}
-                onValueChange={(value) => {
-                  setRatingFilter(value);
+                onChange={(e) => {
+                  setRatingFilter(e.target.value);
                   handleFilterChange();
                 }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  {RATING_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {RATING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Search Button */}
               <Button onClick={handleSearch} disabled={loading}>

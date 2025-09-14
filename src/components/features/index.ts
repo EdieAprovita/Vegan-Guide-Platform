@@ -12,7 +12,8 @@ export { BusinessForm } from "./businesses/business-form";
 export { BusinessDetailClient } from "./businesses/business-detail-client";
 
 // Phase 2 Components
-export { DoctorList } from "./doctors/doctor-list";
+// Unify doctors lists: expose SimpleDoctorList under DoctorList for consistency
+export { SimpleDoctorList as DoctorList } from "./doctors/simple-doctor-list";
 export { DoctorCard } from "./doctors/doctor-card";
 export { MarketList } from "./markets/market-list";
 export { MarketCard } from "./markets/market-card";

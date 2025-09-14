@@ -5,13 +5,8 @@ import { Market, getMarkets } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { processBackendResponse } from "@/lib/api/config";
+// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Store } from "lucide-react";
 import { toast } from "sonner";
@@ -57,10 +52,10 @@ export function MarketList({
   const [hasMore, setHasMore] = useState(true);
 
   const loadMarkets = useCallback(
-    async (reset = false) => {
+    async (reset = false, pageOverride?: number) => {
       setLoading(true);
       try {
-        const currentPage = reset ? 1 : page;
+        const currentPage = reset ? 1 : (pageOverride ?? page);
         const params: Record<string, string | number> = {
           page: currentPage,
           limit: 12,
@@ -71,15 +66,17 @@ export function MarketList({
         if (ratingFilter) params.rating = parseInt(ratingFilter);
 
         const response = await getMarkets(params);
+        const processed = processBackendResponse<Market>(response);
+        const data = Array.isArray(processed) ? processed : processed ? [processed] : [];
 
         if (reset) {
-          setMarkets(response.data || response);
+          setMarkets(data);
           setPage(1);
         } else {
-          setMarkets((prev) => [...prev, ...(response.data || response)]);
+          setMarkets((prev) => [...prev, ...data]);
         }
 
-        setHasMore((response.data || response).length === 12);
+        setHasMore(data.length === 12);
       } catch {
         toast.error("Failed to load markets");
       } finally {
@@ -104,10 +101,10 @@ export function MarketList({
   };
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setPage((prev) => prev + 1);
-      loadMarkets(false);
-    }
+    if (loading || !hasMore) return;
+    const next = page + 1;
+    setPage(next);
+    loadMarkets(false, next);
   };
 
   return (
@@ -130,51 +127,43 @@ export function MarketList({
                   placeholder="Search markets..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-10"
                 />
               </div>
 
               {/* Product Filter */}
-              <Select
+              <select
                 value={productFilter}
-                onValueChange={(value) => {
-                  setProductFilter(value);
+                onChange={(e) => {
+                  setProductFilter(e.target.value);
                   handleFilterChange();
                 }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Products" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All products</SelectItem>
-                  {PRODUCT_OPTIONS.map((product) => (
-                    <SelectItem key={product} value={product.toLowerCase()}>
-                      {product}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">All products</option>
+                {PRODUCT_OPTIONS.map((product) => (
+                  <option key={product} value={product.toLowerCase()}>
+                    {product}
+                  </option>
+                ))}
+              </select>
 
               {/* Rating Filter */}
-              <Select
+              <select
                 value={ratingFilter}
-                onValueChange={(value) => {
-                  setRatingFilter(value);
+                onChange={(e) => {
+                  setRatingFilter(e.target.value);
                   handleFilterChange();
                 }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  {RATING_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {RATING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Search Button */}
               <Button onClick={handleSearch} disabled={loading}>
