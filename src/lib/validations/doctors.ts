@@ -10,19 +10,22 @@ export const createDoctorSchema = z.object({
     .string()
     .min(1, "Specialty is required")
     .min(2, "Specialty must be at least 2 characters"),
-  address: z
-    .string()
-    .min(1, "Address is required")
-    .min(5, "Address must be at least 5 characters"),
-  location: z.object({
-    type: z.string(),
-    coordinates: z.array(z.number()).length(2),
-  }).optional(),
-  contact: z.array(z.object({
-    phone: z.string().optional(),
-    email: z.string().email().optional(),
-    website: z.string().url().optional(),
-  })).min(1, "At least one contact method is required"),
+  address: z.string().min(1, "Address is required").min(5, "Address must be at least 5 characters"),
+  location: z
+    .object({
+      type: z.string(),
+      coordinates: z.array(z.number()).length(2),
+    })
+    .optional(),
+  contact: z
+    .array(
+      z.object({
+        phone: z.string().optional(),
+        email: z.string().email().optional(),
+        website: z.string().url().optional(),
+      })
+    )
+    .min(1, "At least one contact method is required"),
   education: z.array(z.string()).min(1, "At least one education entry is required"),
   experience: z
     .string()
@@ -34,10 +37,7 @@ export const createDoctorSchema = z.object({
 export const updateDoctorSchema = createDoctorSchema.partial();
 
 export const doctorReviewSchema = z.object({
-  rating: z
-    .number()
-    .min(1, "Rating must be at least 1")
-    .max(5, "Rating must be at most 5"),
+  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   comment: z
     .string()
     .min(1, "Comment is required")
@@ -47,4 +47,4 @@ export const doctorReviewSchema = z.object({
 
 export type CreateDoctorFormData = z.infer<typeof createDoctorSchema>;
 export type UpdateDoctorFormData = z.infer<typeof updateDoctorSchema>;
-export type DoctorReviewFormData = z.infer<typeof doctorReviewSchema>; 
+export type DoctorReviewFormData = z.infer<typeof doctorReviewSchema>;

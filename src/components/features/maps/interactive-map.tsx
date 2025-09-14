@@ -73,10 +73,12 @@ export function InteractiveMap({
 
   const { updateMarkers, clearMarkers, markerCount } = useMapMarkers(map, {
     enableClustering,
-    onMarkerClick: onLocationClick ? (markerData) => {
-      const location = locations.find(loc => loc.id === markerData.id);
-      if (location) onLocationClick(location);
-    } : undefined,
+    onMarkerClick: onLocationClick
+      ? (markerData) => {
+          const location = locations.find((loc) => loc.id === markerData.id);
+          if (location) onLocationClick(location);
+        }
+      : undefined,
   });
 
   // Helper function to create info window content
@@ -90,22 +92,30 @@ export function InteractiveMap({
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
               ${location.type}
             </span>
-            ${location.rating ? `
+            ${
+              location.rating
+                ? `
               <div class="flex items-center gap-1">
                 <span class="text-yellow-400">★</span>
                 <span class="text-xs text-gray-600">${location.rating.toFixed(1)}</span>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
           <div class="flex gap-2 pt-2">
             <a href="${location.url}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
               Ver detalles
             </a>
-            ${location.website ? `
+            ${
+              location.website
+                ? `
               <a href="${location.website}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
                 Sitio web
               </a>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
         </div>
       </div>
@@ -114,7 +124,7 @@ export function InteractiveMap({
 
   // Memoized marker data conversion for performance
   const markerData = useMemo((): MarkerData[] => {
-    return locations.map(location => ({
+    return locations.map((location) => ({
       id: location.id,
       position: {
         lat: location.coordinates[0],
@@ -141,7 +151,10 @@ export function InteractiveMap({
     const mapInstance = new google.maps.Map(mapRef.current, {
       center,
       zoom,
-      styles: theme === 'dark' ? JSON.parse(JSON.stringify(MAP_THEMES.dark)) : JSON.parse(JSON.stringify(MAP_THEMES.light)),
+      styles:
+        theme === "dark"
+          ? JSON.parse(JSON.stringify(MAP_THEMES.dark))
+          : JSON.parse(JSON.stringify(MAP_THEMES.light)),
       ...controls,
       restriction: {
         latLngBounds: {
@@ -155,7 +168,7 @@ export function InteractiveMap({
 
     // Add click listener if provided
     if (onMapClick) {
-      mapInstance.addListener('click', onMapClick);
+      mapInstance.addListener("click", onMapClick);
     }
 
     setMap(mapInstance);
@@ -184,9 +197,9 @@ export function InteractiveMap({
     const marker = new google.maps.Marker({
       position: { lat: userCoords.lat, lng: userCoords.lng },
       map,
-      title: 'Tu ubicación actual',
+      title: "Tu ubicación actual",
       icon: {
-        url: '/icons/markers/current-location.png',
+        url: "/icons/markers/current-location.png",
         scaledSize: new google.maps.Size(30, 30),
         anchor: new google.maps.Point(15, 15),
       },
@@ -208,18 +221,23 @@ export function InteractiveMap({
     try {
       await getCurrentPosition();
     } catch (error) {
-      console.error('Error getting user location:', error);
+      console.error("Error getting user location:", error);
     }
   }, [getCurrentPosition]);
 
   // Error state
   if (loadError) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg ${className}`} style={{ height }}>
-        <div className="text-center p-8">
-          <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Mapa no disponible</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">{loadError}</p>
+      <div
+        className={`flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 ${className}`}
+        style={{ height }}
+      >
+        <div className="p-8 text-center">
+          <MapPin className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+          <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+            Mapa no disponible
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{loadError}</p>
         </div>
       </div>
     );
@@ -228,9 +246,12 @@ export function InteractiveMap({
   // Loading state
   if (isLoading || !isLoaded) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg ${className}`} style={{ height }}>
-        <div className="text-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+      <div
+        className={`flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 ${className}`}
+        style={{ height }}
+      >
+        <div className="p-8 text-center">
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-500" />
           <p className="text-gray-600 dark:text-gray-400">Cargando mapa...</p>
         </div>
       </div>
@@ -242,19 +263,19 @@ export function InteractiveMap({
       {/* Map Container */}
       <div
         ref={mapRef}
-        className={`rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 ${className}`}
+        className={`overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}
         style={{ height }}
       />
 
       {/* Map Controls */}
-      <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
         {showCurrentLocation && (
           <Button
             size="sm"
             variant="secondary"
             onClick={handleGetUserLocation}
             disabled={locationLoading}
-            className="shadow-md bg-white/90 hover:bg-white border border-gray-200"
+            className="border border-gray-200 bg-white/90 shadow-md hover:bg-white"
             title="Mostrar mi ubicación"
           >
             {locationLoading ? (
@@ -269,11 +290,11 @@ export function InteractiveMap({
       {/* Map Stats */}
       {markerCount > 0 && (
         <div className="absolute bottom-3 left-3 z-10">
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-md px-3 py-2 shadow-md border border-gray-200 dark:border-gray-700">
+          <div className="rounded-md border border-gray-200 bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {markerCount} {markerCount === 1 ? 'ubicación' : 'ubicaciones'}
+              {markerCount} {markerCount === 1 ? "ubicación" : "ubicaciones"}
               {enableClustering && markerCount > 10 && (
-                <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                <span className="ml-2 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   Agrupado
                 </span>
               )}
@@ -283,4 +304,4 @@ export function InteractiveMap({
       )}
     </div>
   );
-} 
+}

@@ -23,7 +23,11 @@ interface RestaurantsState {
   getRestaurant: (id: string) => Promise<void>;
   getTopRatedRestaurants: (limit?: number) => Promise<void>;
   createRestaurant: (data: CreateRestaurantData, token?: string) => Promise<void>;
-  updateRestaurant: (id: string, data: Partial<CreateRestaurantData>, token?: string) => Promise<void>;
+  updateRestaurant: (
+    id: string,
+    data: Partial<CreateRestaurantData>,
+    token?: string
+  ) => Promise<void>;
   deleteRestaurant: (id: string, token?: string) => Promise<void>;
   addRestaurantReview: (id: string, review: RestaurantReview, token?: string) => Promise<void>;
 }
@@ -40,10 +44,10 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await restaurantsApi.getRestaurants(params);
-      
+
       // Use the universal helper to process backend response
       const restaurants = processBackendResponse<Restaurant>(response) as Restaurant[];
-      
+
       set({
         restaurants: Array.isArray(restaurants) ? restaurants : [],
         totalPages: 1, // Backend doesn't implement pagination yet
@@ -52,11 +56,11 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
       });
     } catch (err) {
       const error = err as Error;
-      console.error('getRestaurants error:', error);
-      set({ 
-        error: error.message, 
+      console.error("getRestaurants error:", error);
+      set({
+        error: error.message,
         isLoading: false,
-        restaurants: []
+        restaurants: [],
       });
       throw error;
     }
@@ -80,9 +84,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
       set({ isLoading: true, error: null });
       const response = await restaurantsApi.getTopRatedRestaurants(limit);
       const restaurants = processBackendResponse<Restaurant>(response) as Restaurant[];
-      set({ 
-        restaurants: Array.isArray(restaurants) ? restaurants : [], 
-        isLoading: false 
+      set({
+        restaurants: Array.isArray(restaurants) ? restaurants : [],
+        isLoading: false,
       });
     } catch (err) {
       const error = err as Error;

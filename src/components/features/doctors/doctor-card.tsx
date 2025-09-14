@@ -18,19 +18,19 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
+            <CardTitle className="line-clamp-1 text-lg font-semibold text-gray-900">
               Dr. {doctor.name}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+            <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="h-4 w-4" />
               <span className="line-clamp-1">{doctor.address}</span>
             </div>
           </div>
-          <div className="flex items-center gap-1 ml-2">
+          <div className="ml-2 flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium">{formatRating(doctor.rating)}</span>
             <span className="text-xs text-gray-500">({doctor.numReviews})</span>
@@ -83,12 +83,7 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
           {/* Social Links */}
           {doctor.contact && doctor.contact.length > 0 && doctor.contact[0].website && (
             <div className="flex gap-2">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8 px-2"
-              >
+              <Button asChild variant="outline" size="sm" className="h-8 px-2">
                 <a
                   href={doctor.contact[0].website}
                   target="_blank"
@@ -106,9 +101,7 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
           {showActions && (
             <div className="flex gap-2 pt-2">
               <Button asChild className="flex-1">
-                <Link href={`/doctors/${doctor._id}`}>
-                  View Details
-                </Link>
+                <Link href={`/doctors/${doctor._id}`}>View Details</Link>
               </Button>
               <Button variant="outline" size="sm">
                 <Star className="h-4 w-4" />
@@ -119,4 +112,4 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
       </CardContent>
     </Card>
   );
-} 
+}

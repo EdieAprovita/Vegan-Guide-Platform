@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Doctor {
   _id: string;
@@ -113,4 +113,4 @@ export async function addDoctorReview(id: string, review: DoctorReview, token?: 
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
-} 
+}

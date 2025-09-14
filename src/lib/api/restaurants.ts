@@ -1,5 +1,5 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
-import { Review } from '@/types';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import { Review } from "@/types";
 
 // Development flag to use mock data when backend has issues
 
@@ -73,12 +73,14 @@ export async function getRestaurants(params?: {
   if (params?.location) searchParams.append("location", params.location);
 
   try {
-    return await apiRequest<BackendListResponse<Restaurant>>(`/restaurants?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
   } catch (error) {
-    console.error('Network error:', error);
-    
+    console.error("Network error:", error);
+
     // Return mock data if there's a network error
-    console.warn('Network error detected, returning mock data for development');
+    console.warn("Network error detected, returning mock data for development");
     return getMockRestaurants();
   }
 }
@@ -97,28 +99,30 @@ function getMockRestaurants() {
       website: "https://greengardenbistro.com",
       location: {
         type: "Point",
-        coordinates: [40.7128, -74.0060]
+        coordinates: [40.7128, -74.006],
       },
       author: {
         _id: "user1",
         username: "veganchef",
-        photo: "/default-avatar.jpg"
+        photo: "/default-avatar.jpg",
       },
-      contact: [{
-        phone: "+1-555-0123",
-        facebook: "greengardenbistro",
-        instagram: "@greengardenbistro"
-      }],
+      contact: [
+        {
+          phone: "+1-555-0123",
+          facebook: "greengardenbistro",
+          instagram: "@greengardenbistro",
+        },
+      ],
       cuisine: ["Vegan", "Mediterranean", "Organic"],
       image: "/placeholder-recipe.jpg",
       rating: 4.8,
       numReviews: 127,
       reviews: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     },
     {
-      _id: "2", 
+      _id: "2",
       restaurantName: "Plant Power Kitchen",
       name: "Plant Power Kitchen",
       address: "456 Healthy Ave",
@@ -128,25 +132,27 @@ function getMockRestaurants() {
       website: "https://plantpowerkitchen.com",
       location: {
         type: "Point",
-        coordinates: [40.7614, -73.9776]
+        coordinates: [40.7614, -73.9776],
       },
       author: {
         _id: "user2",
         username: "plantpowerfan",
-        photo: "/default-avatar.jpg"
+        photo: "/default-avatar.jpg",
       },
-      contact: [{
-        phone: "+1-555-0456",
-        facebook: "plantpowerkitchen",
-        instagram: "@plantpowerkitchen"
-      }],
+      contact: [
+        {
+          phone: "+1-555-0456",
+          facebook: "plantpowerkitchen",
+          instagram: "@plantpowerkitchen",
+        },
+      ],
       cuisine: ["Vegan", "Raw", "Gluten-free"],
       image: "/placeholder-recipe.jpg",
       rating: 4.6,
       numReviews: 89,
       reviews: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     },
     {
       _id: "3",
@@ -159,32 +165,34 @@ function getMockRestaurants() {
       website: "https://harvestmooncafe.com",
       location: {
         type: "Point",
-        coordinates: [40.7489, -73.9857]
+        coordinates: [40.7489, -73.9857],
       },
       author: {
         _id: "user3",
         username: "harvestlover",
-        photo: "/default-avatar.jpg"
+        photo: "/default-avatar.jpg",
       },
-      contact: [{
-        phone: "+1-555-0789",
-        facebook: "harvestmooncafe",
-        instagram: "@harvestmooncafe"
-      }],
+      contact: [
+        {
+          phone: "+1-555-0789",
+          facebook: "harvestmooncafe",
+          instagram: "@harvestmooncafe",
+        },
+      ],
       cuisine: ["Vegetarian", "Vegan", "Farm-to-table"],
       image: "/placeholder-recipe.jpg",
       rating: 4.7,
       numReviews: 156,
       reviews: [],
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    },
   ];
 
   return {
     success: true,
     message: "Restaurants fetched successfully (mock data)",
-    data: mockRestaurants
+    data: mockRestaurants,
   };
 }
 
@@ -204,7 +212,11 @@ export async function createRestaurant(data: CreateRestaurantData, token?: strin
   });
 }
 
-export async function updateRestaurant(id: string, data: Partial<CreateRestaurantData>, token?: string) {
+export async function updateRestaurant(
+  id: string,
+  data: Partial<CreateRestaurantData>,
+  token?: string
+) {
   return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`, {
     method: "PUT",
     headers: getApiHeaders(token),
@@ -225,4 +237,4 @@ export async function addRestaurantReview(id: string, review: RestaurantReview, 
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
-} 
+}

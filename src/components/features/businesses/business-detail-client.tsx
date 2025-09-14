@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit } from 'lucide-react';
-import { Review } from '@/lib/api/reviews';
-import Link from 'next/link';
-import { useBusiness, useBusinessMutations } from '@/hooks/useBusinesses';
-import { useAuthStore } from '@/lib/store/auth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ReviewSystem } from '@/components/features/reviews/review-system';
-import { BusinessReview } from '@/lib/api/businesses';
-import Image from 'next/image';
+import { useState } from "react";
+import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit } from "lucide-react";
+import { Review } from "@/lib/api/reviews";
+import Link from "next/link";
+import { useBusiness, useBusinessMutations } from "@/hooks/useBusinesses";
+import { useAuthStore } from "@/lib/store/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ReviewSystem } from "@/components/features/reviews/review-system";
+import { BusinessReview } from "@/lib/api/businesses";
+import Image from "next/image";
 
 interface BusinessDetailClientProps {
   businessId: string;
@@ -32,53 +32,54 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
         rating: reviewData.rating,
         comment: reviewData.comment,
       };
-      
+
       await addReview(business._id, review);
       setShowReviewForm(false);
       // Optionally refresh the business data
       window.location.reload();
     } catch (error) {
-      console.error('Error adding review:', error);
+      console.error("Error adding review:", error);
     }
   };
 
   const formatBusinessHours = (hours: Date[]) => {
-    if (!hours || hours.length === 0) return 'Horarios no disponibles';
-    return 'Lunes a Viernes: 9:00 AM - 6:00 PM'; // Simplified - implement proper formatting
+    if (!hours || hours.length === 0) return "Horarios no disponibles";
+    return "Lunes a Viernes: 9:00 AM - 6:00 PM"; // Simplified - implement proper formatting
   };
 
-  const canEditBusiness = user?.role === 'admin' || business?.author._id === user?._id;
+  const canEditBusiness = user?.role === "admin" || business?.author._id === user?._id;
 
   // Convert BusinessReview to Review format
-  const adaptedReviews: Review[] = business?.reviews?.map((review, index) => ({
-    _id: `business-review-${index}`, // Generate temporary ID
-    user: {
-      _id: 'anonymous',
-      username: 'Usuario Anónimo',
-      photo: undefined
-    },
-    rating: review.rating,
-    comment: review.comment,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    resourceType: 'business' as const,
-    resourceId: business._id,
-    helpful: [],
-    helpfulCount: 0
-  })) || [];
+  const adaptedReviews: Review[] =
+    business?.reviews?.map((review, index) => ({
+      _id: `business-review-${index}`, // Generate temporary ID
+      user: {
+        _id: "anonymous",
+        username: "Usuario Anónimo",
+        photo: undefined,
+      },
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      resourceType: "business" as const,
+      resourceId: business._id,
+      helpful: [],
+      helpfulCount: 0,
+    })) || [];
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-8 w-64" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
             <Skeleton className="h-64 w-full rounded-lg" />
             <Card>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <Skeleton className="h-8 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
@@ -87,7 +88,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
           </div>
           <div className="space-y-6">
             <Card>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
@@ -102,11 +103,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
 
   if (error || !business) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         <Card className="p-8 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Negocio no encontrado</h3>
-          <p className="text-gray-600 mb-4">
-            {error || 'No pudimos encontrar este negocio. Es posible que haya sido eliminado o la URL sea incorrecta.'}
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">Negocio no encontrado</h3>
+          <p className="mb-4 text-gray-600">
+            {error ||
+              "No pudimos encontrar este negocio. Es posible que haya sido eliminado o la URL sea incorrecta."}
           </p>
           <Button asChild variant="outline">
             <Link href="/businesses">Volver a Negocios</Link>
@@ -117,7 +119,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -142,13 +144,13 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column - Main Info */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Business Image */}
-          <div className="relative h-64 md:h-80 overflow-hidden rounded-lg">
+          <div className="relative h-64 overflow-hidden rounded-lg md:h-80">
             <Image
-              src={business.image || '/placeholder-business.jpg'}
+              src={business.image || "/placeholder-business.jpg"}
               alt={business.namePlace}
               fill
               className="object-cover"
@@ -159,14 +161,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                 {business.typeBusiness}
               </Badge>
             </div>
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+            <div className="absolute top-4 right-4 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 backdrop-blur-sm">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold text-gray-900">
-                {business.rating?.toFixed(1) || 'N/A'}
+                {business.rating?.toFixed(1) || "N/A"}
               </span>
-              <span className="text-sm text-gray-600">
-                ({business.numReviews || 0})
-              </span>
+              <span className="text-sm text-gray-600">({business.numReviews || 0})</span>
             </div>
           </div>
 
@@ -200,11 +200,11 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                 </div>
               )}
 
-              <div className="pt-4 border-t">
-                <p className="text-sm text-gray-600 mb-2">Creado por:</p>
+              <div className="border-t pt-4">
+                <p className="mb-2 text-sm text-gray-600">Creado por:</p>
                 <div className="flex items-center gap-2">
                   <Image
-                    src={business.author.photo || '/default-avatar.jpg'}
+                    src={business.author.photo || "/default-avatar.jpg"}
                     alt={business.author.username}
                     width={32}
                     height={32}
@@ -222,10 +222,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
               <CardTitle className="flex items-center justify-between">
                 <span>Reviews y Calificaciones</span>
                 {isAuthenticated && !showReviewForm && (
-                  <Button
-                    onClick={() => setShowReviewForm(true)}
-                    size="sm"
-                  >
+                  <Button onClick={() => setShowReviewForm(true)} size="sm">
                     Escribir Review
                   </Button>
                 )}
@@ -262,8 +259,10 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <p className="text-sm font-medium text-gray-700">Teléfono</p>
                         <Button
                           variant="link"
-                          className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.location.href = `tel:${business.contact[0].phone}`}
+                          className="h-auto p-0 text-blue-600 hover:text-blue-700"
+                          onClick={() =>
+                            (window.location.href = `tel:${business.contact[0].phone}`)
+                          }
                         >
                           {business.contact[0].phone}
                         </Button>
@@ -278,8 +277,10 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <p className="text-sm font-medium text-gray-700">Email</p>
                         <Button
                           variant="link"
-                          className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.location.href = `mailto:${business.contact[0].email}`}
+                          className="h-auto p-0 text-blue-600 hover:text-blue-700"
+                          onClick={() =>
+                            (window.location.href = `mailto:${business.contact[0].email}`)
+                          }
                         >
                           {business.contact[0].email}
                         </Button>
@@ -294,8 +295,8 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <p className="text-sm font-medium text-gray-700">Sitio Web</p>
                         <Button
                           variant="link"
-                          className="p-0 h-auto text-blue-600 hover:text-blue-700"
-                          onClick={() => window.open(business.contact[0].website, '_blank')}
+                          className="h-auto p-0 text-blue-600 hover:text-blue-700"
+                          onClick={() => window.open(business.contact[0].website, "_blank")}
                         >
                           Visitar sitio web
                         </Button>
@@ -306,27 +307,30 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
               )}
 
               {/* Quick Actions */}
-              <div className="pt-4 border-t space-y-2">
+              <div className="space-y-2 border-t pt-4">
                 {business.contact?.[0]?.phone && (
                   <Button
                     variant="default"
                     className="w-full"
-                    onClick={() => window.location.href = `tel:${business.contact[0].phone}`}
+                    onClick={() => (window.location.href = `tel:${business.contact[0].phone}`)}
                   >
-                    <Phone className="h-4 w-4 mr-2" />
+                    <Phone className="mr-2 h-4 w-4" />
                     Llamar Ahora
                   </Button>
                 )}
-                
+
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => {
                     const query = encodeURIComponent(`${business.namePlace} ${business.address}`);
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                    window.open(
+                      `https://www.google.com/maps/search/?api=1&query=${query}`,
+                      "_blank"
+                    );
                   }}
                 >
-                  <MapPin className="h-4 w-4 mr-2" />
+                  <MapPin className="mr-2 h-4 w-4" />
                   Ver en Mapa
                 </Button>
               </div>
@@ -353,8 +357,8 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                 <CardTitle className="text-lg">Ubicación</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500 text-sm">Mapa interactivo próximamente</p>
+                <div className="flex h-32 items-center justify-center rounded-lg bg-gray-100">
+                  <p className="text-sm text-gray-500">Mapa interactivo próximamente</p>
                 </div>
               </CardContent>
             </Card>

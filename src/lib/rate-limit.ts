@@ -16,24 +16,30 @@ interface AttemptInfo {
 const attempts = new Map<string, AttemptInfo>();
 
 // Clean up expired entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, info] of attempts.entries()) {
-    if (now > info.resetTime) {
-      attempts.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, info] of attempts.entries()) {
+      if (now > info.resetTime) {
+        attempts.delete(key);
+      }
     }
-  }
-}, 10 * 60 * 1000);
+  },
+  10 * 60 * 1000
+);
 
 export function rateLimit(options: RateLimitOptions) {
   return {
-    check: async (request: NextRequest, identifier?: string): Promise<{ success: boolean; limit: number; remaining: number; reset: Date }> => {
+    check: async (
+      request: NextRequest,
+      identifier?: string
+    ): Promise<{ success: boolean; limit: number; remaining: number; reset: Date }> => {
       const now = Date.now();
       const ip = identifier || getClientIP(request);
       const key = `${ip}:${request.nextUrl.pathname}`;
-      
+
       let attemptInfo = attempts.get(key);
-      
+
       // Initialize or reset if window expired
       if (!attemptInfo || now > attemptInfo.resetTime) {
         attemptInfo = {
@@ -41,14 +47,14 @@ export function rateLimit(options: RateLimitOptions) {
           resetTime: now + options.windowMs,
         };
       }
-      
+
       attemptInfo.count++;
       attempts.set(key, attemptInfo);
-      
+
       const success = attemptInfo.count <= options.maxAttempts;
       const remaining = Math.max(0, options.maxAttempts - attemptInfo.count);
       const reset = new Date(attemptInfo.resetTime);
-      
+
       return {
         success,
         limit: options.maxAttempts,
@@ -80,19 +86,19 @@ function getClientIP(request: NextRequest): string {
   const xff = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
   const cfConnectingIp = request.headers.get("cf-connecting-ip");
-  
+
   if (xff) {
     return xff.split(",")[0].trim();
   }
-  
+
   if (realIp) {
     return realIp.trim();
   }
-  
+
   if (cfConnectingIp) {
     return cfConnectingIp.trim();
   }
-  
+
   return "unknown";
 }
 
@@ -103,7 +109,7 @@ export async function applyRateLimit(
   identifier?: string
 ): Promise<NextResponse | null> {
   const result = await limiter.check(request, identifier);
-  
+
   if (!result.success) {
     return NextResponse.json(
       {
@@ -122,6 +128,6 @@ export async function applyRateLimit(
       }
     );
   }
-  
+
   return null; // No rate limit hit, continue processing
 }

@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Post {
   _id: string;
@@ -106,4 +106,4 @@ export async function deleteComment(postId: string, commentId: string, token?: s
     method: "DELETE",
     headers: getApiHeaders(token),
   });
-} 
+}

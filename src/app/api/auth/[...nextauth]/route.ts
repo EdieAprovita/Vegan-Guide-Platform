@@ -1,6 +1,6 @@
-import { handlers } from "@/lib/auth"
-import { NextRequest } from "next/server"
-import { authRateLimit, applyRateLimit } from "@/lib/rate-limit"
+import { handlers } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { authRateLimit, applyRateLimit } from "@/lib/rate-limit";
 
 // Apply rate limiting to authentication routes
 async function withRateLimit(
@@ -14,7 +14,7 @@ async function withRateLimit(
       return rateLimitResult;
     }
   }
-  
+
   return handler(req);
 }
 
@@ -24,4 +24,4 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   return withRateLimit(handlers.POST, req);
-} 
+}

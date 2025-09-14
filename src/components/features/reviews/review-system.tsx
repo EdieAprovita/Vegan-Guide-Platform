@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Star, ThumbsUp, MoreVertical, Edit, Trash2 } from 'lucide-react';
-import { Review } from '@/lib/api/reviews';
-import { useAuthStore } from '@/lib/store/auth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState } from "react";
+import { Star, ThumbsUp, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Review } from "@/lib/api/reviews";
+import { useAuthStore } from "@/lib/store/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ReviewForm } from './review-form';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+} from "@/components/ui/dropdown-menu";
+import { ReviewForm } from "./review-form";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface ReviewSystemProps {
   reviews: Review[];
@@ -48,9 +48,9 @@ export const ReviewSystem = ({
 
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / reviews.length;
-    
+
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach(review => {
+    reviews.forEach((review) => {
       distribution[review.rating as keyof typeof distribution]++;
     });
 
@@ -65,13 +65,13 @@ export const ReviewSystem = ({
 
   const handleHelpfulClick = async (reviewId: string, isCurrentlyHelpful: boolean) => {
     // Implement helpful voting logic
-    console.log('Toggle helpful vote for review:', reviewId, !isCurrentlyHelpful);
+    console.log("Toggle helpful vote for review:", reviewId, !isCurrentlyHelpful);
     // Call API endpoint and refresh reviews
     onReviewUpdate?.();
   };
 
   const canEditReview = (review: Review) => {
-    return user && (user._id === review.user._id || user.role === 'admin');
+    return user && (user._id === review.user._id || user.role === "admin");
   };
 
   const handleEditReview = (review: Review) => {
@@ -79,9 +79,9 @@ export const ReviewSystem = ({
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar esta review?')) {
+    if (confirm("¿Estás seguro de que deseas eliminar esta review?")) {
       // Implement delete logic
-      console.log('Delete review:', reviewId);
+      console.log("Delete review:", reviewId);
       onReviewUpdate?.();
     }
   };
@@ -92,26 +92,26 @@ export const ReviewSystem = ({
       {showStats && stats && (
         <Card>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Overall Rating */}
               <div className="text-center">
-                <div className="text-4xl font-bold text-gray-900 mb-2">
+                <div className="mb-2 text-4xl font-bold text-gray-900">
                   {stats.averageRating.toFixed(1)}
                 </div>
-                <div className="flex items-center justify-center gap-1 mb-2">
+                <div className="mb-2 flex items-center justify-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
                       className={`h-5 w-5 ${
                         star <= Math.round(stats.averageRating)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
                       }`}
                     />
                   ))}
                 </div>
                 <p className="text-sm text-gray-600">
-                  Basado en {stats.totalReviews} review{stats.totalReviews !== 1 ? 's' : ''}
+                  Basado en {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -119,23 +119,25 @@ export const ReviewSystem = ({
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <div key={rating} className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 min-w-16">
+                    <div className="flex min-w-16 items-center gap-1">
                       <span className="text-sm">{rating}</span>
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div className="h-2 flex-1 rounded-full bg-gray-200">
                       <div
-                        className="bg-yellow-400 rounded-full h-2 transition-all"
+                        className="h-2 rounded-full bg-yellow-400 transition-all"
                         style={{
                           width: `${
                             stats.totalReviews > 0
-                              ? (stats.distribution[rating as keyof typeof stats.distribution] / stats.totalReviews) * 100
+                              ? (stats.distribution[rating as keyof typeof stats.distribution] /
+                                  stats.totalReviews) *
+                                100
                               : 0
                           }%`,
                         }}
                       />
                     </div>
-                    <span className="text-sm text-gray-600 min-w-8">
+                    <span className="min-w-8 text-sm text-gray-600">
                       {stats.distribution[rating as keyof typeof stats.distribution]}
                     </span>
                   </div>
@@ -151,15 +153,19 @@ export const ReviewSystem = ({
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold">
-              {editingReview ? 'Editar Review' : 'Escribir Review'}
+              {editingReview ? "Editar Review" : "Escribir Review"}
             </h3>
           </CardHeader>
           <CardContent>
             <ReviewForm
-              initialData={editingReview ? {
-                rating: editingReview.rating,
-                comment: editingReview.comment,
-              } : undefined}
+              initialData={
+                editingReview
+                  ? {
+                      rating: editingReview.rating,
+                      comment: editingReview.comment,
+                    }
+                  : undefined
+              }
               onSubmit={async (data) => {
                 if (onReviewSubmit) {
                   await onReviewSubmit(data);
@@ -190,7 +196,7 @@ export const ReviewSystem = ({
           reviews.map((review) => (
             <Card key={review._id}>
               <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-4">
+                <div className="mb-4 flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={review.user.photo} alt={review.user.username} />
@@ -199,7 +205,7 @@ export const ReviewSystem = ({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="mb-1 flex items-center gap-2">
                         <h4 className="font-semibold text-gray-900">{review.user.username}</h4>
                         <div className="flex items-center gap-1">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -207,8 +213,8 @@ export const ReviewSystem = ({
                               key={star}
                               className={`h-4 w-4 ${
                                 star <= review.rating
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
                               }`}
                             />
                           ))}
@@ -233,14 +239,14 @@ export const ReviewSystem = ({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditReview(review)}>
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteReview(review._id)}
                           className="text-red-600"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -249,21 +255,25 @@ export const ReviewSystem = ({
                 </div>
 
                 {/* Review Content */}
-                <p className="text-gray-700 mb-4 leading-relaxed">{review.comment}</p>
+                <p className="mb-4 leading-relaxed text-gray-700">{review.comment}</p>
 
                 {/* Helpful Votes */}
-                <div className="flex items-center justify-between pt-4 border-t">
+                <div className="flex items-center justify-between border-t pt-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">¿Te fue útil esta review?</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleHelpfulClick(review._id, review.helpful?.includes(user?._id || ''))}
+                      onClick={() =>
+                        handleHelpfulClick(review._id, review.helpful?.includes(user?._id || ""))
+                      }
                       className={`flex items-center gap-1 ${
-                        review.helpful?.includes(user?._id || '') ? 'text-green-600 bg-green-50' : ''
+                        review.helpful?.includes(user?._id || "")
+                          ? "bg-green-50 text-green-600"
+                          : ""
                       }`}
                       disabled={!isAuthenticated}
                     >
@@ -279,4 +289,4 @@ export const ReviewSystem = ({
       </div>
     </div>
   );
-} 
+};

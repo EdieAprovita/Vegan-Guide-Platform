@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from './config';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Animal {
   name: string;
@@ -102,7 +102,11 @@ export async function createSanctuary(data: CreateSanctuaryData, token?: string)
   });
 }
 
-export async function updateSanctuary(id: string, data: Partial<CreateSanctuaryData>, token?: string) {
+export async function updateSanctuary(
+  id: string,
+  data: Partial<CreateSanctuaryData>,
+  token?: string
+) {
   return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/${id}`, {
     method: "PUT",
     headers: getApiHeaders(token),

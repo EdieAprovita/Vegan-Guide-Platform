@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -18,17 +15,14 @@ export const registerSchema = z
       .min(1, "Username is required")
       .min(2, "Username must be at least 2 characters")
       .max(50, "Username must be less than 50 characters"),
-    email: z
-      .string()
-      .min(1, "Email is required")
-      .email("Please enter a valid email address"),
+    email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
     password: z
       .string()
       .min(1, "Password is required")
       .min(8, "Password must be at least 8 characters")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     role: z.enum(["user", "professional"], {
@@ -52,7 +46,7 @@ export const newPasswordSchema = z
       .min(8, "Password must be at least 8 characters")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
@@ -62,10 +56,7 @@ export const newPasswordSchema = z
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
 });
 
 export const updateProfileSchema = z.object({
@@ -74,10 +65,7 @@ export const updateProfileSchema = z.object({
     .min(2, "Username must be at least 2 characters")
     .max(50, "Username must be less than 50 characters")
     .optional(),
-  email: z
-    .string()
-    .email("Please enter a valid email address")
-    .optional(),
+  email: z.string().email("Please enter a valid email address").optional(),
   photo: z.string().url("Please enter a valid URL").optional(),
 });
 

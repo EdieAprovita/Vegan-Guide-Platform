@@ -26,7 +26,7 @@ const PRODUCT_OPTIONS = [
   "Bakery",
   "Beverages",
   "Supplements",
-  "Other"
+  "Other",
 ];
 
 const RATING_OPTIONS = [
@@ -36,13 +36,15 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function SimpleMarketList({ 
-  initialMarkets = [], 
+export function SimpleMarketList({
+  initialMarkets = [],
   showFilters = true,
-  title = "Markets"
+  title = "Markets",
 }: SimpleMarketListProps) {
   const [mounted, setMounted] = useState(false);
-  const [markets, setMarkets] = useState<Market[]>(Array.isArray(initialMarkets) ? initialMarkets : []);
+  const [markets, setMarkets] = useState<Market[]>(
+    Array.isArray(initialMarkets) ? initialMarkets : []
+  );
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState("");
@@ -55,56 +57,59 @@ export function SimpleMarketList({
     setMounted(true);
   }, []);
 
-  const fetchMarkets = useCallback(async (isLoadMore = false) => {
-    if (!mounted) return;
-    
-    console.log("Fetching markets with filters:", {
-      search: search.trim(),
-      products: productFilter,
-      rating: ratingFilter ? parseInt(ratingFilter) : undefined,
-      location: locationFilter.trim(),
-      page: isLoadMore ? page + 1 : 1,
-      limit: 12,
-    });
-    
-    try {
-      setLoading(true);
-      const filters = {
+  const fetchMarkets = useCallback(
+    async (isLoadMore = false) => {
+      if (!mounted) return;
+
+      console.log("Fetching markets with filters:", {
         search: search.trim(),
         products: productFilter,
         rating: ratingFilter ? parseInt(ratingFilter) : undefined,
         location: locationFilter.trim(),
         page: isLoadMore ? page + 1 : 1,
         limit: 12,
-      };
+      });
 
-      const response = await getMarkets(filters);
-      console.log("getMarkets response:", response);
-      
-      // Extract markets from backend response format {success: true, data: [...]}
-      const marketsData = Array.isArray(response) ? response : (response?.data || []);
-      console.log("Processed markets data:", marketsData);
-      
-      if (isLoadMore) {
-        setMarkets(prev => [...(Array.isArray(prev) ? prev : []), ...marketsData]);
-        setPage(prev => prev + 1);
-      } else {
-        setMarkets(marketsData);
-        setPage(1);
+      try {
+        setLoading(true);
+        const filters = {
+          search: search.trim(),
+          products: productFilter,
+          rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+          location: locationFilter.trim(),
+          page: isLoadMore ? page + 1 : 1,
+          limit: 12,
+        };
+
+        const response = await getMarkets(filters);
+        console.log("getMarkets response:", response);
+
+        // Extract markets from backend response format {success: true, data: [...]}
+        const marketsData = Array.isArray(response) ? response : response?.data || [];
+        console.log("Processed markets data:", marketsData);
+
+        if (isLoadMore) {
+          setMarkets((prev) => [...(Array.isArray(prev) ? prev : []), ...marketsData]);
+          setPage((prev) => prev + 1);
+        } else {
+          setMarkets(marketsData);
+          setPage(1);
+        }
+
+        setHasMore(marketsData.length === 12);
+      } catch (error) {
+        console.error("Error fetching markets:", error);
+        toast.error("Failed to load markets");
+        // Ensure markets is always an array on error
+        if (!isLoadMore) {
+          setMarkets([]);
+        }
+      } finally {
+        setLoading(false);
       }
-      
-      setHasMore(marketsData.length === 12);
-    } catch (error) {
-      console.error("Error fetching markets:", error);
-      toast.error("Failed to load markets");
-      // Ensure markets is always an array on error
-      if (!isLoadMore) {
-        setMarkets([]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [mounted, search, productFilter, ratingFilter, locationFilter, page]);
+    },
+    [mounted, search, productFilter, ratingFilter, locationFilter, page]
+  );
 
   useEffect(() => {
     if (mounted && initialMarkets.length === 0) {
@@ -143,18 +148,18 @@ export function SimpleMarketList({
         {showFilters && (
           <Card>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
               </div>
             </CardContent>
           </Card>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
           ))}
         </div>
       </div>
@@ -163,17 +168,15 @@ export function SimpleMarketList({
 
   return (
     <div className="space-y-6">
-      {title && (
-        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-      )}
+      {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
 
       {showFilters && (
         <Card>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search markets..."
                   value={search}
@@ -186,7 +189,7 @@ export function SimpleMarketList({
               <select
                 value={productFilter}
                 onChange={(e) => handleProductChange(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Products</option>
                 {PRODUCT_OPTIONS.map((product) => (
@@ -200,7 +203,7 @@ export function SimpleMarketList({
               <select
                 value={ratingFilter}
                 onChange={(e) => handleRatingChange(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -211,7 +214,7 @@ export function SimpleMarketList({
 
               {/* Location Filter */}
               <div className="relative">
-                <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Store className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
@@ -225,22 +228,22 @@ export function SimpleMarketList({
       )}
 
       {loading && markets.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
           ))}
         </div>
       ) : !markets || !Array.isArray(markets) || markets.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No markets found.</p>
+        <div className="py-12 text-center">
+          <p className="text-lg text-gray-500">No markets found.</p>
           <p className="text-gray-400">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {markets && Array.isArray(markets) && markets.map((market) => (
-              <MarketCard key={market._id} market={market} />
-            ))}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {markets &&
+              Array.isArray(markets) &&
+              markets.map((market) => <MarketCard key={market._id} market={market} />)}
           </div>
 
           {hasMore && (

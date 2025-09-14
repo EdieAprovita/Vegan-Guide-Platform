@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRecipes } from "@/hooks/useRecipes";
+import { useState, useEffect, useCallback } from "react";
+import { Recipe, getRecipes } from "@/lib/api/recipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
+import { processBackendResponse } from "@/lib/api/config";
 
 interface SimpleRecipeListProps {
   initialPage?: number;
@@ -23,159 +25,103 @@ export function SimpleRecipeList({
   initialDifficulty = "",
 }: SimpleRecipeListProps) {
   const [mounted, setMounted] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(initialSearch);
   const [categoryValue, setCategoryValue] = useState(initialCategory);
   const [difficultyValue, setDifficultyValue] = useState(initialDifficulty);
-  
-  const {
-    recipes,
-    isLoading,
-    error,
-    totalPages,
-    currentPage,
-    getRecipes,
-  } = useRecipes();
+  const [page, setPage] = useState(initialPage);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const fetchRecipes = useCallback(
+    async (isLoadMore = false) => {
+      if (!mounted) return;
+
+      console.log("Fetching recipes with params:", {
+        page: isLoadMore ? page + 1 : 1,
+        limit: initialLimit,
+        search: searchValue,
+        category: categoryValue,
+        difficulty: difficultyValue,
+      });
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const params = {
+          page: isLoadMore ? page + 1 : 1,
+          limit: initialLimit,
+          search: searchValue.trim(),
+          category: categoryValue,
+          difficulty: difficultyValue,
+        };
+
+        const response = await getRecipes(params);
+        console.log("getRecipes response:", response);
+
+        // Process backend response using the universal helper
+        const recipesData = processBackendResponse<Recipe>(response) as Recipe[];
+        console.log("Processed recipes data:", recipesData);
+
+        if (isLoadMore) {
+          setRecipes((prev) => [...(Array.isArray(prev) ? prev : []), ...recipesData]);
+          setPage((prev) => prev + 1);
+        } else {
+          setRecipes(Array.isArray(recipesData) ? recipesData : []);
+          setPage(1);
+        }
+
+        setHasMore(recipesData.length === initialLimit);
+      } catch (err) {
+        console.error("Error fetching recipes:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to load recipes";
+        setError(errorMessage);
+        toast.error(errorMessage);
+
+        if (!isLoadMore) {
+          setRecipes([]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [mounted, searchValue, categoryValue, difficultyValue, initialLimit, page]
+  );
+
   useEffect(() => {
     if (mounted) {
-      console.log("Fetching recipes with params:", {
-        page: initialPage,
-        limit: initialLimit,
-        search: searchValue,
-        category: categoryValue,
-        difficulty: difficultyValue,
-      });
-      
-      getRecipes({
-        page: initialPage,
-        limit: initialLimit,
-        search: searchValue,
-        category: categoryValue,
-        difficulty: difficultyValue,
-      }).catch((err) => {
-        console.error("Error fetching recipes:", err);
-      });
+      fetchRecipes();
     }
-  }, [mounted, getRecipes, initialPage, initialLimit, searchValue, categoryValue, difficultyValue]);
+  }, [mounted, fetchRecipes]);
 
   const handleSearch = (search: string) => {
     setSearchValue(search);
+    setPage(1);
   };
 
   const handleCategoryChange = (category: string) => {
     setCategoryValue(category);
+    setPage(1);
   };
 
   const handleDifficultyChange = (difficulty: string) => {
     setDifficultyValue(difficulty);
+    setPage(1);
   };
 
-  const handlePageChange = (page: number) => {
-    getRecipes({
-      page,
-      limit: initialLimit,
-      search: searchValue,
-      category: categoryValue,
-      difficulty: difficultyValue,
-    }).catch((err) => {
-      console.error("Error changing page:", err);
-    });
+  const handleLoadMore = () => {
+    fetchRecipes(true);
   };
-
-  // Extract nested ternary into separate function for better readability
-  const renderRecipeContent = () => {
-    console.log("renderRecipeContent - recipes:", recipes, "isLoading:", isLoading, "error:", error);
-    
-    if (isLoading) {
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
-          {Array.from({ length: initialLimit }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[400px] bg-emerald-100 rounded-lg"
-            />
-          ))}
-        </div>
-      );
-    }
-
-    // Safety check: ensure recipes is an array before checking length
-    if (!recipes || !Array.isArray(recipes) || recipes.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-emerald-600 text-lg">No recipes found.</p>
-          <p className="text-emerald-500">Try adjusting your search criteria.</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {recipes.map((recipe) => (
-          <RecipeCard
-            key={recipe._id}
-            title={recipe.title}
-            description={recipe.description}
-            image={recipe.image || "/placeholder-recipe.jpg"}
-            preparationTime={recipe.preparationTime || 10} // Default to 10 if not available
-            cookingTime={recipe.cookingTime}
-            servings={recipe.servings || 4} // Default to 4 if not available
-            difficulty={recipe.difficulty || "medium"} // Default to medium if not available
-            averageRating={recipe.averageRating || recipe.rating || 0} // Use rating if averageRating not available
-            author={{
-              username: 'Recipe Author',
-              photo: undefined
-            }}
-            onView={() => {
-              // Navigate to recipe detail page
-              window.location.href = `/recipes/${recipe._id}`;
-            }}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 h-10 bg-gray-200 rounded animate-pulse" />
-          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
-          <div className="w-full sm:w-[180px] h-10 bg-gray-200 rounded animate-pulse" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-[400px] bg-gray-200 rounded-lg animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-500 text-lg">Error loading recipes: {error}</p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          className="mt-4"
-          variant="outline"
-        >
-          Try Again
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
           <Input
             type="text"
@@ -184,14 +130,14 @@ export function SimpleRecipeList({
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500" />
         </div>
-        
+
         {/* Simple dropdown replacements */}
         <select
           value={categoryValue}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          className="w-full sm:w-[180px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none sm:w-[180px]"
         >
           <option value="">All Categories</option>
           <option value="breakfast">Breakfast</option>
@@ -200,11 +146,11 @@ export function SimpleRecipeList({
           <option value="dessert">Dessert</option>
           <option value="snack">Snack</option>
         </select>
-        
+
         <select
           value={difficultyValue}
           onChange={(e) => handleDifficultyChange(e.target.value)}
-          className="w-full sm:w-[180px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none sm:w-[180px]"
         >
           <option value="">All Difficulties</option>
           <option value="easy">Easy</option>
@@ -213,31 +159,55 @@ export function SimpleRecipeList({
         </select>
       </div>
 
-      {renderRecipeContent()}
-
-      {/* Pagination */}
-      {recipes && Array.isArray(recipes) && totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2 mt-8">
-          <Button
-            variant="outline"
-            disabled={currentPage <= 1}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            Previous
-          </Button>
-          
-          <span className="text-sm text-emerald-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          
-          <Button
-            variant="outline"
-            disabled={currentPage >= totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            Next
-          </Button>
+      {isLoading && recipes.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: initialLimit }).map((_, i) => (
+            <div key={i} className="h-[400px] animate-pulse rounded-lg bg-emerald-100" />
+          ))}
         </div>
+      ) : !recipes || !Array.isArray(recipes) || recipes.length === 0 ? (
+        <div className="py-12 text-center">
+          <p className="text-lg text-emerald-600">No recipes found.</p>
+          <p className="text-emerald-500">Try adjusting your search criteria.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe._id}
+                title={recipe.title}
+                description={recipe.description}
+                image={recipe.image || "/placeholder-recipe.jpg"}
+                preparationTime={recipe.preparationTime || 10}
+                cookingTime={recipe.cookingTime}
+                servings={recipe.servings || 4}
+                difficulty={recipe.difficulty || "medium"}
+                averageRating={recipe.averageRating || recipe.rating || 0}
+                author={{
+                  username: "Recipe Author",
+                  photo: undefined,
+                }}
+                onView={() => {
+                  window.location.href = `/recipes/${recipe._id}`;
+                }}
+              />
+            ))}
+          </div>
+
+          {hasMore && (
+            <div className="flex justify-center">
+              <Button
+                onClick={handleLoadMore}
+                disabled={isLoading}
+                variant="outline"
+                className="min-w-[200px]"
+              >
+                {isLoading ? "Loading..." : "Load More"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -6,6 +6,6 @@ interface RecipeDetailPageProps {
 
 export default async function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const { id } = await params;
-  
+
   return <RecipeDetailClient recipeId={id} />;
-} 
+}

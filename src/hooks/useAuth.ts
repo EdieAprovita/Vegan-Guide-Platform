@@ -1,7 +1,12 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { LoginFormData, RegisterFormData, ResetPasswordFormData, NewPasswordFormData } from "@/lib/validations/auth";
+import {
+  LoginFormData,
+  RegisterFormData,
+  ResetPasswordFormData,
+  NewPasswordFormData,
+} from "@/lib/validations/auth";
 import * as authApi from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/auth";
 import { useRouter } from "next/navigation";
@@ -96,17 +101,17 @@ export function useAuthWithRouter() {
     setIsUpdatingProfile(true);
     try {
       // Use server action instead of directly exposing JWT token to client
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
+        throw new Error(errorData.message || "Failed to update profile");
       }
 
       const updatedUser = await response.json();

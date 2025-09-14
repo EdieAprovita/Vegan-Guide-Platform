@@ -40,7 +40,7 @@ export function ForgotPasswordForm() {
 
   if (emailSent) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="mx-auto w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
             <Mail className="h-6 w-6 text-green-600" />
@@ -51,14 +51,10 @@ export function ForgotPasswordForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-muted-foreground text-center text-sm">
             Didn&apos;t receive the email? Check your spam folder or try again.
           </p>
-          <Button
-            onClick={() => setEmailSent(false)}
-            variant="outline"
-            className="w-full"
-          >
+          <Button onClick={() => setEmailSent(false)} variant="outline" className="w-full">
             Try again
           </Button>
           <Button asChild variant="ghost" className="w-full">
@@ -73,12 +69,11 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mx-auto w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Forgot your password?</CardTitle>
         <CardDescription>
-          Enter your email address and we&apos;ll send you a link to reset your
-          password.
+          Enter your email address and we&apos;ll send you a link to reset your password.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -92,9 +87,7 @@ export function ForgotPasswordForm() {
               {...register("email")}
               className={errors.email ? "border-red-500" : ""}
             />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
@@ -111,4 +104,4 @@ export function ForgotPasswordForm() {
       </CardContent>
     </Card>
   );
-} 
+}

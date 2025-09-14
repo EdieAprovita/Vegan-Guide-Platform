@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders } from './config';
+import { apiRequest, getApiHeaders } from "./config";
 
 export interface Recipe {
   _id: string;
@@ -78,7 +78,7 @@ export async function createRecipe(data: CreateRecipeData, token?: string) {
 
   return apiRequest<Recipe>(`/recipes`, {
     method: "POST",
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
 }
@@ -97,7 +97,7 @@ export async function updateRecipe(id: string, data: Partial<CreateRecipeData>, 
 
   return apiRequest<Recipe>(`/recipes/${id}`, {
     method: "PUT",
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
 }
@@ -123,4 +123,4 @@ export async function addRecipeReview(id: string, review: RecipeReview, token?: 
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
-} 
+}

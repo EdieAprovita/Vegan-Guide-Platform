@@ -51,10 +51,10 @@ export const usePosts = create<PostsState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await postsApi.getPosts(params);
-      
+
       // Use the universal helper to process backend response
       const posts = processBackendResponse<Post>(response) as Post[];
-      
+
       set({
         posts: Array.isArray(posts) ? posts : [],
         totalPages: 1, // Backend doesn't implement pagination yet
@@ -63,11 +63,11 @@ export const usePosts = create<PostsState>((set) => ({
       });
     } catch (err) {
       const error = err as Error;
-      console.error('getPosts error:', error);
-      set({ 
-        error: error.message, 
+      console.error("getPosts error:", error);
+      set({
+        error: error.message,
         isLoading: false,
-        posts: []
+        posts: [],
       });
       throw error;
     }
@@ -108,11 +108,8 @@ export const usePosts = create<PostsState>((set) => ({
       const response = await postsApi.updatePost(id, data, token);
       const updatedPost = processBackendResponse<Post>(response) as Post;
       set((state) => ({
-        posts: state.posts.map((post) =>
-          post._id === id ? updatedPost : post
-        ),
-        currentPost:
-          state.currentPost?._id === id ? updatedPost : state.currentPost,
+        posts: state.posts.map((post) => (post._id === id ? updatedPost : post)),
+        currentPost: state.currentPost?._id === id ? updatedPost : state.currentPost,
         isLoading: false,
       }));
     } catch (err) {
@@ -144,13 +141,9 @@ export const usePosts = create<PostsState>((set) => ({
       // The backend returns the updated likes array
       const likes = processBackendResponse<string[]>(response) as string[];
       set((state) => ({
-        posts: state.posts.map((post) =>
-          post._id === id ? { ...post, likes } : post
-        ),
+        posts: state.posts.map((post) => (post._id === id ? { ...post, likes } : post)),
         currentPost:
-          state.currentPost?._id === id 
-            ? { ...state.currentPost, likes } 
-            : state.currentPost,
+          state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
       }));
     } catch (err) {
       const error = err as Error;
@@ -165,13 +158,9 @@ export const usePosts = create<PostsState>((set) => ({
       // The backend returns the updated likes array
       const likes = processBackendResponse<string[]>(response) as string[];
       set((state) => ({
-        posts: state.posts.map((post) =>
-          post._id === id ? { ...post, likes } : post
-        ),
+        posts: state.posts.map((post) => (post._id === id ? { ...post, likes } : post)),
         currentPost:
-          state.currentPost?._id === id 
-            ? { ...state.currentPost, likes } 
-            : state.currentPost,
+          state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
       }));
     } catch (err) {
       const error = err as Error;
@@ -186,13 +175,9 @@ export const usePosts = create<PostsState>((set) => ({
       // The backend returns the updated comments array
       const comments = processBackendResponse<Comment[]>(response) as Comment[];
       set((state) => ({
-        posts: state.posts.map((post) =>
-          post._id === id ? { ...post, comments } : post
-        ),
+        posts: state.posts.map((post) => (post._id === id ? { ...post, comments } : post)),
         currentPost:
-          state.currentPost?._id === id 
-            ? { ...state.currentPost, comments } 
-            : state.currentPost,
+          state.currentPost?._id === id ? { ...state.currentPost, comments } : state.currentPost,
       }));
     } catch (err) {
       const error = err as Error;

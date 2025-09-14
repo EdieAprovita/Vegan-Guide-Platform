@@ -5,7 +5,7 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/auth";
 import { User } from "@/types";
-import {  apiRequest, getApiHeaders } from "./config";
+import { apiRequest, getApiHeaders } from "./config";
 
 export async function login(data: LoginFormData): Promise<User> {
   return apiRequest<User>("/users/login", {
@@ -48,10 +48,7 @@ export async function forgotPassword(data: ResetPasswordFormData): Promise<void>
   });
 }
 
-export async function resetPassword(
-  data: NewPasswordFormData,
-  token: string
-): Promise<void> {
+export async function resetPassword(data: NewPasswordFormData, token: string): Promise<void> {
   return apiRequest<void>("/users/reset-password", {
     method: "PUT",
     headers: getApiHeaders(),

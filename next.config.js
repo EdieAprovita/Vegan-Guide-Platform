@@ -7,27 +7,27 @@ const nextConfig = {
   // Configuración de imágenes mejorada
   images: {
     // Configurar loader personalizado para evitar errores
-    loader: 'default',
+    loader: "default",
     loaderFile: undefined,
     // Patrones remotos expandidos
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.pexels.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.pexels.com",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        port: "",
+        pathname: "/**",
       },
     ],
     // Configuración de optimización
@@ -38,7 +38,7 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // Configuración de formato
-    formats: ['image/webp', 'image/avif'],
+    formats: ["image/webp", "image/avif"],
     // Configuración de carga
     minimumCacheTTL: 60,
   },
@@ -47,7 +47,7 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   // Configuración para manejo de hidratación
-  ...(process.env.NODE_ENV === 'development' && {
+  ...(process.env.NODE_ENV === "development" && {
     onDemandEntries: {
       maxInactiveAge: 60000,
       pagesBufferLength: 5,
@@ -55,7 +55,7 @@ const nextConfig = {
   }),
   // Configuración de compilación
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
   // Configuración de PWA
   async headers() {

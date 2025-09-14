@@ -1,21 +1,19 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import React from "react"
+import Image from "next/image";
+import Link from "next/link";
+import React from "react";
 
 interface AuthLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export function AuthLayout({
-  children,
-}: AuthLayoutProps) {
+export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="absolute left-4 top-4 md:left-8 md:top-8 z-30 flex items-center gap-2">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+    <div className="relative container grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="absolute top-4 left-4 z-30 flex items-center gap-2 md:top-8 md:left-8">
+        <Link href="/" className="group flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
             <Image
               src="/logo.svg"
               alt="Verde Guide Logo"
@@ -24,12 +22,12 @@ export function AuthLayout({
               className="text-white"
             />
           </div>
-          <span className="text-green-600 font-['Clicker_Script'] text-[28px] sm:text-[35px] font-normal group-hover:text-green-700 transition-colors">
+          <span className="font-['Clicker_Script'] text-[28px] font-normal text-green-600 transition-colors group-hover:text-green-700 sm:text-[35px]">
             Vegan Guide
           </span>
         </Link>
       </div>
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
+      <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
         <div
           className="absolute inset-0 bg-cover"
           style={{
@@ -40,10 +38,11 @@ export function AuthLayout({
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
-            <p className="text-lg font-['Playfair_Display']">
-              &ldquo;Join our community and discover the best vegan places, recipes, and professionals.&rdquo;
+            <p className="font-['Playfair_Display'] text-lg">
+              &ldquo;Join our community and discover the best vegan places, recipes, and
+              professionals.&rdquo;
             </p>
-            <footer className="text-sm font-['Playfair_Display']">Verde Guide Team</footer>
+            <footer className="font-['Playfair_Display'] text-sm">Verde Guide Team</footer>
           </blockquote>
         </div>
       </div>
@@ -53,5 +52,5 @@ export function AuthLayout({
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

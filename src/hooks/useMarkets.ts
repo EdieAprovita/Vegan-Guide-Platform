@@ -39,10 +39,10 @@ export const useMarkets = create<MarketsState>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await marketsApi.getMarkets(params);
-      
+
       // Use the universal helper to process backend response
       const markets = processBackendResponse<Market>(response) as Market[];
-      
+
       set({
         markets: Array.isArray(markets) ? markets : [],
         totalPages: 1, // Backend doesn't implement pagination yet
@@ -51,11 +51,11 @@ export const useMarkets = create<MarketsState>((set) => ({
       });
     } catch (err) {
       const error = err as Error;
-      console.error('getMarkets error:', error);
-      set({ 
-        error: error.message, 
+      console.error("getMarkets error:", error);
+      set({
+        error: error.message,
         isLoading: false,
-        markets: []
+        markets: [],
       });
       throw error;
     }
@@ -96,11 +96,8 @@ export const useMarkets = create<MarketsState>((set) => ({
       const response = await marketsApi.updateMarket(id, data, token);
       const updatedMarket = processBackendResponse<Market>(response) as Market;
       set((state) => ({
-        markets: state.markets.map((market) =>
-          market._id === id ? updatedMarket : market
-        ),
-        currentMarket:
-          state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
+        markets: state.markets.map((market) => (market._id === id ? updatedMarket : market)),
+        currentMarket: state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
         isLoading: false,
       }));
     } catch (err) {
@@ -132,11 +129,8 @@ export const useMarkets = create<MarketsState>((set) => ({
       const response = await marketsApi.addMarketReview(id, review, token);
       const updatedMarket = processBackendResponse<Market>(response) as Market;
       set((state) => ({
-        markets: state.markets.map((market) =>
-          market._id === id ? updatedMarket : market
-        ),
-        currentMarket:
-          state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
+        markets: state.markets.map((market) => (market._id === id ? updatedMarket : market)),
+        currentMarket: state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
         isLoading: false,
       }));
     } catch (err) {

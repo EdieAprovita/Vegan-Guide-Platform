@@ -1,19 +1,20 @@
-import { Metadata } from 'next';
-import { AdvancedSearch } from '@/components/features/search/advanced-search';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft, Search } from 'lucide-react';
+import { Metadata } from "next";
+import { AdvancedSearch } from "@/components/features/search/advanced-search";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft, Search } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: 'Búsqueda Avanzada | Verde Guide',
-  description: 'Busca restaurantes, recetas, negocios veganos y más con nuestra búsqueda avanzada. Filtra por ubicación, calificación y tipo de contenido.',
-  keywords: ['búsqueda', 'vegano', 'restaurantes', 'recetas', 'negocios', 'filtros', 'ubicación'],
+  title: "Búsqueda Avanzada | Verde Guide",
+  description:
+    "Busca restaurantes, recetas, negocios veganos y más con nuestra búsqueda avanzada. Filtra por ubicación, calificación y tipo de contenido.",
+  keywords: ["búsqueda", "vegano", "restaurantes", "recetas", "negocios", "filtros", "ubicación"],
 };
 
 export default function SearchPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="container mx-auto space-y-6 px-4 py-8">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center gap-4">
@@ -25,41 +26,39 @@ export default function SearchPage() {
             </Button>
           </div>
 
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 bg-green-100 rounded-full">
+          <div className="space-y-3 text-center">
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <div className="rounded-full bg-green-100 p-3">
                 <Search className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            
-            <h1 className="text-4xl font-bold text-gray-900">
-              Búsqueda Avanzada
-            </h1>
-            
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Encuentra exactamente lo que buscas en nuestra comunidad vegana. 
-              Busca entre miles de restaurantes, recetas, negocios y más.
+
+            <h1 className="text-4xl font-bold text-gray-900">Búsqueda Avanzada</h1>
+
+            <p className="mx-auto max-w-3xl text-xl text-gray-600">
+              Encuentra exactamente lo que buscas en nuestra comunidad vegana. Busca entre miles de
+              restaurantes, recetas, negocios y más.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 pt-4">
+            <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-gray-500">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                <span className="h-2 w-2 rounded-full bg-orange-400"></span>
                 <span>🍽️ Restaurantes</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                <span className="h-2 w-2 rounded-full bg-green-400"></span>
                 <span>👨‍🍳 Recetas</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                <span className="h-2 w-2 rounded-full bg-blue-400"></span>
                 <span>🛒 Mercados</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
+                <span className="h-2 w-2 rounded-full bg-indigo-400"></span>
                 <span>🏪 Negocios</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                <span className="h-2 w-2 rounded-full bg-purple-400"></span>
                 <span>👩‍⚕️ Profesionales</span>
               </div>
             </div>
@@ -70,18 +69,21 @@ export default function SearchPage() {
         <AdvancedSearch />
 
         {/* Tips Section */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="font-semibold text-gray-900 mb-4">💡 Tips para una mejor búsqueda</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 font-semibold text-gray-900">💡 Tips para una mejor búsqueda</h3>
+          <div className="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-2">
             <div className="space-y-2">
               <h4 className="font-medium text-gray-800">🔍 Términos de búsqueda</h4>
               <ul className="space-y-1">
-                <li>• Usa palabras específicas: &quot;pizza vegana&quot; en lugar de &quot;comida&quot;</li>
+                <li>
+                  • Usa palabras específicas: &quot;pizza vegana&quot; en lugar de
+                  &quot;comida&quot;
+                </li>
                 <li>• Combina términos: &quot;restaurante italiano Milano&quot;</li>
                 <li>• Incluye el nombre de la ciudad para resultados locales</li>
               </ul>
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="font-medium text-gray-800">📍 Filtros de ubicación</h4>
               <ul className="space-y-1">

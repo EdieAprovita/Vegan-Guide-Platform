@@ -24,61 +24,61 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
         return;
       }
 
-    // Check if Google Maps is already loaded
-    if (window.google?.maps) {
-      setIsLoaded(true);
-      setIsLoading(false);
-      return;
-    }
-
-    // Check if script is already being loaded
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      // Script is already being loaded, wait for it
-      const checkLoaded = () => {
-        if (window.google?.maps) {
-          setIsLoaded(true);
-          setIsLoading(false);
-        } else {
-          setTimeout(checkLoaded, 100);
-        }
-      };
-      checkLoaded();
-      return;
-    }
-
-    const loader = new Loader({
-      apiKey,
-      version: options.version || "weekly",
-      libraries: options.libraries || ["places" as Library],
-    });
-
-    const loadPromise = loader.load();
-
-    if (!loadPromise) {
-      setLoadError("Failed to initialize Google Maps loader");
-      setIsLoading(false);
-      return;
-    }
-
-    loadPromise
-      .then(() => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("Google Maps loaded successfully");
-          console.log("google.maps available:", !!window.google?.maps);
-        }
+      // Check if Google Maps is already loaded
+      if (window.google?.maps) {
         setIsLoaded(true);
         setIsLoading(false);
-      })
-      .catch((error: Error) => {
-        if (process.env.NODE_ENV !== 'test') {
-          console.error("Error loading Google Maps:", error);
-        }
-        setLoadError("Failed to load Google Maps");
-        setIsLoading(false);
+        return;
+      }
+
+      // Check if script is already being loaded
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (existingScript) {
+        // Script is already being loaded, wait for it
+        const checkLoaded = () => {
+          if (window.google?.maps) {
+            setIsLoaded(true);
+            setIsLoading(false);
+          } else {
+            setTimeout(checkLoaded, 100);
+          }
+        };
+        checkLoaded();
+        return;
+      }
+
+      const loader = new Loader({
+        apiKey,
+        version: options.version || "weekly",
+        libraries: options.libraries || ["places" as Library],
       });
+
+      const loadPromise = loader.load();
+
+      if (!loadPromise) {
+        setLoadError("Failed to initialize Google Maps loader");
+        setIsLoading(false);
+        return;
+      }
+
+      loadPromise
+        .then(() => {
+          if (process.env.NODE_ENV === "development") {
+            console.log("Google Maps loaded successfully");
+            console.log("google.maps available:", !!window.google?.maps);
+          }
+          setIsLoaded(true);
+          setIsLoading(false);
+        })
+        .catch((error: Error) => {
+          if (process.env.NODE_ENV !== "test") {
+            console.error("Error loading Google Maps:", error);
+          }
+          setLoadError("Failed to load Google Maps");
+          setIsLoading(false);
+        });
     } catch (error) {
-      if (process.env.NODE_ENV !== 'test') {
+      if (process.env.NODE_ENV !== "test") {
         console.error("Error initializing Google Maps:", error);
       }
       setLoadError("Failed to initialize Google Maps");

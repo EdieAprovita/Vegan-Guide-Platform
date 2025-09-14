@@ -26,13 +26,13 @@ const TAG_OPTIONS = [
   "Events",
   "Environmental",
   "Animal Rights",
-  "Other"
+  "Other",
 ];
 
-export function PostList({ 
-  initialPosts = [], 
+export function PostList({
+  initialPosts = [],
   showFilters = true,
-  title = "Community Posts"
+  title = "Community Posts",
 }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -42,34 +42,37 @@ export function PostList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadPosts = useCallback(async (reset = false) => {
-    setLoading(true);
-    try {
-      const currentPage = reset ? 1 : page;
-      const params: Record<string, string | number> = {
-        page: currentPage,
-        limit: 12,
-      };
+  const loadPosts = useCallback(
+    async (reset = false) => {
+      setLoading(true);
+      try {
+        const currentPage = reset ? 1 : page;
+        const params: Record<string, string | number> = {
+          page: currentPage,
+          limit: 12,
+        };
 
-      if (search) params.search = search;
-      if (tagFilter) params.tags = tagFilter;
+        if (search) params.search = search;
+        if (tagFilter) params.tags = tagFilter;
 
-      const response = await getPosts(params);
-      
-      if (reset) {
-        setPosts(response.data || response);
-        setPage(1);
-      } else {
-        setPosts(prev => [...prev, ...(response.data || response)]);
+        const response = await getPosts(params);
+
+        if (reset) {
+          setPosts(response.data || response);
+          setPage(1);
+        } else {
+          setPosts((prev) => [...prev, ...(response.data || response)]);
+        }
+
+        setHasMore((response.data || response).length === 12);
+      } catch {
+        toast.error("Failed to load posts");
+      } finally {
+        setLoading(false);
       }
-
-      setHasMore((response.data || response).length === 12);
-    } catch {
-      toast.error("Failed to load posts");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, tagFilter]);
+    },
+    [page, search, tagFilter]
+  );
 
   useEffect(() => {
     if (initialPosts.length === 0) {
@@ -91,7 +94,9 @@ export function PostList({
     const sortedPosts = [...posts];
     switch (value) {
       case "recent":
-        sortedPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        sortedPosts.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
         break;
       case "popular":
         sortedPosts.sort((a, b) => b.likes.length - a.likes.length);
@@ -105,7 +110,7 @@ export function PostList({
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
       loadPosts(false);
     }
   };
@@ -115,19 +120,17 @@ export function PostList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">
-          {posts.length} posts found
-        </div>
+        <div className="text-sm text-gray-600">{posts.length} posts found</div>
       </div>
 
       {/* Search and Filters */}
       {showFilters && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search posts..."
                   value={search}
@@ -144,7 +147,7 @@ export function PostList({
                   setTagFilter(e.target.value);
                   handleFilterChange();
                 }}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All tags</option>
                 {TAG_OPTIONS.map((tag) => (
@@ -158,7 +161,7 @@ export function PostList({
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">Sort by</option>
                 <option value="recent">Most Recent</option>
@@ -177,7 +180,7 @@ export function PostList({
 
       {/* Posts Grid */}
       {posts.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {posts.map((post) => (
             <PostCard key={post._id} post={post} onLikeChange={() => loadPosts(true)} />
           ))}
@@ -185,8 +188,8 @@ export function PostList({
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No posts found</h3>
+            <MessageSquare className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-medium text-gray-900">No posts found</h3>
             <p className="text-gray-600">
               Try adjusting your search criteria or be the first to create a post!
             </p>
@@ -197,16 +200,11 @@ export function PostList({
       {/* Load More Button */}
       {hasMore && posts.length > 0 && (
         <div className="text-center">
-          <Button
-            onClick={handleLoadMore}
-            disabled={loading}
-            variant="outline"
-            className="px-8"
-          >
+          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
             {loading ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}
     </div>
   );
-} 
+}
