@@ -57,14 +57,20 @@ export interface DoctorReview {
   comment: string;
 }
 
-export async function getDoctors(params?: {
+export interface DoctorSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   specialty?: string;
   rating?: number;
   location?: string;
-}) {
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "name" | "createdAt";
+}
+
+export async function getDoctors(params?: DoctorSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -72,6 +78,10 @@ export async function getDoctors(params?: {
   if (params?.specialty) searchParams.append("specialty", params.specialty);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
   return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
@@ -113,4 +123,77 @@ export async function addDoctorReview(id: string, review: DoctorReview, token?: 
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
+}
+
+export async function getNearbyDoctors(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  specialty?: string;
+  minRating?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("latitude", params.latitude.toString());
+  searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.specialty) searchParams.append("specialty", params.specialty);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  searchParams.append("sortBy", "distance");
+
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+}
+
+export async function getDoctorsBySpecialty(
+  specialty: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("specialty", specialty);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.latitude && params?.longitude) {
+    searchParams.append("sortBy", "distance");
+  }
+
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+}
+
+export async function getAdvancedDoctors(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  specialty?: string;
+  minRating?: number;
+  languages?: string[];
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "name" | "createdAt";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append("page", params.page.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.search) searchParams.append("search", params.search);
+  if (params.specialty) searchParams.append("specialty", params.specialty);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  if (params.languages?.length) {
+    params.languages.forEach((lang) => searchParams.append("languages", lang));
+  }
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
