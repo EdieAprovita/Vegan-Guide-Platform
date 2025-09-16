@@ -231,7 +231,17 @@ export function useDoctorsBySpecialty(specialty: string) {
         setIsLoading(true);
         setError(null);
 
-        let apiParams: any = {
+        interface ApiParams {
+          specialty: string;
+          page?: number;
+          limit?: number;
+          latitude?: number;
+          longitude?: number;
+          radius?: number;
+        }
+
+        let apiParams: ApiParams = {
+          specialty: specialty,
           page: params?.page,
           limit: params?.limit,
         };
@@ -304,7 +314,20 @@ export function useAdvancedDoctorSearch() {
           setError(null);
         }
 
-        let apiParams: any = {
+        interface ApiParams {
+          page?: number;
+          limit?: number;
+          search?: string;
+          specialty?: string;
+          minRating?: number;
+          languages?: string[];
+          sortBy?: "distance" | "rating" | "name" | "createdAt";
+          latitude?: number;
+          longitude?: number;
+          radius?: number;
+        }
+
+        let apiParams: ApiParams = {
           page: params.page || 1,
           limit: params.limit || 12,
           search: params.search,
