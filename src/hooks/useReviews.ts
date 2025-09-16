@@ -85,7 +85,7 @@ export function useReviews({
         setLoading(false);
       }
     },
-    [resourceType, resourceId, limit, reviews.length]
+    [resourceId, limit, reviews.length]
   );
 
   const fetchStats = useCallback(async () => {
@@ -164,7 +164,7 @@ export function useReviews({
         setLoading(false);
       }
     },
-    [resourceType, resourceId, token, isAuthenticated, fetchStats]
+    [resourceId, token, isAuthenticated, fetchStats]
   );
 
   const updateReview = useCallback(
