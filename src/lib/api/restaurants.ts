@@ -56,14 +56,20 @@ export interface RestaurantReview {
   comment: string;
 }
 
-export async function getRestaurants(params?: {
+export interface RestaurantSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   cuisine?: string;
   rating?: number;
   location?: string;
-}) {
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
+}
+
+export async function getRestaurants(params?: RestaurantSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -71,6 +77,10 @@ export async function getRestaurants(params?: {
   if (params?.cuisine) searchParams.append("cuisine", params.cuisine);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
@@ -237,4 +247,96 @@ export async function addRestaurantReview(id: string, review: RestaurantReview, 
     headers: getApiHeaders(token),
     body: JSON.stringify(review),
   });
+}
+
+export async function getNearbyRestaurants(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  cuisine?: string;
+  minRating?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("latitude", params.latitude.toString());
+  searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.cuisine) searchParams.append("cuisine", params.cuisine);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  searchParams.append("sortBy", "distance");
+
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
+}
+
+export async function getRestaurantsByCuisine(
+  cuisine: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("cuisine", cuisine);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.latitude && params?.longitude) {
+    searchParams.append("sortBy", "distance");
+  }
+
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
+}
+
+export async function getAdvancedRestaurants(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  cuisine?: string[];
+  minRating?: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append("page", params.page.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.search) searchParams.append("search", params.search);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  if (params.cuisine?.length) {
+    params.cuisine.forEach((c) => searchParams.append("cuisine", c));
+  }
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
 }

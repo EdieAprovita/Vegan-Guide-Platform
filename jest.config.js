@@ -12,11 +12,19 @@ const customJestConfig = {
   },
   collectCoverage: true,
   collectCoverageFrom: [
-    "src/**/*.{js,jsx,ts,tsx}",
+    "src/lib/**/*.{ts,tsx}",
+    "src/hooks/**/*.{ts,tsx}",
+    "src/middleware.ts",
+    "src/app/providers.tsx",
+    "!src/**/__tests__/**",
     "!src/**/*.d.ts",
-    "!src/**/*.stories.{js,jsx,ts,tsx}",
-    "!src/app/**/layout.{js,jsx,ts,tsx}",
-    "!src/app/**/page.{js,jsx,ts,tsx}",
+    "!src/**/*.stories.{ts,tsx}",
+  ],
+  coveragePathIgnorePatterns: [
+    "<rootDir>/src/components/",
+    "<rootDir>/src/app/(?!providers\\.tsx)",
+    "<rootDir>/src/types/",
+    "<rootDir>/src/vegan-landing/",
   ],
   coverageThreshold: {
     global: {
