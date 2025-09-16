@@ -6,9 +6,14 @@ export { RestaurantList } from "./restaurants/restaurant-list";
 export { RestaurantCard } from "./restaurants/restaurant-card";
 export { ReviewSystem } from "./reviews/review-system";
 export { GlobalSearch } from "./search/global-search";
+export { BusinessList } from "./businesses/business-list";
+export { BusinessCard } from "./businesses/business-card";
+export { BusinessForm } from "./businesses/business-form";
+export { BusinessDetailClient } from "./businesses/business-detail-client";
 
 // Phase 2 Components
-export { DoctorList } from "./doctors/doctor-list";
+// Unify doctors lists: expose SimpleDoctorList under DoctorList for consistency
+export { SimpleDoctorList as DoctorList } from "./doctors/simple-doctor-list";
 export { DoctorCard } from "./doctors/doctor-card";
 export { MarketList } from "./markets/market-list";
 export { MarketCard } from "./markets/market-card";
@@ -28,4 +33,4 @@ export { AnalyticsDashboard } from "./analytics/analytics-dashboard";
 export { RecommendationEngine } from "./recommendations/recommendation-engine";
 
 // Admin
-export { AdminDashboard } from "@/components/admin/admin-dashboard"; 
+export { AdminDashboard } from "@/components/admin/admin-dashboard";

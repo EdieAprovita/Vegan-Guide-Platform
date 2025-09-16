@@ -2,4 +2,4 @@ import { NotificationCenter } from "@/components/features/notifications/notifica
 
 export default function NotificationsPage() {
   return <NotificationCenter />;
-} 
+}

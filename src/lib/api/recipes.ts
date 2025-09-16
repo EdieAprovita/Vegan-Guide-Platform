@@ -1,27 +1,24 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders } from "./config";
 
 export interface Recipe {
   _id: string;
   title: string;
   description: string;
   ingredients: string[];
-  instructions: string[];
-  preparationTime: number;
+  instructions: string; // Backend uses string, not array
   cookingTime: number;
-  servings: number;
-  difficulty: "easy" | "medium" | "hard";
-  categories: string[];
-  image?: string;
-  author: {
-    _id: string;
-    username: string;
-    photo?: string;
-  };
-  ratings: {
-    rating: number;
-    user: string;
-  }[];
-  averageRating: number;
+  // Backend schema doesn't have these fields (yet):
+  preparationTime?: number; // Optional since backend doesn't have it
+  servings?: number; // Optional since backend doesn't have it
+  difficulty?: "easy" | "medium" | "hard"; // Optional since backend doesn't have it
+  categories?: string[]; // Optional since backend doesn't have it
+  image?: string; // Optional since backend doesn't have it
+  author: string; // Backend returns ObjectId string, not populated object
+  rating: number; // Backend has this
+  numReviews: number; // Backend has this
+  reviews: string[]; // Backend has array of ObjectIds
+  // Backend doesn't have averageRating, it has rating
+  averageRating?: number; // Keep for compatibility
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +36,12 @@ export interface CreateRecipeData {
   image?: File;
 }
 
+// Define backend response type
+interface BackendRecipeResponse {
+  success: boolean;
+  data: Recipe[];
+}
+
 export async function getRecipes(params?: {
   page?: number;
   limit?: number;
@@ -53,35 +56,15 @@ export async function getRecipes(params?: {
   if (params?.category) searchParams.append("category", params.category);
   if (params?.difficulty) searchParams.append("difficulty", params.difficulty);
 
-  const response = await fetch(
-    `${API_URL}/recipes?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch recipes");
-  }
-
-  return response.json();
+  // Return the backend response as-is, let the hook handle the format
+  return apiRequest<BackendRecipeResponse>(`/recipes?${searchParams.toString()}`);
 }
 
 export async function getRecipe(id: string) {
-  const response = await fetch(`${API_URL}/recipes/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch recipe");
-  }
-
-  return response.json();
+  return apiRequest<Recipe>(`/recipes/${id}`);
 }
 
-export async function createRecipe(data: CreateRecipeData) {
+export async function createRecipe(data: CreateRecipeData, token?: string) {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (key === "ingredients" || key === "instructions" || key === "categories") {
@@ -93,21 +76,14 @@ export async function createRecipe(data: CreateRecipeData) {
     }
   });
 
-  const response = await fetch(`${API_URL}/recipes`, {
+  return apiRequest<Recipe>(`/recipes`, {
     method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create recipe");
-  }
-
-  return response.json();
 }
 
-export async function updateRecipe(id: string, data: Partial<CreateRecipeData>) {
+export async function updateRecipe(id: string, data: Partial<CreateRecipeData>, token?: string) {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (key === "ingredients" || key === "instructions" || key === "categories") {
@@ -119,71 +95,32 @@ export async function updateRecipe(id: string, data: Partial<CreateRecipeData>) 
     }
   });
 
-  const response = await fetch(`${API_URL}/recipes/${id}`, {
+  return apiRequest<Recipe>(`/recipes/${id}`, {
     method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update recipe");
-  }
-
-  return response.json();
 }
 
-export async function deleteRecipe(id: string) {
-  const response = await fetch(`${API_URL}/recipes/${id}`, {
+export async function deleteRecipe(id: string, token?: string) {
+  return apiRequest<void>(`/recipes/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete recipe");
-  }
-
-  return response.json();
 }
 
-export async function rateRecipe(id: string, rating: number) {
-  const response = await fetch(`${API_URL}/recipes/${id}/rate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ rating }),
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to rate recipe");
-  }
-
-  return response.json();
-}
+// Removido porque el backend usa add-review en su lugar
+// export async function rateRecipe(id: string, rating: number) { ... }
 
 export interface RecipeReview {
   rating: number;
   comment: string;
 }
 
-export async function addRecipeReview(id: string, review: RecipeReview) {
-  const response = await fetch(`${API_URL}/recipes/add-review/${id}`, {
+export async function addRecipeReview(id: string, review: RecipeReview, token?: string) {
+  return apiRequest<Recipe>(`/recipes/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
-} 
+}

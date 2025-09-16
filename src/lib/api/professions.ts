@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import {
+  apiRequest,
+  getApiHeaders,
+  BackendListResponse,
+  BackendResponse,
+  PaginatedResponse,
+} from "./config";
 
 export interface Profession {
   _id: string;
@@ -59,14 +65,21 @@ export interface ProfessionReview {
   comment: string;
 }
 
-export async function getProfessions(params?: {
+export interface ProfessionSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   category?: string;
   rating?: number;
   location?: string;
-}) {
+  // Geospatial parameters
+  latitude?: number;
+  longitude?: number;
+  radius?: number; // in kilometers
+  sortBy?: "professionName" | "distance" | "rating";
+}
+
+export async function getProfessions(params?: ProfessionSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -74,101 +87,51 @@ export async function getProfessions(params?: {
   if (params?.category) searchParams.append("category", params.category);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  const response = await fetch(
-    `${API_URL}/professions?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professions");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
 }
 
-export async function getProfession(id: string): Promise<Profession> {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch profession");
-  }
-
-  return response.json();
+export async function getProfession(id: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`);
 }
 
-export async function createProfession(data: CreateProfessionData) {
-  const response = await fetch(`${API_URL}/professions`, {
+export async function createProfession(data: CreateProfessionData, token?: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create profession");
-  }
-
-  return response.json();
 }
 
-export async function updateProfession(id: string, data: Partial<CreateProfessionData>) {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
+export async function updateProfession(
+  id: string,
+  data: Partial<CreateProfessionData>,
+  token?: string
+) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update profession");
-  }
-
-  return response.json();
 }
 
-export async function deleteProfession(id: string) {
-  const response = await fetch(`${API_URL}/professions/${id}`, {
+export async function deleteProfession(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/professions/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete profession");
-  }
-
-  return response.json();
 }
 
-export async function addProfessionReview(id: string, review: ProfessionReview) {
-  const response = await fetch(`${API_URL}/professions/add-review/${id}`, {
+export async function addProfessionReview(id: string, review: ProfessionReview, token?: string) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
 }
 
 // Professional Profiles API
@@ -246,7 +209,7 @@ export interface CreateProfessionalProfileData {
   };
 }
 
-export async function getProfessionalProfiles(params?: {
+export interface ProfessionalProfileSearchParams {
   page?: number;
   limit?: number;
   search?: string;
@@ -254,90 +217,167 @@ export async function getProfessionalProfiles(params?: {
   skills?: string;
   availability?: boolean;
   location?: string;
-}) {
+  // Geospatial parameters
+  latitude?: number;
+  longitude?: number;
+  radius?: number; // in kilometers
+  sortBy?: "user.username" | "distance" | "rates.hourly";
+}
+
+export async function getProfessionalProfiles(params?: ProfessionalProfileSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
   if (params?.search) searchParams.append("search", params.search);
   if (params?.profession) searchParams.append("profession", params.profession);
   if (params?.skills) searchParams.append("skills", params.skills);
-  if (params?.availability !== undefined) searchParams.append("availability", params.availability.toString());
+  if (params?.availability !== undefined)
+    searchParams.append("availability", params.availability.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  const response = await fetch(
-    `${API_URL}/professionalProfile?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
+  return apiRequest<PaginatedResponse<ProfessionalProfile>>(
+    `/professionalProfile?${searchParams.toString()}`
   );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professional profiles");
-  }
-
-  return response.json();
 }
 
-export async function getProfessionalProfile(id: string): Promise<ProfessionalProfile> {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch professional profile");
-  }
-
-  return response.json();
+export async function getProfessionalProfile(id: string) {
+  return apiRequest<BackendResponse<ProfessionalProfile>>(`/professionalProfile/${id}`);
 }
 
-export async function createProfessionalProfile(data: CreateProfessionalProfileData) {
-  const response = await fetch(`${API_URL}/professionalProfile`, {
+export async function createProfessionalProfile(
+  data: CreateProfessionalProfileData,
+  token?: string
+) {
+  return apiRequest<ProfessionalProfile>(`/professionalProfile`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create professional profile");
-  }
-
-  return response.json();
 }
 
-export async function updateProfessionalProfile(id: string, data: Partial<CreateProfessionalProfileData>) {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
+export async function updateProfessionalProfile(
+  id: string,
+  data: Partial<CreateProfessionalProfileData>,
+  token?: string
+) {
+  return apiRequest<ProfessionalProfile>(`/professionalProfile/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update professional profile");
-  }
-
-  return response.json();
 }
 
-export async function deleteProfessionalProfile(id: string) {
-  const response = await fetch(`${API_URL}/professionalProfile/${id}`, {
+export async function deleteProfessionalProfile(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/professionalProfile/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
+  });
+}
+
+// Geospatial functions for Professions
+export async function getNearbyProfessions(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  category?: string;
+  rating?: number;
+}) {
+  const searchParams = new URLSearchParams({
+    latitude: params.latitude.toString(),
+    longitude: params.longitude.toString(),
+    radius: (params.radius || 5).toString(),
+    sortBy: "distance",
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete professional profile");
-  }
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.category) searchParams.append("category", params.category);
+  if (params.rating) searchParams.append("rating", params.rating.toString());
 
-  return response.json();
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
+}
+
+export async function getProfessionsByCategory(params: {
+  category: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  limit?: number;
+  sortBy?: "professionName" | "distance" | "rating";
+}) {
+  const searchParams = new URLSearchParams({
+    category: params.category,
+    sortBy: params.sortBy || "professionName",
+  });
+
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", (params.radius || 10).toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
+}
+
+// Geospatial functions for Professional Profiles
+export async function getNearbyProfessionalProfiles(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  profession?: string;
+  skills?: string;
+  availability?: boolean;
+}) {
+  const searchParams = new URLSearchParams({
+    latitude: params.latitude.toString(),
+    longitude: params.longitude.toString(),
+    radius: (params.radius || 5).toString(),
+    sortBy: "distance",
+  });
+
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.profession) searchParams.append("profession", params.profession);
+  if (params.skills) searchParams.append("skills", params.skills);
+  if (params.availability !== undefined)
+    searchParams.append("availability", params.availability.toString());
+
+  return apiRequest<PaginatedResponse<ProfessionalProfile>>(
+    `/professionalProfile?${searchParams.toString()}`
+  );
+}
+
+export async function getAdvancedProfessionalProfiles(params: {
+  search?: string;
+  profession?: string;
+  skills?: string[];
+  availability?: boolean;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "user.username" | "distance" | "rates.hourly";
+  limit?: number;
+  page?: number;
+}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.search) searchParams.append("search", params.search);
+  if (params.profession) searchParams.append("profession", params.profession);
+  if (params.skills && params.skills.length > 0)
+    searchParams.append("skills", params.skills.join(","));
+  if (params.availability !== undefined)
+    searchParams.append("availability", params.availability.toString());
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.page) searchParams.append("page", params.page.toString());
+
+  return apiRequest<PaginatedResponse<ProfessionalProfile>>(
+    `/professionalProfile?${searchParams.toString()}`
+  );
 }

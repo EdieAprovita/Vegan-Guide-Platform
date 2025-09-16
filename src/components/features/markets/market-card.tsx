@@ -18,6 +18,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
   };
 
   const getProductBadges = (products: string[]) => {
+    if (!products || !Array.isArray(products)) return [];
     return products.slice(0, 3).map((product, index) => (
       <Badge key={index} variant="secondary" className="text-xs">
         {product}
@@ -26,27 +27,26 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
   };
 
   const getTodayHours = () => {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const todayHours = market.hours.find(hour => 
-      hour.day.toLowerCase() === today
-    );
+    if (!market.hours || !Array.isArray(market.hours)) return null;
+    const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+    const todayHours = market.hours.find((hour) => hour.day.toLowerCase() === today);
     return todayHours;
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-1">
+            <CardTitle className="line-clamp-1 text-lg font-semibold text-gray-900">
               {market.marketName}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+            <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="h-4 w-4" />
               <span className="line-clamp-1">{market.address}</span>
             </div>
           </div>
-          <div className="flex items-center gap-1 ml-2">
+          <div className="ml-2 flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium">{formatRating(market.rating)}</span>
             <span className="text-xs text-gray-500">({market.numReviews})</span>
@@ -59,7 +59,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           {/* Product Badges */}
           <div className="flex flex-wrap gap-1">
             {getProductBadges(market.products)}
-            {market.products.length > 3 && (
+            {market.products && market.products.length > 3 && (
               <Badge variant="outline" className="text-xs">
                 +{market.products.length - 3} more
               </Badge>
@@ -70,12 +70,14 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           {getTodayHours() && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Clock className="h-3 w-3" />
-              <span>Today: {getTodayHours()?.open} - {getTodayHours()?.close}</span>
+              <span>
+                Today: {getTodayHours()?.open} - {getTodayHours()?.close}
+              </span>
             </div>
           )}
 
           {/* Contact Information */}
-          {market.contact.length > 0 && (
+          {market.contact && market.contact.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               {market.contact[0].phone && (
                 <div className="flex items-center gap-1">
@@ -93,14 +95,9 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           )}
 
           {/* Social Links */}
-          {market.contact.length > 0 && market.contact[0].website && (
+          {market.contact && market.contact.length > 0 && market.contact[0].website && (
             <div className="flex gap-2">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8 px-2"
-              >
+              <Button asChild variant="outline" size="sm" className="h-8 px-2">
                 <a
                   href={market.contact[0].website}
                   target="_blank"
@@ -118,9 +115,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           {showActions && (
             <div className="flex gap-2 pt-2">
               <Button asChild className="flex-1">
-                <Link href={`/markets/${market._id}`}>
-                  View Details
-                </Link>
+                <Link href={`/markets/${market._id}`}>View Details</Link>
               </Button>
               <Button variant="outline" size="sm">
                 <Star className="h-4 w-4" />
@@ -131,4 +126,4 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
       </CardContent>
     </Card>
   );
-} 
+}

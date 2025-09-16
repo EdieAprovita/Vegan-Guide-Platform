@@ -1,35 +1,30 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendResponse } from "./config";
 
 export interface Business {
   _id: string;
   namePlace: string;
-  author: {
-    _id: string;
-    username: string;
-    photo?: string;
-  };
   address: string;
   location?: {
     type: string;
     coordinates: [number, number];
   };
   image: string;
-  contact: {
+  contact: Array<{
     phone?: string;
     email?: string;
     website?: string;
-  }[];
+  }>;
   budget: number;
   typeBusiness: string;
   hours: Date[];
-  reviews: {
-    user: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }[];
-  rating: number;
-  numReviews: number;
+  rating?: number;
+  numReviews?: number;
+  reviews?: BusinessReview[];
+  author: {
+    _id: string;
+    username: string;
+    photo?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -42,11 +37,11 @@ export interface CreateBusinessData {
     coordinates: [number, number];
   };
   image: string;
-  contact: {
+  contact: Array<{
     phone?: string;
     email?: string;
     website?: string;
-  }[];
+  }>;
   budget: number;
   typeBusiness: string;
   hours: Date[];
@@ -57,114 +52,118 @@ export interface BusinessReview {
   comment: string;
 }
 
-export async function getBusinesses(params?: {
+export interface BusinessFilters {
   page?: number;
   limit?: number;
   search?: string;
   typeBusiness?: string;
   rating?: number;
   location?: string;
-}) {
+  // Nuevos parámetros geoespaciales
+  lat?: number;
+  lng?: number;
+  radius?: number; // en kilómetros
+  budget?: number;
+}
+
+export async function getBusinesses(filters?: BusinessFilters) {
+  const searchParams = new URLSearchParams();
+
+  if (filters?.page) searchParams.append("page", filters.page.toString());
+  if (filters?.limit) searchParams.append("limit", filters.limit.toString());
+  if (filters?.search) searchParams.append("search", filters.search);
+  if (filters?.typeBusiness) searchParams.append("typeBusiness", filters.typeBusiness);
+  if (filters?.rating) searchParams.append("rating", filters.rating.toString());
+  if (filters?.location) searchParams.append("location", filters.location);
+  if (filters?.budget) searchParams.append("budget", filters.budget.toString());
+
+  // Parámetros geoespaciales
+  if (filters?.lat && filters?.lng) {
+    searchParams.append("lat", filters.lat.toString());
+    searchParams.append("lng", filters.lng.toString());
+    if (filters?.radius) {
+      searchParams.append("radius", filters.radius.toString());
+    }
+  }
+
+  const queryString = searchParams.toString();
+  const url = queryString ? `/businesses?${queryString}` : "/businesses";
+
+  return apiRequest<BackendResponse<Business[]>>(url);
+}
+
+export async function getBusiness(id: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
+}
+
+export async function createBusiness(data: CreateBusinessData, token?: string) {
+  return apiRequest<BackendResponse<Business>>("/businesses", {
+    method: "POST",
+    headers: getApiHeaders(token),
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBusiness(
+  id: string,
+  data: Partial<CreateBusinessData>,
+  token?: string
+) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/${id}`, {
+    method: "PUT",
+    headers: getApiHeaders(token),
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBusiness(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/businesses/${id}`, {
+    method: "DELETE",
+    headers: getApiHeaders(token),
+  });
+}
+
+export async function addBusinessReview(id: string, review: BusinessReview, token?: string) {
+  return apiRequest<BackendResponse<Business>>(`/businesses/${id}/reviews`, {
+    method: "POST",
+    headers: getApiHeaders(token),
+    body: JSON.stringify(review),
+  });
+}
+
+export async function getBusinessReviews(
+  id: string,
+  params?: {
+    page?: number;
+    limit?: number;
+  }
+) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.search) searchParams.append("search", params.search);
-  if (params?.typeBusiness) searchParams.append("typeBusiness", params.typeBusiness);
-  if (params?.rating) searchParams.append("rating", params.rating.toString());
-  if (params?.location) searchParams.append("location", params.location);
 
-  const response = await fetch(
-    `${API_URL}/businesses?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
+  return apiRequest<BackendResponse<BusinessReview[]>>(
+    `/businesses/${id}/reviews?${searchParams.toString()}`
   );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch businesses");
-  }
-
-  return response.json();
 }
 
-export async function getBusiness(id: string): Promise<Business> {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch business");
-  }
-
-  return response.json();
+// Nueva función para búsqueda por proximidad
+export async function getBusinessesByProximity(lat: number, lng: number, radius: number = 5) {
+  return apiRequest<BackendResponse<Business[]>>(
+    `/businesses/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
+  );
 }
 
-export async function createBusiness(data: CreateBusinessData) {
-  const response = await fetch(`${API_URL}/businesses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-    credentials: "include",
+// Nueva función para búsqueda avanzada
+export async function searchBusinesses(query: string, filters: BusinessFilters = {}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("q", query);
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create business");
-  }
-
-  return response.json();
-}
-
-export async function updateBusiness(id: string, data: Partial<CreateBusinessData>) {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update business");
-  }
-
-  return response.json();
-}
-
-export async function deleteBusiness(id: string) {
-  const response = await fetch(`${API_URL}/businesses/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete business");
-  }
-
-  return response.json();
-}
-
-export async function addBusinessReview(id: string, review: BusinessReview) {
-  const response = await fetch(`${API_URL}/businesses/add-review/${id}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(review),
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Business[]>>(`/businesses/search?${searchParams.toString()}`);
 }

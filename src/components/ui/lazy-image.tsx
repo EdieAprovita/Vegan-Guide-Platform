@@ -13,6 +13,7 @@ interface LazyImageProps {
   height?: number;
   placeholder?: string;
   fallback?: string;
+  priority?: boolean;
 }
 
 export function LazyImage({
@@ -23,33 +24,76 @@ export function LazyImage({
   height,
   placeholder = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvYWRpbmcuLi48L3RleHQ+PC9zdmc+",
   fallback = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4NyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=",
+  priority = false,
 }: LazyImageProps) {
   const [imageSrc, setImageSrc] = useState(placeholder);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const img = new window.Image();
-    img.src = src;
-    
-    img.onload = () => {
+    // Validar que src sea una URL válida
+    if (!src || src === placeholder) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Si es una data URL, usarla directamente
+    if (src.startsWith("data:")) {
       setImageSrc(src);
       setIsLoading(false);
+      return;
+    }
+
+    const img = new window.Image();
+
+    const handleLoad = () => {
+      setImageSrc(src);
+      setIsLoading(false);
+      setHasError(false);
     };
-    
-    img.onerror = () => {
+
+    const handleError = () => {
+      console.warn(`Failed to load image: ${src}`);
       setImageSrc(fallback);
       setIsLoading(false);
       setHasError(true);
     };
-  }, [src, fallback]);
+
+    img.onload = handleLoad;
+    img.onerror = handleError;
+
+    // Agregar timeout para evitar esperas infinitas
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        handleError();
+      }
+    }, 10000); // 10 segundos de timeout
+
+    img.src = src;
+
+    return () => {
+      clearTimeout(timeout);
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src, fallback, placeholder, isLoading]);
 
   if (isLoading) {
+    return <Skeleton className={cn("animate-pulse", className)} style={{ width, height }} />;
+  }
+
+  // Si hay error y no hay fallback válido, mostrar skeleton
+  if (hasError && (!fallback || fallback === placeholder)) {
     return (
-      <Skeleton 
-        className={cn("animate-pulse", className)} 
+      <div
+        className={cn(
+          "flex items-center justify-center bg-gray-200 text-sm text-gray-500",
+          className
+        )}
         style={{ width, height }}
-      />
+      >
+        <span>Image not available</span>
+      </div>
     );
   }
 
@@ -57,15 +101,18 @@ export function LazyImage({
     <Image
       src={imageSrc}
       alt={alt}
-      className={cn(
-        "transition-opacity duration-300",
-        hasError && "opacity-50",
-        className
-      )}
+      className={cn("transition-opacity duration-300", hasError && "opacity-50", className)}
       width={width || 200}
       height={height || 200}
-      loading="lazy"
-      unoptimized
+      loading={priority ? "eager" : "lazy"}
+      priority={priority}
+      unoptimized={imageSrc.startsWith("data:")}
+      onError={() => {
+        if (!hasError) {
+          setHasError(true);
+          setImageSrc(fallback);
+        }
+      }}
     />
   );
-} 
+}

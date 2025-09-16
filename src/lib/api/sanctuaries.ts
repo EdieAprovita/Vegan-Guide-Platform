@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Animal {
   name: string;
@@ -71,14 +71,20 @@ export interface SanctuaryReview {
   comment: string;
 }
 
-export async function getSanctuaries(params?: {
+export interface SanctuarySearchParams {
   page?: number;
   limit?: number;
   search?: string;
   typeofSanctuary?: string;
   rating?: number;
   location?: string;
-}) {
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "sanctuaryName" | "createdAt";
+}
+
+export async function getSanctuaries(params?: SanctuarySearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -86,99 +92,120 @@ export async function getSanctuaries(params?: {
   if (params?.typeofSanctuary) searchParams.append("typeofSanctuary", params.typeofSanctuary);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  const response = await fetch(
-    `${API_URL}/sanctuaries?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch sanctuaries");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`);
 }
 
-export async function getSanctuary(id: string): Promise<Sanctuary> {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch sanctuary");
-  }
-
-  return response.json();
+export async function getSanctuary(id: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/${id}`);
 }
 
-export async function createSanctuary(data: CreateSanctuaryData) {
-  const response = await fetch(`${API_URL}/sanctuaries`, {
+export async function createSanctuary(data: CreateSanctuaryData, token?: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function updateSanctuary(id: string, data: Partial<CreateSanctuaryData>) {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
+export async function updateSanctuary(
+  id: string,
+  data: Partial<CreateSanctuaryData>,
+  token?: string
+) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function deleteSanctuary(id: string) {
-  const response = await fetch(`${API_URL}/sanctuaries/${id}`, {
+export async function deleteSanctuary(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/sanctuaries/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete sanctuary");
-  }
-
-  return response.json();
 }
 
-export async function addSanctuaryReview(id: string, review: SanctuaryReview) {
-  const response = await fetch(`${API_URL}/sanctuaries/add-review/${id}`, {
+export async function addSanctuaryReview(id: string, review: SanctuaryReview, token?: string) {
+  return apiRequest<BackendResponse<Sanctuary>>(`/sanctuaries/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
+}
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
+export async function getNearbySanctuaries(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  typeofSanctuary?: string;
+  minRating?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("latitude", params.latitude.toString());
+  searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.typeofSanctuary) searchParams.append("typeofSanctuary", params.typeofSanctuary);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  searchParams.append("sortBy", "distance");
+
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`);
+}
+
+export async function getSanctuariesByType(
+  typeofSanctuary: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("typeofSanctuary", typeofSanctuary);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.latitude && params?.longitude) {
+    searchParams.append("sortBy", "distance");
   }
 
-  return response.json();
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`);
+}
+
+export async function getAdvancedSanctuaries(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  typeofSanctuary?: string[];
+  minRating?: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "sanctuaryName" | "createdAt";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append("page", params.page.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.search) searchParams.append("search", params.search);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  if (params.typeofSanctuary?.length) {
+    params.typeofSanctuary.forEach((type) => searchParams.append("typeofSanctuary", type));
+  }
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`);
 }

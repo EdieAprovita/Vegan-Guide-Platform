@@ -39,7 +39,7 @@ export function ProfileForm() {
       hasSession: !!sessionUser,
       hasToken: !!sessionUser?.token,
       token: sessionUser?.token ? "Token exists" : "No token",
-      user: sessionUser
+      user: sessionUser,
     });
   }, [sessionUser, status, isAuthenticated]);
 
@@ -48,7 +48,7 @@ export function ProfileForm() {
       console.log("loadProfile called:", {
         isAuthenticated,
         hasToken: !!sessionUser?.token,
-        token: sessionUser?.token
+        token: sessionUser?.token,
       });
 
       if (!isAuthenticated || !sessionUser?.token) {
@@ -58,7 +58,10 @@ export function ProfileForm() {
       }
 
       try {
-        console.log("Calling getUserProfile with token:", sessionUser.token.substring(0, 20) + "...");
+        console.log(
+          "Calling getUserProfile with token:",
+          sessionUser.token.substring(0, 20) + "..."
+        );
         const profile = await getUserProfile("current", sessionUser.token);
         console.log("Profile loaded successfully:", profile);
         setUser(profile);
@@ -78,11 +81,11 @@ export function ProfileForm() {
 
   const handleUpdateProfile = async (data: UpdateProfileFormData) => {
     if (!user || !isAuthenticated || !sessionUser?.token) return;
-    
+
     setIsLoading(true);
     try {
       await updateProfile(data);
-      setUser(prev => prev ? { ...prev, ...data } : null);
+      setUser((prev) => (prev ? { ...prev, ...data } : null));
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -94,7 +97,7 @@ export function ProfileForm() {
 
   if (!isAuthenticated) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="mx-auto w-full max-w-2xl">
         <CardContent className="flex items-center justify-center py-8">
           <p className="text-gray-500">Please log in to view your profile.</p>
         </CardContent>
@@ -104,34 +107,40 @@ export function ProfileForm() {
 
   if (isLoadingProfile) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="mx-auto w-full max-w-2xl">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="mx-auto w-full max-w-2xl">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-bold">Profile Settings</CardTitle>
-            <CardDescription>
-              Update your profile information and preferences.
-            </CardDescription>
+            <CardDescription>Update your profile information and preferences.</CardDescription>
           </div>
           <LogoutButton variant="outline" size="sm" />
         </div>
       </CardHeader>
       <CardContent>
         {/* Debug info */}
-        <div className="mb-4 p-3 bg-gray-100 rounded text-sm">
-          <p><strong>Status:</strong> {status}</p>
-          <p><strong>Authenticated:</strong> {isAuthenticated ? "Yes" : "No"}</p>
-          <p><strong>Has Token:</strong> {sessionUser?.token ? "Yes" : "No"}</p>
-          <p><strong>User ID:</strong> {sessionUser?.id || "None"}</p>
+        <div className="mb-4 rounded bg-gray-100 p-3 text-sm">
+          <p>
+            <strong>Status:</strong> {status}
+          </p>
+          <p>
+            <strong>Authenticated:</strong> {isAuthenticated ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Has Token:</strong> {sessionUser?.token ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>User ID:</strong> {sessionUser?.id || "None"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-6">
@@ -148,9 +157,7 @@ export function ProfileForm() {
                 <Camera className="mr-2 h-4 w-4" />
                 Change Photo
               </Button>
-              <p className="text-sm text-muted-foreground mt-1">
-                JPG, PNG or GIF. Max size 2MB.
-              </p>
+              <p className="text-muted-foreground mt-1 text-sm">JPG, PNG or GIF. Max size 2MB.</p>
             </div>
           </div>
 
@@ -163,9 +170,7 @@ export function ProfileForm() {
               {...register("username")}
               className={errors.username ? "border-red-500" : ""}
             />
-            {errors.username && (
-              <p className="text-sm text-red-500">{errors.username.message}</p>
-            )}
+            {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
           </div>
 
           {/* Email */}
@@ -178,9 +183,7 @@ export function ProfileForm() {
               {...register("email")}
               className={errors.email ? "border-red-500" : ""}
             />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
 
           {/* Photo URL */}
@@ -193,17 +196,20 @@ export function ProfileForm() {
               {...register("photo")}
               className={errors.photo ? "border-red-500" : ""}
             />
-            {errors.photo && (
-              <p className="text-sm text-red-500">{errors.photo.message}</p>
-            )}
+            {errors.photo && <p className="text-sm text-red-500">{errors.photo.message}</p>}
           </div>
 
           {/* User Info Display */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium mb-2">Account Information</h3>
+          <div className="rounded-lg bg-gray-50 p-4">
+            <h3 className="mb-2 font-medium">Account Information</h3>
             <div className="space-y-1 text-sm text-gray-600">
-              <p><strong>Role:</strong> {user?.role}</p>
-              <p><strong>Member since:</strong> {user ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
+              <p>
+                <strong>Role:</strong> {user?.role}
+              </p>
+              <p>
+                <strong>Member since:</strong>{" "}
+                {user ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
+              </p>
             </div>
           </div>
 
@@ -214,4 +220,4 @@ export function ProfileForm() {
       </CardContent>
     </Card>
   );
-} 
+}

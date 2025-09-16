@@ -18,10 +18,7 @@ import { X } from "lucide-react";
 import type { Recipe } from "@/lib/api/recipes";
 
 const recipeSchema = z.object({
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(100, "Title must be less than 100 characters"),
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
   description: z
     .string()
     .min(1, "Description is required")
@@ -62,18 +59,18 @@ interface RecipeFormProps {
   isLoading?: boolean;
 }
 
-export function RecipeForm({
-  initialData,
-  onSubmit,
-  isLoading = false,
-}: RecipeFormProps) {
+export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeFormProps) {
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
       ingredients: initialData?.ingredients || [""],
-      instructions: initialData?.instructions || [""],
+      instructions: Array.isArray(initialData?.instructions)
+        ? initialData.instructions
+        : initialData?.instructions
+          ? [initialData.instructions]
+          : [""],
       preparationTime: initialData?.preparationTime || 0,
       cookingTime: initialData?.cookingTime || 0,
       servings: initialData?.servings || 1,
@@ -140,11 +137,7 @@ export function RecipeForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder="Enter recipe description"
-                  className="h-24"
-                />
+                <Textarea {...field} placeholder="Enter recipe description" className="h-24" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -169,8 +162,9 @@ export function RecipeForm({
                       variant="outline"
                       size="icon"
                       onClick={() => removeIngredient(index)}
-                      className="shrink-0">
-                      <X className="w-4 h-4" />
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                   <FormMessage />
@@ -178,11 +172,7 @@ export function RecipeForm({
               )}
             />
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addIngredient}
-            className="w-full">
+          <Button type="button" variant="outline" onClick={addIngredient} className="w-full">
             Add Ingredient
           </Button>
         </div>
@@ -198,19 +188,16 @@ export function RecipeForm({
                 <FormItem>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Enter instruction step"
-                        className="h-20"
-                      />
+                      <Textarea {...field} placeholder="Enter instruction step" className="h-20" />
                     </FormControl>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
                       onClick={() => removeInstruction(index)}
-                      className="shrink-0">
-                      <X className="w-4 h-4" />
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                   <FormMessage />
@@ -218,16 +205,12 @@ export function RecipeForm({
               )}
             />
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addInstruction}
-            className="w-full">
+          <Button type="button" variant="outline" onClick={addInstruction} className="w-full">
             Add Instruction
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <FormField
             control={form.control}
             name="preparationTime"
@@ -283,7 +266,7 @@ export function RecipeForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="difficulty"
@@ -294,7 +277,7 @@ export function RecipeForm({
                   <select
                     value={field.value}
                     onChange={field.onChange}
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Select difficulty</option>
                     <option value="easy">Easy</option>
@@ -321,7 +304,7 @@ export function RecipeForm({
                       }
                       e.target.value = ""; // Reset select
                     }}
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Add category</option>
                     <option value="breakfast">Breakfast</option>
@@ -331,21 +314,19 @@ export function RecipeForm({
                     <option value="snack">Snack</option>
                   </select>
                 </FormControl>
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {field.value.map((category, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-sm">
+                      className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-sm text-emerald-700"
+                    >
                       <span className="capitalize">{category}</span>
                       <button
                         type="button"
-                        onClick={() =>
-                          field.onChange(
-                            field.value.filter((_, i) => i !== index)
-                          )
-                        }
-                        className="hover:text-emerald-900">
-                        <X className="w-3 h-3" />
+                        onClick={() => field.onChange(field.value.filter((_, i) => i !== index))}
+                        className="hover:text-emerald-900"
+                      >
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -380,16 +361,17 @@ export function RecipeForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-['Playfair_Display'] font-bold h-12 rounded-3xl shadow-[0px_8px_16px_0px_rgba(34,197,94,0.25)] border-0 transition-all duration-300">
+          className="h-12 w-full rounded-3xl border-0 bg-gradient-to-br from-green-500 to-emerald-600 font-['Playfair_Display'] font-bold text-white shadow-[0px_8px_16px_0px_rgba(34,197,94,0.25)] transition-all duration-300 hover:from-green-600 hover:to-emerald-700"
+        >
           {isLoading
             ? initialData
               ? "Updating Recipe..."
               : "Creating Recipe..."
             : initialData
-            ? "Update Recipe"
-            : "Create Recipe"}
+              ? "Update Recipe"
+              : "Create Recipe"}
         </Button>
       </form>
     </Form>
   );
-} 
+}

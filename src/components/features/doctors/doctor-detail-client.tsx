@@ -20,8 +20,8 @@ export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 animate-pulse">
-        <div className="h-96 bg-gray-200 rounded-lg" />
+      <div className="container mx-auto animate-pulse px-4 py-8">
+        <div className="h-96 rounded-lg bg-gray-200" />
       </div>
     );
   }
@@ -32,15 +32,12 @@ export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => window.history.back()}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+      <div className="mx-auto max-w-4xl">
+        <Button variant="ghost" className="mb-6" onClick={() => window.history.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Doctors
         </Button>
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+        <div className="overflow-hidden rounded-xl bg-white shadow-lg">
           <div className="md:flex">
             <div className="md:flex-shrink-0">
               <Image

@@ -10,7 +10,8 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage, } from "@/components/ui/form";
+  FormMessage,
+} from "@/components/ui/form";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 
 interface RegisterFormProps {
@@ -19,11 +20,7 @@ interface RegisterFormProps {
   isLoading: boolean;
 }
 
-export function RegisterForm({
-  onSubmit,
-  onLogin,
-  isLoading,
-}: RegisterFormProps) {
+export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps) {
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -44,12 +41,12 @@ export function RegisterForm({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-6 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg">
-      <div className="text-center space-y-3">
-        <h1 className="text-3xl font-bold font-['Playfair_Display'] text-green-800 tracking-tight">
+    <div className="mx-auto w-full max-w-sm space-y-6 rounded-2xl bg-white/80 p-8 shadow-lg backdrop-blur-sm">
+      <div className="space-y-3 text-center">
+        <h1 className="font-['Playfair_Display'] text-3xl font-bold tracking-tight text-green-800">
           Join Verde Guide
         </h1>
-        <p className="text-emerald-800/80 font-['Playfair_Display'] text-lg">
+        <p className="font-['Playfair_Display'] text-lg text-emerald-800/80">
           Start your plant-based journey today
         </p>
       </div>
@@ -61,14 +58,14 @@ export function RegisterForm({
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
                   Username
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
                     placeholder="Enter your username"
-                    className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
                 </FormControl>
@@ -82,14 +79,14 @@ export function RegisterForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
                   Email
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     placeholder="Enter your email"
-                    className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
                 </FormControl>
@@ -103,14 +100,14 @@ export function RegisterForm({
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
                   Account Type
                 </FormLabel>
                 <FormControl>
                   <select
                     value={field.value}
                     onChange={field.onChange}
-                    className="w-full font-['Playfair_Display'] bg-white rounded-md border border-input px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="border-input focus:ring-ring w-full rounded-md border bg-white px-3 py-2 font-['Playfair_Display'] text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Select your account type</option>
                     <option value="user">Regular User</option>
@@ -127,14 +124,14 @@ export function RegisterForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
                   Password
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="password"
                     placeholder="Create a strong password"
-                    className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
                 </FormControl>
@@ -148,14 +145,14 @@ export function RegisterForm({
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] text-emerald-900 font-medium">
+                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
                   Confirm Password
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="password"
                     placeholder="Confirm your password"
-                    className="font-['Playfair_Display'] h-11 bg-white/90 border-emerald-100 focus:border-emerald-500 focus:ring-emerald-500"
+                    className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
                     {...field}
                   />
                 </FormControl>
@@ -167,19 +164,21 @@ export function RegisterForm({
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-['Playfair_Display'] font-bold h-12 rounded-3xl shadow-[0px_8px_16px_0px_rgba(34,197,94,0.25)] border-0 transition-all duration-300 mt-6">
+            className="mt-6 h-12 w-full rounded-3xl border-0 bg-gradient-to-br from-green-500 to-emerald-600 font-['Playfair_Display'] font-bold text-white shadow-[0px_8px_16px_0px_rgba(34,197,94,0.25)] transition-all duration-300 hover:from-green-600 hover:to-emerald-700"
+          >
             {isLoading ? "Creating account..." : "Create Account"}
           </Button>
         </form>
       </Form>
 
-      <div className="text-center pt-4">
-        <p className="text-emerald-900/80 font-['Playfair_Display'] text-sm">
+      <div className="pt-4 text-center">
+        <p className="font-['Playfair_Display'] text-sm text-emerald-900/80">
           Already have an account?{" "}
           <button
             type="button"
             onClick={onLogin}
-            className="text-green-600 hover:text-green-700 font-semibold underline decoration-2 underline-offset-2 transition-colors inline-flex items-center gap-1">
+            className="inline-flex items-center gap-1 font-semibold text-green-600 underline decoration-2 underline-offset-2 transition-colors hover:text-green-700"
+          >
             Sign in here
           </button>
         </p>

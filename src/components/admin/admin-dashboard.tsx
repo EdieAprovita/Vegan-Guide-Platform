@@ -5,16 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Users, 
-  ChefHat, 
-  User, 
-  Store, 
-  MessageSquare, 
-  TrendingUp, 
+import {
+  Users,
+  ChefHat,
+  User,
+  Store,
+  MessageSquare,
+  TrendingUp,
   AlertTriangle,
   Settings,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
@@ -104,9 +104,17 @@ export function AdminDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge variant="default" className="bg-green-100 text-green-800">Approved</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Approved
+          </Badge>
+        );
       case "pending":
-        return <Badge variant="outline" className="text-yellow-600">Pending</Badge>;
+        return (
+          <Badge variant="outline" className="text-yellow-600">
+            Pending
+          </Badge>
+        );
       case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
       default:
@@ -132,9 +140,9 @@ export function AdminDashboard() {
   if (user?.role !== "admin") {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+        <div className="mx-auto max-w-4xl text-center">
+          <AlertTriangle className="mx-auto mb-4 h-16 w-16 text-red-400" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Access Denied</h2>
           <p className="text-gray-600">You need admin privileges to access this page.</p>
         </div>
       </div>
@@ -143,68 +151,58 @@ export function AdminDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
-          </h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600">
             Welcome back, {user.username}. Here&apos;s what&apos;s happening with your platform.
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
+              <p className="text-muted-foreground text-xs">+12% from last month</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Restaurants</CardTitle>
-              <ChefHat className="h-4 w-4 text-muted-foreground" />
+              <ChefHat className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalRestaurants}</div>
-              <p className="text-xs text-muted-foreground">
-                +5 new this month
-              </p>
+              <p className="text-muted-foreground text-xs">+5 new this month</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Doctors</CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
+              <User className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalDoctors}</div>
-              <p className="text-xs text-muted-foreground">
-                +3 new this month
-              </p>
+              <p className="text-muted-foreground text-xs">+3 new this month</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Markets</CardTitle>
-              <Store className="h-4 w-4 text-muted-foreground" />
+              <Store className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalMarkets}</div>
-              <p className="text-xs text-muted-foreground">
-                +8 new this month
-              </p>
+              <p className="text-muted-foreground text-xs">+8 new this month</p>
             </CardContent>
           </Card>
         </div>
@@ -219,7 +217,7 @@ export function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Recent Activity */}
               <Card>
                 <CardHeader>
@@ -231,7 +229,10 @@ export function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     {stats.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                      >
                         <div className="flex items-center gap-3">
                           {getActivityIcon(activity.type)}
                           <div>
@@ -257,19 +258,19 @@ export function AdminDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     <Button variant="outline" className="h-20 flex-col">
-                      <ChefHat className="h-6 w-6 mb-2" />
+                      <ChefHat className="mb-2 h-6 w-6" />
                       <span className="text-sm">Add Restaurant</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex-col">
-                      <User className="h-6 w-6 mb-2" />
+                      <User className="mb-2 h-6 w-6" />
                       <span className="text-sm">Add Doctor</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex-col">
-                      <Store className="h-6 w-6 mb-2" />
+                      <Store className="mb-2 h-6 w-6" />
                       <span className="text-sm">Add Market</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex-col">
-                      <MessageSquare className="h-6 w-6 mb-2" />
+                      <MessageSquare className="mb-2 h-6 w-6" />
                       <span className="text-sm">Moderate Posts</span>
                     </Button>
                   </div>
@@ -297,9 +298,7 @@ export function AdminDashboard() {
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">
-                  User management features will be implemented here.
-                </p>
+                <p className="text-gray-600">User management features will be implemented here.</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -323,4 +322,4 @@ export function AdminDashboard() {
       </div>
     </div>
   );
-} 
+}

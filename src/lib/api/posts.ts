@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Post {
   _id: string;
@@ -21,6 +21,12 @@ export interface Post {
     content: string;
     createdAt: string;
   }[];
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+    address?: string;
+  };
+  visibility: "public" | "local" | "followers";
   createdAt: string;
   updatedAt: string;
 }
@@ -29,146 +35,172 @@ export interface CreatePostData {
   title: string;
   content: string;
   tags: string[];
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+    address?: string;
+  };
+  visibility?: "public" | "local" | "followers";
 }
 
 export interface CreateCommentData {
   content: string;
 }
 
-export async function getPosts(params?: {
+export interface PostSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   tags?: string;
   author?: string;
-}) {
+  // Geospatial parameters
+  latitude?: number;
+  longitude?: number;
+  radius?: number; // in kilometers
+  sortBy?: "createdAt" | "distance" | "likes";
+  visibility?: "public" | "local" | "followers";
+}
+
+export async function getPosts(params?: PostSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
   if (params?.search) searchParams.append("search", params.search);
   if (params?.tags) searchParams.append("tags", params.tags);
   if (params?.author) searchParams.append("author", params.author);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params?.visibility) searchParams.append("visibility", params.visibility);
 
-  const response = await fetch(
-    `${API_URL}/posts?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch posts");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
 }
 
 export async function getPost(id: string) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch post");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}`);
 }
 
-export async function createPost(data: CreatePostData) {
-  const response = await fetch(`${API_URL}/posts`, {
+export async function createPost(data: CreatePostData, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create post");
-  }
-
-  return response.json();
 }
 
-export async function updatePost(id: string, data: Partial<CreatePostData>) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
+export async function updatePost(id: string, data: Partial<CreatePostData>, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update post");
-  }
-
-  return response.json();
 }
 
-export async function deletePost(id: string) {
-  const response = await fetch(`${API_URL}/posts/${id}`, {
+export async function deletePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/posts/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete post");
-  }
-
-  return response.json();
 }
 
-export async function likePost(id: string) {
-  const response = await fetch(`${API_URL}/posts/like/${id}`, {
+export async function likePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/like/${id}`, {
     method: "POST",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to like post");
-  }
-
-  return response.json();
 }
 
-export async function addComment(id: string, data: CreateCommentData) {
-  const response = await fetch(`${API_URL}/posts/add-comment/${id}`, {
+export async function unlikePost(id: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/unlike/${id}`, {
+    method: "DELETE",
+    headers: getApiHeaders(token),
+  });
+}
+
+export async function addComment(id: string, data: CreateCommentData, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/comment/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add comment");
-  }
-
-  return response.json();
 }
 
-export async function deleteComment(postId: string, commentId: string) {
-  const response = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}`, {
+export async function deleteComment(postId: string, commentId: string, token?: string) {
+  return apiRequest<BackendResponse<Post>>(`/posts/${postId}/comments/${commentId}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
+  });
+}
+
+// Geospatial functions following the same pattern as other sections
+export async function getNearbyPosts(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  tags?: string;
+  visibility?: "public" | "local" | "followers";
+}) {
+  const searchParams = new URLSearchParams({
+    latitude: params.latitude.toString(),
+    longitude: params.longitude.toString(),
+    radius: (params.radius || 5).toString(),
+    sortBy: "distance",
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete comment");
-  }
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.tags) searchParams.append("tags", params.tags);
+  if (params.visibility) searchParams.append("visibility", params.visibility);
 
-  return response.json();
-} 
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+}
+
+export async function getPostsByTags(params: {
+  tags: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  limit?: number;
+  sortBy?: "createdAt" | "distance" | "likes";
+}) {
+  const searchParams = new URLSearchParams({
+    tags: params.tags,
+    sortBy: params.sortBy || "createdAt",
+  });
+
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", (params.radius || 10).toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+}
+
+export async function getAdvancedPosts(params: {
+  search?: string;
+  tags?: string[];
+  author?: string;
+  visibility?: "public" | "local" | "followers";
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "createdAt" | "distance" | "likes";
+  limit?: number;
+  page?: number;
+}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.search) searchParams.append("search", params.search);
+  if (params.tags && params.tags.length > 0) searchParams.append("tags", params.tags.join(","));
+  if (params.author) searchParams.append("author", params.author);
+  if (params.visibility) searchParams.append("visibility", params.visibility);
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.page) searchParams.append("page", params.page.toString());
+
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+}

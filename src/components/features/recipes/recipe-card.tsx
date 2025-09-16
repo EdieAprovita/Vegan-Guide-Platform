@@ -41,47 +41,45 @@ export function RecipeCard({
   }[difficulty];
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg bg-white/80 backdrop-blur-sm">
-      <div className="relative h-48 group">
+    <Card className="overflow-hidden bg-white/80 backdrop-blur-sm transition-all hover:shadow-lg">
+      <div className="group relative h-48">
         <Image
           src={image}
           alt={title}
           fill
           className="object-cover transition-transform group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-        <div className="absolute top-2 right-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
-          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+        <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/30" />
+        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 backdrop-blur-sm">
+          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
           <span className="text-sm font-medium">{averageRating.toFixed(1)}</span>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="space-y-4 p-4">
         <div>
-          <h3 className="text-xl font-bold font-['Playfair_Display'] text-emerald-800 line-clamp-1">
+          <h3 className="line-clamp-1 font-['Playfair_Display'] text-xl font-bold text-emerald-800">
             {title}
           </h3>
-          <p className="text-emerald-600/80 text-sm line-clamp-2 mt-1">
-            {description}
-          </p>
+          <p className="mt-1 line-clamp-2 text-sm text-emerald-600/80">{description}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="flex items-center gap-1 text-emerald-700">
-            <Clock className="w-4 h-4" />
+            <Clock className="h-4 w-4" />
             <span>{totalTime} min</span>
           </div>
           <div className="flex items-center gap-1 text-emerald-700">
-            <Users className="w-4 h-4" />
+            <Users className="h-4 w-4" />
             <span>{servings} servings</span>
           </div>
           <div className="flex items-center gap-1">
-            <ChefHat className={`w-4 h-4 ${difficultyColor}`} />
+            <ChefHat className={`h-4 w-4 ${difficultyColor}`} />
             <span className={`capitalize ${difficultyColor}`}>{difficulty}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pt-2 border-t border-emerald-100">
+        <div className="flex items-center gap-2 border-t border-emerald-100 pt-2">
           {author.photo ? (
             <Image
               src={author.photo}
@@ -91,10 +89,8 @@ export function RecipeCard({
               className="rounded-full"
             />
           ) : (
-            <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-emerald-700">
-                {author.username[0]}
-              </span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+              <span className="text-xs font-medium text-emerald-700">{author.username[0]}</span>
             </div>
           )}
           <span className="text-sm text-emerald-600">{author.username}</span>
@@ -102,10 +98,11 @@ export function RecipeCard({
 
         <Button
           onClick={onView}
-          className="w-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-['Playfair_Display'] font-medium shadow-[0px_4px_12px_0px_rgba(34,197,94,0.25)] transition-all duration-300">
+          className="w-full bg-gradient-to-br from-green-500 to-emerald-600 font-['Playfair_Display'] font-medium text-white shadow-[0px_4px_12px_0px_rgba(34,197,94,0.25)] transition-all duration-300 hover:from-green-600 hover:to-emerald-700"
+        >
           View Recipe
         </Button>
       </div>
     </Card>
   );
-} 
+}

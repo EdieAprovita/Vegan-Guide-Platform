@@ -5,15 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Bell, 
-  MessageSquare, 
-  Heart, 
-  Star, 
-  UserPlus, 
-  CheckCircle, 
-  Trash2
-} from "lucide-react";
+import { Bell, MessageSquare, Heart, Star, UserPlus, CheckCircle, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
 
@@ -115,11 +107,9 @@ export function NotificationCenter() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === notificationId
-            ? { ...notification, read: true }
-            : notification
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId ? { ...notification, read: true } : notification
         )
       );
       toast.success("Marked as read");
@@ -130,9 +120,7 @@ export function NotificationCenter() {
 
   const markAllAsRead = async () => {
     try {
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
-      );
+      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
       toast.success("All notifications marked as read");
     } catch {
       toast.error("Failed to mark all as read");
@@ -141,9 +129,7 @@ export function NotificationCenter() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      setNotifications(prev =>
-        prev.filter(notification => notification.id !== notificationId)
-      );
+      setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId));
       toast.success("Notification deleted");
     } catch {
       toast.error("Failed to delete notification");
@@ -203,20 +189,20 @@ export function NotificationCenter() {
     }
   };
 
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification) => {
     if (activeTab === "all") return true;
     if (activeTab === "unread") return !notification.read;
     return notification.type === activeTab;
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to view notifications</h2>
+        <div className="mx-auto max-w-4xl text-center">
+          <Bell className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Sign in to view notifications</h2>
           <p className="text-gray-600">Please sign in to access your notifications.</p>
         </div>
       </div>
@@ -225,22 +211,16 @@ export function NotificationCenter() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Notifications
-              </h1>
-              <p className="text-gray-600">
-                Stay updated with your community activity
-              </p>
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">Notifications</h1>
+              <p className="text-gray-600">Stay updated with your community activity</p>
             </div>
             <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <Badge variant="destructive">{unreadCount} unread</Badge>
-              )}
+              {unreadCount > 0 && <Badge variant="destructive">{unreadCount} unread</Badge>}
               <Button
                 variant="outline"
                 size="sm"
@@ -270,20 +250,19 @@ export function NotificationCenter() {
             {loading ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                  <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
                   <p className="text-gray-600">Loading notifications...</p>
                 </CardContent>
               </Card>
             ) : filteredNotifications.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
+                  <Bell className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                  <h3 className="mb-2 text-lg font-medium text-gray-900">No notifications</h3>
                   <p className="text-gray-600">
-                    {activeTab === "unread" 
+                    {activeTab === "unread"
                       ? "You're all caught up! No unread notifications."
-                      : "No notifications to show."
-                    }
+                      : "No notifications to show."}
                   </p>
                 </CardContent>
               </Card>
@@ -293,18 +272,18 @@ export function NotificationCenter() {
                   <Card
                     key={notification.id}
                     className={`transition-colors ${
-                      !notification.read ? "bg-blue-50 border-blue-200" : ""
+                      !notification.read ? "border-blue-200 bg-blue-50" : ""
                     }`}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 mt-1">
+                        <div className="mt-1 flex-shrink-0">
                           {getNotificationIcon(notification.type)}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="mb-1 flex items-center gap-2">
                                 <h3 className="text-sm font-medium text-gray-900">
                                   {notification.title}
                                 </h3>
@@ -312,17 +291,15 @@ export function NotificationCenter() {
                                   {getNotificationTypeLabel(notification.type)}
                                 </Badge>
                                 {!notification.read && (
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {notification.message}
-                              </p>
+                              <p className="mb-2 text-sm text-gray-600">{notification.message}</p>
                               <p className="text-xs text-gray-500">
                                 {formatTimestamp(notification.timestamp)}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2 ml-4">
+                            <div className="ml-4 flex items-center gap-2">
                               {!notification.read && (
                                 <Button
                                   variant="ghost"
@@ -353,4 +330,4 @@ export function NotificationCenter() {
       </div>
     </div>
   );
-} 
+}

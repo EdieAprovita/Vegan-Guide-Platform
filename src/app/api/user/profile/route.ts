@@ -41,13 +41,13 @@ export async function PUT(request: NextRequest) {
     // Parse and validate request body
     const body = await request.json();
     const validationResult = updateProfileSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: "Validation Error", 
+        {
+          error: "Validation Error",
           message: "Invalid input data",
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
         },
         { status: 400 }
       );
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest) {
     // Get user ID from session (we need to get it from the session)
     const { auth } = await import("@/lib/auth");
     const session = await auth();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Invalid session" },
@@ -65,21 +65,16 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update profile via backend API
-    const updatedUser = await updateUserProfile(
-      validationResult.data,
-      token,
-      session.user.id
-    );
+    const updatedUser = await updateUserProfile(validationResult.data, token, session.user.id);
 
     return NextResponse.json(updatedUser);
-
   } catch (error) {
     console.error("Profile update error:", error);
-    
+
     return NextResponse.json(
-      { 
-        error: "Internal Server Error", 
-        message: "Failed to update profile" 
+      {
+        error: "Internal Server Error",
+        message: "Failed to update profile",
       },
       { status: 500 }
     );
@@ -103,7 +98,7 @@ export async function GET(request: NextRequest) {
     // Get current user profile from session
     const { auth } = await import("@/lib/auth");
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Invalid session" },
@@ -121,14 +116,13 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(userProfile);
-
   } catch (error) {
     console.error("Get profile error:", error);
-    
+
     return NextResponse.json(
-      { 
-        error: "Internal Server Error", 
-        message: "Failed to get profile" 
+      {
+        error: "Internal Server Error",
+        message: "Failed to get profile",
       },
       { status: 500 }
     );
