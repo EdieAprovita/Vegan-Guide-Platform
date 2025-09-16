@@ -6,6 +6,6 @@ interface DoctorDetailPageProps {
 
 export default async function DoctorDetailPage({ params }: DoctorDetailPageProps) {
   const { id } = await params;
-  
+
   return <DoctorDetailClient doctorId={id} />;
-} 
+}

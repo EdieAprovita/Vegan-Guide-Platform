@@ -6,16 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { 
-  Bell, 
-  BellOff, 
-  Settings, 
-  CheckCircle, 
+import {
+  Bell,
+  BellOff,
+  Settings,
+  CheckCircle,
   XCircle,
   MessageSquare,
   ChefHat,
   Star,
-  MapPin
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,7 +49,7 @@ export function PushNotifications() {
   const checkSupport = () => {
     const supported = "serviceWorker" in navigator && "PushManager" in window;
     setIsSupported(supported);
-    
+
     if (supported) {
       setPermission(Notification.permission);
     }
@@ -60,7 +60,7 @@ export function PushNotifications() {
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
-      
+
       if (result === "granted") {
         await subscribeToPush();
         toast.success("Push notifications enabled!");
@@ -81,10 +81,10 @@ export function PushNotifications() {
         userVisibleOnly: true,
         applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
       });
-      
+
       setSubscription(subscription);
-      setSettings(prev => ({ ...prev, enabled: true }));
-      
+      setSettings((prev) => ({ ...prev, enabled: true }));
+
       // Send subscription to backend
       await sendSubscriptionToServer(subscription);
     } catch {
@@ -98,7 +98,7 @@ export function PushNotifications() {
       if (subscription) {
         await subscription.unsubscribe();
         setSubscription(null);
-        setSettings(prev => ({ ...prev, enabled: false }));
+        setSettings((prev) => ({ ...prev, enabled: false }));
         toast.success("Push notifications disabled");
       }
     } catch {
@@ -118,7 +118,7 @@ export function PushNotifications() {
           settings,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to save subscription");
       }
@@ -130,7 +130,7 @@ export function PushNotifications() {
   const updateSettings = async (key: keyof NotificationSettings, value: boolean) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    
+
     if (subscription) {
       try {
         await fetch("/api/push/settings", {
@@ -190,25 +190,25 @@ export function PushNotifications() {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Browser Support</span>
             <Badge variant="default" className="bg-green-100 text-green-800">
-              <CheckCircle className="h-3 w-3 mr-1" />
+              <CheckCircle className="mr-1 h-3 w-3" />
               Supported
             </Badge>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Permission Status</span>
-            <Badge 
+            <Badge
               variant={permission === "granted" ? "default" : "secondary"}
               className={permission === "granted" ? "bg-green-100 text-green-800" : ""}
             >
               {permission === "granted" ? (
                 <>
-                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <CheckCircle className="mr-1 h-3 w-3" />
                   Granted
                 </>
               ) : permission === "denied" ? (
                 <>
-                  <XCircle className="h-3 w-3 mr-1" />
+                  <XCircle className="mr-1 h-3 w-3" />
                   Denied
                 </>
               ) : (
@@ -216,21 +216,21 @@ export function PushNotifications() {
               )}
             </Badge>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Subscription Status</span>
-            <Badge 
+            <Badge
               variant={subscription ? "default" : "secondary"}
               className={subscription ? "bg-green-100 text-green-800" : ""}
             >
               {subscription ? (
                 <>
-                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <CheckCircle className="mr-1 h-3 w-3" />
                   Active
                 </>
               ) : (
                 <>
-                  <XCircle className="h-3 w-3 mr-1" />
+                  <XCircle className="mr-1 h-3 w-3" />
                   Inactive
                 </>
               )}
@@ -246,14 +246,10 @@ export function PushNotifications() {
             <CardTitle>Enable Push Notifications</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="mb-4 text-sm text-gray-600">
               Get notified about new vegan restaurants, recipes, and community updates.
             </p>
-            <Button 
-              onClick={requestPermission} 
-              disabled={loading}
-              className="w-full"
-            >
+            <Button onClick={requestPermission} disabled={loading} className="w-full">
               {loading ? "Enabling..." : "Enable Notifications"}
             </Button>
           </CardContent>
@@ -289,7 +285,7 @@ export function PushNotifications() {
             </div>
 
             {settings.enabled && (
-              <div className="space-y-3 pt-4 border-t">
+              <div className="space-y-3 border-t pt-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <ChefHat className="h-4 w-4" />
@@ -353,12 +349,8 @@ export function PushNotifications() {
             )}
 
             {settings.enabled && (
-              <div className="pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={sendTestNotification}
-                  className="w-full"
-                >
+              <div className="border-t pt-4">
+                <Button variant="outline" onClick={sendTestNotification} className="w-full">
                   Send Test Notification
                 </Button>
               </div>
@@ -384,4 +376,4 @@ export function PushNotifications() {
       </Card>
     </div>
   );
-} 
+}

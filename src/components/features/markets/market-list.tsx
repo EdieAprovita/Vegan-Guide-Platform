@@ -5,7 +5,8 @@ import { Market, getMarkets } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { processBackendResponse } from "@/lib/api/config";
+// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Store } from "lucide-react";
 import { toast } from "sonner";
@@ -27,7 +28,7 @@ const PRODUCT_OPTIONS = [
   "Bakery",
   "Beverages",
   "Supplements",
-  "Other"
+  "Other",
 ];
 
 const RATING_OPTIONS = [
@@ -37,10 +38,10 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function MarketList({ 
-  initialMarkets = [], 
+export function MarketList({
+  initialMarkets = [],
   showFilters = true,
-  title = "Markets"
+  title = "Markets",
 }: MarketListProps) {
   const [markets, setMarkets] = useState<Market[]>(initialMarkets);
   const [loading, setLoading] = useState(false);
@@ -50,35 +51,40 @@ export function MarketList({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadMarkets = useCallback(async (reset = false) => {
-    setLoading(true);
-    try {
-      const currentPage = reset ? 1 : page;
-      const params: Record<string, string | number> = {
-        page: currentPage,
-        limit: 12,
-      };
+  const loadMarkets = useCallback(
+    async (reset = false, pageOverride?: number) => {
+      setLoading(true);
+      try {
+        const currentPage = reset ? 1 : (pageOverride ?? page);
+        const params: Record<string, string | number> = {
+          page: currentPage,
+          limit: 12,
+        };
 
-      if (search) params.search = search;
-      if (productFilter) params.products = productFilter;
-      if (ratingFilter) params.rating = parseInt(ratingFilter);
+        if (search) params.search = search;
+        if (productFilter) params.products = productFilter;
+        if (ratingFilter) params.rating = parseInt(ratingFilter);
 
-      const response = await getMarkets(params);
-      
-      if (reset) {
-        setMarkets(response.markets || response);
-        setPage(1);
-      } else {
-        setMarkets(prev => [...prev, ...(response.markets || response)]);
+        const response = await getMarkets(params);
+        const processed = processBackendResponse<Market>(response);
+        const data = Array.isArray(processed) ? processed : processed ? [processed] : [];
+
+        if (reset) {
+          setMarkets(data);
+          setPage(1);
+        } else {
+          setMarkets((prev) => [...prev, ...data]);
+        }
+
+        setHasMore(data.length === 12);
+      } catch {
+        toast.error("Failed to load markets");
+      } finally {
+        setLoading(false);
       }
-
-      setHasMore((response.markets || response).length === 12);
-    } catch {
-      toast.error("Failed to load markets");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, productFilter, ratingFilter]);
+    },
+    [page, search, productFilter, ratingFilter]
+  );
 
   useEffect(() => {
     if (initialMarkets.length === 0) {
@@ -95,10 +101,10 @@ export function MarketList({
   };
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1);
-      loadMarkets(false);
-    }
+    if (loading || !hasMore) return;
+    const next = page + 1;
+    setPage(next);
+    loadMarkets(false, next);
   };
 
   return (
@@ -106,62 +112,58 @@ export function MarketList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">
-          {markets.length} markets found
-        </div>
+        <div className="text-sm text-gray-600">{markets.length} markets found</div>
       </div>
 
       {/* Search and Filters */}
       {showFilters && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search markets..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-10"
                 />
               </div>
 
               {/* Product Filter */}
-              <Select value={productFilter} onValueChange={(value) => {
-                setProductFilter(value);
-                handleFilterChange();
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Products" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All products</SelectItem>
-                  {PRODUCT_OPTIONS.map((product) => (
-                    <SelectItem key={product} value={product.toLowerCase()}>
-                      {product}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={productFilter}
+                onChange={(e) => {
+                  setProductFilter(e.target.value);
+                  handleFilterChange();
+                }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
+              >
+                <option value="">All products</option>
+                {PRODUCT_OPTIONS.map((product) => (
+                  <option key={product} value={product.toLowerCase()}>
+                    {product}
+                  </option>
+                ))}
+              </select>
 
               {/* Rating Filter */}
-              <Select value={ratingFilter} onValueChange={(value) => {
-                setRatingFilter(value);
-                handleFilterChange();
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  {RATING_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={ratingFilter}
+                onChange={(e) => {
+                  setRatingFilter(e.target.value);
+                  handleFilterChange();
+                }}
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
+              >
+                {RATING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Search Button */}
               <Button onClick={handleSearch} disabled={loading}>
@@ -174,7 +176,7 @@ export function MarketList({
 
       {/* Market Grid */}
       {markets.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {markets.map((market) => (
             <MarketCard key={market._id} market={market} />
           ))}
@@ -182,11 +184,9 @@ export function MarketList({
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
-            <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No markets found</h3>
-            <p className="text-gray-600">
-              Try adjusting your search criteria or filters.
-            </p>
+            <Store className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-medium text-gray-900">No markets found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria or filters.</p>
           </CardContent>
         </Card>
       )}
@@ -194,16 +194,11 @@ export function MarketList({
       {/* Load More Button */}
       {hasMore && markets.length > 0 && (
         <div className="text-center">
-          <Button
-            onClick={handleLoadMore}
-            disabled={loading}
-            variant="outline"
-            className="px-8"
-          >
+          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
             {loading ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}
     </div>
   );
-} 
+}

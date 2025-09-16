@@ -28,22 +28,11 @@ interface AuthModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function AuthModal({
-  trigger,
-  defaultView = "login",
-  open,
-  onOpenChange,
-}: AuthModalProps) {
+export function AuthModal({ trigger, defaultView = "login", open, onOpenChange }: AuthModalProps) {
   const [currentView, setCurrentView] = useState<AuthView>(defaultView);
   const [isOpen, setIsOpen] = useState(open ?? false);
-  const {
-    login,
-    register,
-    forgotPassword,
-    isLoggingIn,
-    isRegistering,
-    isSendingResetEmail,
-  } = useAuthWithRouter();
+  const { login, register, forgotPassword, isLoggingIn, isRegistering, isSendingResetEmail } =
+    useAuthWithRouter();
 
   const handleOpenChange = (newOpen: boolean) => {
     setIsOpen(newOpen);
@@ -115,12 +104,10 @@ export function AuthModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
-      <DialogContent className="sm:max-w-md border-green-200 bg-green-50/50 backdrop-blur-sm">
+      <DialogContent className="border-green-200 bg-green-50/50 backdrop-blur-sm sm:max-w-md">
         <DialogHeader className="sr-only">
           <DialogTitle>Authentication</DialogTitle>
-          <DialogDescription>
-            Sign in or create an account to access Verde Guide
-          </DialogDescription>
+          <DialogDescription>Sign in or create an account to access Verde Guide</DialogDescription>
         </DialogHeader>
 
         <div className="py-4">{getDialogContent()}</div>

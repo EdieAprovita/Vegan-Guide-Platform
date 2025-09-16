@@ -1,44 +1,52 @@
 # 🌱 Vegan Guide Platform
 
-Una plataforma completa para la comunidad vegana que conecta usuarios con restaurantes, mercados, doctores especializados, recetas y más.
+Una plataforma completa para la comunidad vegana que conecta usuarios con
+restaurantes, mercados, doctores especializados, recetas y más.
 
 ## 🚀 Características
 
 ### 🍽️ **Restaurantes**
+
 - Búsqueda y filtrado de restaurantes veganos
 - Reseñas y calificaciones
 - Información detallada (menús, horarios, ubicación)
 - Sistema de recomendaciones
 
 ### 🛒 **Mercados**
+
 - Directorio de mercados veganos y orgánicos
 - Productos especializados
 - Ubicaciones y horarios
 - Reseñas de la comunidad
 
 ### 👨‍⚕️ **Doctores Especializados**
+
 - Red de profesionales de la salud veganos
 - Especialidades médicas
 - Información de contacto y consultas
 - Sistema de citas
 
 ### 📖 **Recetas**
+
 - Biblioteca de recetas veganas
 - Categorías por dificultad y tiempo
 - Sistema de calificaciones
 - Compartir recetas propias
 
 ### 🗺️ **Mapa Interactivo**
+
 - Visualización geográfica de todos los servicios
 - Búsqueda por ubicación
 - Filtros avanzados
 
 ### 👥 **Comunidad**
+
 - Sistema de posts y comentarios
 - Logros y gamificación
 - Notificaciones en tiempo real
 
 ### 📱 **PWA (Progressive Web App)**
+
 - Instalable como aplicación nativa
 - Funcionalidad offline
 - Notificaciones push
@@ -46,6 +54,7 @@ Una plataforma completa para la comunidad vegana que conecta usuarios con restau
 ## 🛠️ Tecnologías
 
 ### Frontend
+
 - **Next.js 15** - Framework de React con App Router
 - **TypeScript** - Tipado estático
 - **Tailwind CSS** - Framework de CSS utility-first
@@ -55,11 +64,13 @@ Una plataforma completa para la comunidad vegana que conecta usuarios con restau
 - **Zod** - Validación de esquemas
 
 ### Estado y Datos
+
 - **Zustand** - Gestión de estado
 - **React Query** - Caché y sincronización de datos
 - **Next.js Server Actions** - Operaciones del servidor
 
 ### Herramientas de Desarrollo
+
 - **ESLint** - Linting de código
 - **Prettier** - Formateo de código
 - **Jest** - Testing
@@ -67,18 +78,21 @@ Una plataforma completa para la comunidad vegana que conecta usuarios con restau
 ## 📦 Instalación
 
 ### Prerrequisitos
+
 - Node.js 18.17 o superior
 - npm, yarn, pnpm o bun
 
 ### Pasos de instalación
 
 1. **Clonar el repositorio**
+
 ```bash
 git clone <repository-url>
 cd vegan-guide-platform
 ```
 
 2. **Instalar dependencias**
+
 ```bash
 npm install
 # o
@@ -88,11 +102,13 @@ pnpm install
 ```
 
 3. **Configurar variables de entorno**
+
 ```bash
 cp .env.example .env.local
 ```
 
 Edita `.env.local` con tus configuraciones:
+
 ```env
 NEXTAUTH_SECRET=your-secret-key
 NEXTAUTH_URL=http://localhost:3000
@@ -100,6 +116,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
 4. **Ejecutar en desarrollo**
+
 ```bash
 npm run dev
 # o
@@ -158,19 +175,21 @@ npm run type-check
 
 ### Variables de Entorno
 
-| Variable | Descripción | Requerido |
-|----------|-------------|-----------|
-| `NEXTAUTH_SECRET` | Clave secreta para NextAuth | ✅ |
-| `NEXTAUTH_URL` | URL base de la aplicación | ✅ |
-| `NEXT_PUBLIC_API_URL` | URL de la API backend | ✅ |
+| Variable              | Descripción                 | Requerido |
+| --------------------- | --------------------------- | --------- |
+| `NEXTAUTH_SECRET`     | Clave secreta para NextAuth | ✅        |
+| `NEXTAUTH_URL`        | URL base de la aplicación   | ✅        |
+| `NEXT_PUBLIC_API_URL` | URL de la API backend       | ✅        |
 
 ### Configuración de Tailwind
 
-El proyecto usa Tailwind CSS con configuración personalizada para el tema vegano (colores verdes y naturales).
+El proyecto usa Tailwind CSS con configuración personalizada para el tema vegano
+(colores verdes y naturales).
 
 ### Configuración de PWA
 
 El proyecto incluye configuración completa de PWA con:
+
 - Service Worker
 - Manifest.json
 - Iconos adaptativos
@@ -215,6 +234,7 @@ docker run -p 3000:3000 vegan-guide
 ## 🔐 Autenticación
 
 El proyecto usa NextAuth.js con:
+
 - Autenticación por credenciales
 - JWT tokens
 - Protección de rutas
@@ -223,6 +243,7 @@ El proyecto usa NextAuth.js con:
 ## 📊 Estado de Desarrollo
 
 ### ✅ Completado
+
 - [x] Configuración base de Next.js 15
 - [x] Sistema de autenticación
 - [x] Componentes de UI base
@@ -231,12 +252,14 @@ El proyecto usa NextAuth.js con:
 - [x] Build de producción funcional
 
 ### 🚧 En Desarrollo
+
 - [ ] Integración completa con API backend
 - [ ] Sistema de reseñas
 - [ ] Funcionalidad de mapas
 - [ ] Sistema de notificaciones
 
 ### 📋 Pendiente
+
 - [ ] Tests unitarios y de integración
 - [ ] Optimización de performance
 - [ ] Internacionalización
@@ -252,11 +275,13 @@ El proyecto usa NextAuth.js con:
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más
+detalles.
 
 ## 📞 Soporte
 
-Para soporte técnico o preguntas sobre el proyecto, contacta al equipo de desarrollo.
+Para soporte técnico o preguntas sobre el proyecto, contacta al equipo de
+desarrollo.
 
 ---
 

@@ -39,13 +39,13 @@ export async function hasRole(requiredRole: string): Promise<boolean> {
 export async function getAuthenticatedHeaders(): Promise<Record<string, string>> {
   const token = await getServerAuthToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
-  
+
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   return headers;
 }
 
@@ -54,17 +54,17 @@ export async function getAuthenticatedHeaders(): Promise<Record<string, string>>
  */
 export async function requireAuth() {
   const session = await auth();
-  
+
   if (!session?.user) {
     return new Response(
-      JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
-      { 
+      JSON.stringify({ error: "Unauthorized", message: "Authentication required" }),
+      {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-  
+
   return null; // Continue processing
 }
 
@@ -73,26 +73,26 @@ export async function requireAuth() {
  */
 export async function requireRole(requiredRole: string) {
   const session = await auth();
-  
+
   if (!session?.user) {
     return new Response(
-      JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
-      { 
+      JSON.stringify({ error: "Unauthorized", message: "Authentication required" }),
+      {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-  
+
   if (session.user.role !== requiredRole) {
     return new Response(
-      JSON.stringify({ error: 'Forbidden', message: 'Insufficient permissions' }),
-      { 
+      JSON.stringify({ error: "Forbidden", message: "Insufficient permissions" }),
+      {
         status: 403,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-  
+
   return null; // Continue processing
 }

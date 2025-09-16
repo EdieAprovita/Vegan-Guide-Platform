@@ -5,8 +5,7 @@ import Image from "next/image";
 
 const recipes = [
   {
-    image:
-      "https://images.pexels.com/photos/17559227/pexels-photo-17559227.jpeg",
+    image: "https://images.pexels.com/photos/17559227/pexels-photo-17559227.jpeg",
     title: "Buddha Bowl",
     description: "Quinoa 40% | Vegetables 60%",
     time: "25 min",
@@ -33,54 +32,54 @@ const recipes = [
 
 export function RecipeShowcase() {
   return (
-    <div className="py-12 sm:py-16 md:py-20 lg:py-[82px] px-4 sm:px-6 lg:px-24 xl:px-[93px] relative">
+    <div className="relative px-4 py-12 sm:px-6 sm:py-16 md:py-20 lg:px-24 lg:py-[82px] xl:px-[93px]">
       {/* Decorative background element */}
       <Image
         src="https://images.pexels.com/photos/1105166/pexels-photo-1105166.jpeg"
         alt=""
-        className="absolute right-[-127px] top-[508px] z-10 w-[478px] h-[261px] object-cover opacity-20 hidden xl:block"
+        className="absolute top-[508px] right-[-127px] z-10 hidden h-[261px] w-[478px] object-cover opacity-20 xl:block"
         width={478}
         height={261}
       />
 
-      <div className="text-green-800 font-['Playfair_Display'] text-2xl sm:text-3xl md:text-4xl lg:text-[54px] font-bold text-center mb-4 max-w-[795px] mx-auto leading-tight">
+      <div className="mx-auto mb-4 max-w-[795px] text-center font-['Playfair_Display'] text-2xl leading-tight font-bold text-green-800 sm:text-3xl md:text-4xl lg:text-[54px]">
         Enjoy delicious plant-based recipes
       </div>
 
-      <div className="text-gray-600 font-['Playfair_Display'] text-sm sm:text-base md:text-xl font-normal leading-relaxed md:leading-[34px] text-center mb-8 sm:mb-12 lg:mb-[66px] max-w-[980px] mx-auto">
-        Explore incredible flavors with our plant-based recipes. There&apos;s always
-        a new dish worth discovering
+      <div className="mx-auto mb-8 max-w-[980px] text-center font-['Playfair_Display'] text-sm leading-relaxed font-normal text-gray-600 sm:mb-12 sm:text-base md:text-xl md:leading-[34px] lg:mb-[66px]">
+        Explore incredible flavors with our plant-based recipes. There&apos;s always a new dish
+        worth discovering
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 justify-items-center max-w-7xl mx-auto">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
         {recipes.map((recipe, index) => (
           <div
             key={index}
-            className="w-full max-w-[280px] border border-green-200/60 relative bg-green-50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            className="relative w-full max-w-[280px] overflow-hidden rounded-lg border border-green-200/60 bg-green-50 shadow-sm transition-shadow hover:shadow-md"
           >
             <Image
               src={recipe.image}
               alt={recipe.title}
-              className="w-full h-[200px] sm:h-[222px] object-cover"
+              className="h-[200px] w-full object-cover sm:h-[222px]"
               width={280}
               height={200}
             />
 
             <div className="p-4 pb-20 text-center">
-              <div className="text-green-800 font-['Playfair_Display'] text-lg sm:text-[22px] font-bold mb-2">
+              <div className="mb-2 font-['Playfair_Display'] text-lg font-bold text-green-800 sm:text-[22px]">
                 {recipe.title}
               </div>
 
-              <div className="text-gray-800 font-['Playfair_Display'] text-sm sm:text-base font-normal mb-2">
+              <div className="mb-2 font-['Playfair_Display'] text-sm font-normal text-gray-800 sm:text-base">
                 {recipe.description}
               </div>
 
-              <div className="text-green-800 font-['Playfair_Display'] text-base sm:text-lg font-bold">
+              <div className="font-['Playfair_Display'] text-base font-bold text-green-800 sm:text-lg">
                 {recipe.time}
               </div>
             </div>
 
-            <Button className="bg-green-500 hover:bg-green-600 text-white font-['Playfair_Display'] text-sm sm:text-base font-bold w-[120px] sm:w-[134px] h-12 rounded-3xl shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] border-0 absolute bottom-4 left-1/2 transform -translate-x-1/2 touch-manipulation">
+            <Button className="absolute bottom-4 left-1/2 h-12 w-[120px] -translate-x-1/2 transform touch-manipulation rounded-3xl border-0 bg-green-500 font-['Playfair_Display'] text-sm font-bold text-white shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] hover:bg-green-600 sm:w-[134px] sm:text-base">
               Try Recipe
             </Button>
           </div>

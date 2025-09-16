@@ -17,7 +17,7 @@ interface SimpleRestaurantListProps {
 
 const CUISINE_OPTIONS = [
   "Vegan",
-  "Vegetarian", 
+  "Vegetarian",
   "Plant-based",
   "Raw",
   "Gluten-free",
@@ -27,7 +27,7 @@ const CUISINE_OPTIONS = [
   "Mexican",
   "Italian",
   "American",
-  "Other"
+  "Other",
 ];
 
 const RATING_OPTIONS = [
@@ -37,13 +37,15 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function SimpleRestaurantList({ 
-  initialRestaurants = [], 
+export function SimpleRestaurantList({
+  initialRestaurants = [],
   showFilters = true,
-  title = "Restaurants"
+  title = "Restaurants",
 }: SimpleRestaurantListProps) {
   const [mounted, setMounted] = useState(false);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(initialRestaurants);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>(
+    Array.isArray(initialRestaurants) ? initialRestaurants : []
+  );
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
@@ -56,38 +58,59 @@ export function SimpleRestaurantList({
     setMounted(true);
   }, []);
 
-  const fetchRestaurants = useCallback(async (isLoadMore = false) => {
-    if (!mounted) return;
-    
-    try {
-      setLoading(true);
-      const filters = {
+  const fetchRestaurants = useCallback(
+    async (isLoadMore = false) => {
+      if (!mounted) return;
+
+      console.log("Fetching restaurants with filters:", {
         search: search.trim(),
         cuisine: cuisineFilter,
         rating: ratingFilter ? parseInt(ratingFilter) : undefined,
         location: locationFilter.trim(),
         page: isLoadMore ? page + 1 : 1,
         limit: 12,
-      };
+      });
 
-      const response = await getRestaurants(filters);
-      
-      if (isLoadMore) {
-        setRestaurants(prev => [...prev, ...response.restaurants]);
-        setPage(prev => prev + 1);
-      } else {
-        setRestaurants(response.restaurants);
-        setPage(1);
+      try {
+        setLoading(true);
+        const filters = {
+          search: search.trim(),
+          cuisine: cuisineFilter,
+          rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+          location: locationFilter.trim(),
+          page: isLoadMore ? page + 1 : 1,
+          limit: 12,
+        };
+
+        const response = await getRestaurants(filters);
+        console.log("getRestaurants response:", response);
+
+        // Extract restaurants from backend response format {success: true, data: [...]}
+        const restaurantsData = Array.isArray(response) ? response : response?.data || [];
+        console.log("Processed restaurants data:", restaurantsData);
+
+        if (isLoadMore) {
+          setRestaurants((prev) => [...(Array.isArray(prev) ? prev : []), ...restaurantsData]);
+          setPage((prev) => prev + 1);
+        } else {
+          setRestaurants(restaurantsData);
+          setPage(1);
+        }
+
+        setHasMore(restaurantsData.length === 12);
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+        toast.error("Failed to load restaurants");
+        // Ensure restaurants is always an array on error
+        if (!isLoadMore) {
+          setRestaurants([]);
+        }
+      } finally {
+        setLoading(false);
       }
-      
-      setHasMore(response.restaurants.length === 12);
-    } catch (error) {
-      console.error("Error fetching restaurants:", error);
-      toast.error("Failed to load restaurants");
-    } finally {
-      setLoading(false);
-    }
-  }, [mounted, search, cuisineFilter, ratingFilter, locationFilter, page]);
+    },
+    [mounted, search, cuisineFilter, ratingFilter, locationFilter, page]
+  );
 
   useEffect(() => {
     if (mounted) {
@@ -126,18 +149,18 @@ export function SimpleRestaurantList({
         {showFilters && (
           <Card>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
-                <div className="h-10 bg-gray-200 rounded animate-pulse" />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded bg-gray-200" />
               </div>
             </CardContent>
           </Card>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[300px] bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="h-[300px] animate-pulse rounded-lg bg-gray-200" />
           ))}
         </div>
       </div>
@@ -146,17 +169,15 @@ export function SimpleRestaurantList({
 
   return (
     <div className="space-y-6">
-      {title && (
-        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-      )}
+      {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
 
       {showFilters && (
         <Card>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search restaurants..."
                   value={search}
@@ -169,7 +190,7 @@ export function SimpleRestaurantList({
               <select
                 value={cuisineFilter}
                 onChange={(e) => handleCuisineChange(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Cuisines</option>
                 {CUISINE_OPTIONS.map((cuisine) => (
@@ -183,7 +204,7 @@ export function SimpleRestaurantList({
               <select
                 value={ratingFilter}
                 onChange={(e) => handleRatingChange(e.target.value)}
-                className="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -194,7 +215,7 @@ export function SimpleRestaurantList({
 
               {/* Location Filter */}
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <MapPin className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
@@ -208,22 +229,24 @@ export function SimpleRestaurantList({
       )}
 
       {loading && restaurants.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[300px] bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="h-[300px] animate-pulse rounded-lg bg-gray-200" />
           ))}
         </div>
-      ) : restaurants.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No restaurants found.</p>
+      ) : !restaurants || !Array.isArray(restaurants) || restaurants.length === 0 ? (
+        <div className="py-12 text-center">
+          <p className="text-lg text-gray-500">No restaurants found.</p>
           <p className="text-gray-400">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {restaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant._id} restaurant={restaurant} />
-            ))}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {restaurants &&
+              Array.isArray(restaurants) &&
+              restaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant._id} restaurant={restaurant} />
+              ))}
           </div>
 
           {hasMore && (

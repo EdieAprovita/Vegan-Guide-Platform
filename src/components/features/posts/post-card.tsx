@@ -44,7 +44,7 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return "Just now";
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
@@ -57,7 +57,7 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -81,12 +81,12 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
       <CardContent className="pt-0">
         <div className="space-y-4">
           {/* Title */}
-          <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">
+          <CardTitle className="line-clamp-2 text-lg font-semibold text-gray-900">
             {post.title}
           </CardTitle>
 
           {/* Content */}
-          <div className="text-gray-700 leading-relaxed">
+          <div className="leading-relaxed text-gray-700">
             <p className="line-clamp-3">{truncateContent(post.content)}</p>
           </div>
 
@@ -95,7 +95,7 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
             <div className="flex flex-wrap gap-1">
               {post.tags.slice(0, 5).map((tag, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
-                  <Tag className="h-3 w-3 mr-1" />
+                  <Tag className="mr-1 h-3 w-3" />
                   {tag}
                 </Badge>
               ))}
@@ -110,7 +110,9 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
           {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
-              <Heart className={`h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+              <Heart
+                className={`h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-400"}`}
+              />
               <span>{likeCount}</span>
             </div>
             <div className="flex items-center gap-1">
@@ -123,9 +125,7 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
           {showActions && (
             <div className="flex gap-2 pt-2">
               <Button asChild className="flex-1">
-                <Link href={`/community/${post._id}`}>
-                  Read More
-                </Link>
+                <Link href={`/community/${post._id}`}>Read More</Link>
               </Button>
               <Button
                 variant={isLiked ? "default" : "outline"}
@@ -141,4 +141,4 @@ export function PostCard({ post, showActions = true, onLikeChange }: PostCardPro
       </CardContent>
     </Card>
   );
-} 
+}

@@ -1,21 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  Clicker_Script,
-  Playfair_Display,
-} from "next/font/google";
+import { Inter, JetBrains_Mono, Clicker_Script, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPrompt } from "@/components/features/pwa/install-prompt";
+import { DebugInfo } from "@/components/ui/debug-info";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
@@ -46,7 +42,7 @@ export const metadata: Metadata = {
     "comunidad vegana",
     "estilo de vida vegano",
     "santuario de animales",
-    "productos veganos"
+    "productos veganos",
   ],
   authors: [{ name: "Verde Guide Team" }],
   creator: "Verde Guide",
@@ -62,7 +58,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Verde Guide - Tu Compañero Definitivo para el Estilo de Vida Vegano",
-    description: "Descubre restaurantes veganos, recetas nutritivas, doctores especializados, mercados orgánicos y únete a una comunidad comprometida con la salud y la sostenibilidad.",
+    description:
+      "Descubre restaurantes veganos, recetas nutritivas, doctores especializados, mercados orgánicos y únete a una comunidad comprometida con la salud y la sostenibilidad.",
     type: "website",
     locale: "es_ES",
     siteName: "Verde Guide",
@@ -78,7 +75,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Verde Guide - Tu Compañero Definitivo para el Estilo de Vida Vegano",
-    description: "Descubre restaurantes veganos, recetas nutritivas, doctores especializados, mercados orgánicos y únete a una comunidad comprometida con la salud y la sostenibilidad.",
+    description:
+      "Descubre restaurantes veganos, recetas nutritivas, doctores especializados, mercados orgánicos y únete a una comunidad comprometida con la salud y la sostenibilidad.",
     images: ["/logo-512.png"],
   },
   icons: {
@@ -87,9 +85,7 @@ export const metadata: Metadata = {
       { url: "/logo-192.png", sizes: "192x192", type: "image/png" },
       { url: "/logo-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/logo-192.png", sizes: "192x192", type: "image/png" },
-    ],
+    apple: [{ url: "/logo-192.png", sizes: "192x192", type: "image/png" }],
   },
 };
 
@@ -128,11 +124,13 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/logo.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}
-        suppressHydrationWarning>
+        className={`${inter.variable} ${jetbrainsMono.variable} ${clickerScript.variable} ${playfairDisplay.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>
           {children}
           <InstallPrompt />
+          <DebugInfo />
         </Providers>
       </body>
     </html>

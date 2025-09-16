@@ -11,7 +11,10 @@ export const createPostSchema = z.object({
     .min(1, "Content is required")
     .min(10, "Content must be at least 10 characters")
     .max(5000, "Content must be less than 5000 characters"),
-  tags: z.array(z.string()).min(1, "At least one tag is required").max(10, "Maximum 10 tags allowed"),
+  tags: z
+    .array(z.string())
+    .min(1, "At least one tag is required")
+    .max(10, "Maximum 10 tags allowed"),
 });
 
 export const updatePostSchema = createPostSchema.partial();
@@ -26,4 +29,4 @@ export const createCommentSchema = z.object({
 
 export type CreatePostFormData = z.infer<typeof createPostSchema>;
 export type UpdatePostFormData = z.infer<typeof updatePostSchema>;
-export type CreateCommentFormData = z.infer<typeof createCommentSchema>; 
+export type CreateCommentFormData = z.infer<typeof createCommentSchema>;

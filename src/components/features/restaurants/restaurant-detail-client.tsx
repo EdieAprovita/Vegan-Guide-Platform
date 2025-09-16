@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { getRestaurant, addRestaurantReview } from "@/lib/api/restaurants";
-import { Restaurant } from "@/types";
+import { getRestaurant, addRestaurantReview, Restaurant } from "@/lib/api/restaurants";
+import { Review } from "@/lib/api/reviews";
+import { extractBackendData } from "@/lib/api/config";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -20,8 +21,8 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
   useEffect(() => {
     const loadRestaurant = async () => {
       try {
-        const data = await getRestaurant(restaurantId);
-        setRestaurant(data);
+        const response = await getRestaurant(restaurantId);
+        setRestaurant(extractBackendData(response));
       } catch {
         toast.error("Failed to load restaurant details");
         setRestaurant(null);
@@ -35,36 +36,55 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
     }
   }, [restaurantId]);
 
-  const handleAddReview = async (rating: number, comment: string) => {
+  const handleAddReview = async (data: { rating: number; comment: string }) => {
     try {
-      await addRestaurantReview(restaurantId, { rating, comment });
+      await addRestaurantReview(restaurantId, { rating: data.rating, comment: data.comment });
       toast.success("Review added successfully");
-      const data = await getRestaurant(restaurantId);
-      setRestaurant(data);
+      const response = await getRestaurant(restaurantId);
+      setRestaurant(extractBackendData(response));
     } catch {
       toast.error("Failed to add review");
     }
   };
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-8 animate-pulse">Loading...</div>;
+    return <div className="container mx-auto animate-pulse px-4 py-8">Loading...</div>;
   }
 
   if (!restaurant) {
     return notFound();
   }
 
+  // Convert restaurant reviews to Review format
+  const adaptedReviews: Review[] =
+    restaurant.reviews?.map((review, index: number) => ({
+      _id: `${restaurant._id}-${index}`,
+      user: {
+        _id: "anonymous",
+        username: "Usuario Anónimo",
+        photo: undefined,
+      },
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt || new Date().toISOString(),
+      updatedAt: review.createdAt || new Date().toISOString(),
+      resourceType: "restaurant" as const,
+      resourceId: restaurant._id,
+      helpful: [],
+      helpfulCount: 0,
+    })) || [];
+
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         <button
           onClick={() => window.history.back()}
           className="mb-6 flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Restaurants
         </button>
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+        <div className="overflow-hidden rounded-xl bg-white shadow-lg">
           <div className="md:flex">
             <div className="md:flex-shrink-0">
               <Image
@@ -76,20 +96,20 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
               />
             </div>
             <div className="p-8">
-              <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">
+              <div className="text-sm font-semibold tracking-wide text-indigo-500 uppercase">
                 {restaurant.cuisine}
               </div>
-              <h1 className="block mt-1 text-2xl leading-tight font-bold text-black">
+              <h1 className="mt-1 block text-2xl leading-tight font-bold text-black">
                 {restaurant.name}
               </h1>
               <div className="mt-4">
                 <p className="flex items-center text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2" />
+                  <MapPin className="mr-2 h-4 w-4" />
                   {restaurant.address}, {restaurant.city}, {restaurant.country}
                 </p>
                 {restaurant.phone && (
-                  <p className="flex items-center text-gray-600 mt-2">
-                    <Phone className="w-4 h-4 mr-2" />
+                  <p className="mt-2 flex items-center text-gray-600">
+                    <Phone className="mr-2 h-4 w-4" />
                     {restaurant.phone}
                   </p>
                 )}
@@ -98,26 +118,20 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
                     href={restaurant.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-indigo-600 hover:text-indigo-800 mt-2"
+                    className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
                   >
-                    <Globe className="w-4 h-4 mr-2" />
+                    <Globe className="mr-2 h-4 w-4" />
                     Visit website
                   </a>
                 )}
               </div>
             </div>
           </div>
-          <div className="p-8 border-t border-gray-200">
-            <ReviewSystem
-              itemType="Restaurant"
-              reviews={restaurant.reviews}
-              averageRating={restaurant.rating}
-              numReviews={restaurant.numReviews}
-              onReviewSubmit={handleAddReview}
-            />
+          <div className="border-t border-gray-200 p-8">
+            <ReviewSystem reviews={adaptedReviews} onReviewSubmit={handleAddReview} />
           </div>
         </div>
       </div>
     </main>
   );
-} 
+}

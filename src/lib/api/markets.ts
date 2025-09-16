@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
 
 export interface Market {
   _id: string;
@@ -61,14 +61,20 @@ export interface MarketReview {
   comment: string;
 }
 
-export async function getMarkets(params?: {
+export interface MarketSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   products?: string;
   rating?: number;
   location?: string;
-}) {
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "marketName" | "createdAt";
+}
+
+export async function getMarkets(params?: MarketSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -76,102 +82,116 @@ export async function getMarkets(params?: {
   if (params?.products) searchParams.append("products", params.products);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  const response = await fetch(
-    `${API_URL}/markets?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch markets");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }
 
 export async function getMarket(id: string) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch market");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Market>>(`/markets/${id}`);
 }
 
-export async function createMarket(data: CreateMarketData) {
-  const response = await fetch(`${API_URL}/markets`, {
+export async function createMarket(data: CreateMarketData, token?: string) {
+  return apiRequest<BackendResponse<Market>>(`/markets`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create market");
-  }
-
-  return response.json();
 }
 
-export async function updateMarket(id: string, data: Partial<CreateMarketData>) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
+export async function updateMarket(id: string, data: Partial<CreateMarketData>, token?: string) {
+  return apiRequest<BackendResponse<Market>>(`/markets/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update market");
-  }
-
-  return response.json();
 }
 
-export async function deleteMarket(id: string) {
-  const response = await fetch(`${API_URL}/markets/${id}`, {
+export async function deleteMarket(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/markets/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete market");
-  }
-
-  return response.json();
 }
 
-export async function addMarketReview(
-  id: string,
-  review: { rating: number; comment: string }
-): Promise<Market> {
-  const response = await fetch(`${API_URL}/markets/add-review/${id}`, {
+export async function addMarketReview(id: string, review: MarketReview, token?: string) {
+  return apiRequest<BackendResponse<Market>>(`/markets/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
+}
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
+export async function getNearbyMarkets(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  products?: string;
+  minRating?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("latitude", params.latitude.toString());
+  searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.products) searchParams.append("products", params.products);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  searchParams.append("sortBy", "distance");
+
+  return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
+}
+
+export async function getMarketsByProducts(
+  products: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("products", products);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.latitude && params?.longitude) {
+    searchParams.append("sortBy", "distance");
   }
 
-  return response.json();
-} 
+  return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
+}
+
+export async function getAdvancedMarkets(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  products?: string[];
+  minRating?: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "marketName" | "createdAt";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append("page", params.page.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.search) searchParams.append("search", params.search);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  if (params.products?.length) {
+    params.products.forEach((product) => searchParams.append("products", product));
+  }
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+
+  return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
+}

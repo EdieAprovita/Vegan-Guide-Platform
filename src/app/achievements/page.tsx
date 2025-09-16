@@ -2,4 +2,4 @@ import { AchievementSystem } from "@/components/features/gamification/achievemen
 
 export default function AchievementsPage() {
   return <AchievementSystem />;
-} 
+}

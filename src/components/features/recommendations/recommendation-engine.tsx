@@ -5,16 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Sparkles, 
-  Heart, 
-  Star, 
-  MapPin, 
-  ChefHat, 
+import {
+  Sparkles,
+  Heart,
+  Star,
+  MapPin,
+  ChefHat,
   Users,
   TrendingUp,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth";
 import { toast } from "sonner";
@@ -145,13 +145,13 @@ export function RecommendationEngine() {
 
   const handleFeedback = (recommendationId: string, isPositive: boolean) => {
     toast.success(
-      isPositive 
-        ? "Thanks for the feedback! We&apos;ll show you more like this." 
+      isPositive
+        ? "Thanks for the feedback! We&apos;ll show you more like this."
         : "Thanks for the feedback! We&apos;ll improve our recommendations."
     );
-    
+
     // In a real app, this would send feedback to the backend
-    console.log(`Feedback for ${recommendationId}: ${isPositive ? 'positive' : 'negative'}`);
+    console.log(`Feedback for ${recommendationId}: ${isPositive ? "positive" : "negative"}`);
   };
 
   const getTypeIcon = (type: string) => {
@@ -197,16 +197,20 @@ export function RecommendationEngine() {
 
   const filteredRecommendations = (type: string) => {
     if (type === "all") return recommendations;
-    return recommendations.filter(r => r.type === type);
+    return recommendations.filter((r) => r.type === type);
   };
 
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <Sparkles className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in for personalized recommendations</h2>
-          <p className="text-gray-600">We&apos;ll learn your preferences and suggest the best vegan options for you.</p>
+        <div className="mx-auto max-w-4xl text-center">
+          <Sparkles className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">
+            Sign in for personalized recommendations
+          </h2>
+          <p className="text-gray-600">
+            We&apos;ll learn your preferences and suggest the best vegan options for you.
+          </p>
         </div>
       </div>
     );
@@ -214,14 +218,12 @@ export function RecommendationEngine() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex items-center gap-3">
             <Sparkles className="h-8 w-8 text-purple-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Personalized Recommendations
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Personalized Recommendations</h1>
           </div>
           <p className="text-gray-600">
             Discover the best vegan options tailored to your preferences and goals
@@ -262,38 +264,41 @@ export function RecommendationEngine() {
           <TabsList>
             <TabsTrigger value="all">All ({recommendations.length})</TabsTrigger>
             <TabsTrigger value="restaurant">
-              <ChefHat className="h-4 w-4 mr-2" />
-              Restaurants ({recommendations.filter(r => r.type === "restaurant").length})
+              <ChefHat className="mr-2 h-4 w-4" />
+              Restaurants ({recommendations.filter((r) => r.type === "restaurant").length})
             </TabsTrigger>
             <TabsTrigger value="recipe">
-              <Star className="h-4 w-4 mr-2" />
-              Recipes ({recommendations.filter(r => r.type === "recipe").length})
+              <Star className="mr-2 h-4 w-4" />
+              Recipes ({recommendations.filter((r) => r.type === "recipe").length})
             </TabsTrigger>
             <TabsTrigger value="doctor">
-              <Users className="h-4 w-4 mr-2" />
-              Doctors ({recommendations.filter(r => r.type === "doctor").length})
+              <Users className="mr-2 h-4 w-4" />
+              Doctors ({recommendations.filter((r) => r.type === "doctor").length})
             </TabsTrigger>
             <TabsTrigger value="market">
-              <MapPin className="h-4 w-4 mr-2" />
-              Markets ({recommendations.filter(r => r.type === "market").length})
+              <MapPin className="mr-2 h-4 w-4" />
+              Markets ({recommendations.filter((r) => r.type === "market").length})
             </TabsTrigger>
             <TabsTrigger value="post">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Posts ({recommendations.filter(r => r.type === "post").length})
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Posts ({recommendations.filter((r) => r.type === "post").length})
             </TabsTrigger>
           </TabsList>
 
           {["all", "restaurant", "recipe", "doctor", "market", "post"].map((type) => (
             <TabsContent key={type} value={type}>
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <div className="py-8 text-center">
+                  <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
                   <p className="text-gray-600">Finding the perfect recommendations for you...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {filteredRecommendations(type).map((recommendation) => (
-                    <Card key={recommendation.id} className="group hover:shadow-lg transition-shadow">
+                    <Card
+                      key={recommendation.id}
+                      className="group transition-shadow hover:shadow-lg"
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
@@ -303,7 +308,9 @@ export function RecommendationEngine() {
                             </Badge>
                           </div>
                           <div className="text-right">
-                            <div className={`text-lg font-bold ${getMatchScoreColor(recommendation.matchScore)}`}>
+                            <div
+                              className={`text-lg font-bold ${getMatchScoreColor(recommendation.matchScore)}`}
+                            >
                               {recommendation.matchScore}%
                             </div>
                             <div className="text-xs text-gray-500">Match</div>
@@ -311,18 +318,18 @@ export function RecommendationEngine() {
                         </div>
                         <CardTitle className="text-lg">{recommendation.title}</CardTitle>
                       </CardHeader>
-                      
+
                       <CardContent className="space-y-4">
                         <p className="text-sm text-gray-600">{recommendation.description}</p>
-                        
+
                         <div className="text-xs text-gray-500">
-                          <p className="font-medium mb-1">Why we recommend this:</p>
+                          <p className="mb-1 font-medium">Why we recommend this:</p>
                           <p>{recommendation.reason}</p>
                         </div>
 
                         {recommendation.rating && (
                           <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <Star className="h-4 w-4 fill-current text-yellow-500" />
                             <span className="text-sm font-medium">{recommendation.rating}</span>
                           </div>
                         )}
@@ -342,8 +349,8 @@ export function RecommendationEngine() {
                           ))}
                         </div>
 
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <Button size="sm" className="flex-1 mr-2">
+                        <div className="flex items-center justify-between border-t pt-2">
+                          <Button size="sm" className="mr-2 flex-1">
                             View Details
                           </Button>
                           <div className="flex gap-1">
@@ -383,20 +390,17 @@ export function RecommendationEngine() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Help us provide better recommendations by updating your preferences and providing feedback.
+            <p className="mb-4 text-sm text-gray-600">
+              Help us provide better recommendations by updating your preferences and providing
+              feedback.
             </p>
             <div className="flex gap-2">
-              <Button variant="outline">
-                Update Preferences
-              </Button>
-              <Button variant="outline">
-                View History
-              </Button>
+              <Button variant="outline">Update Preferences</Button>
+              <Button variant="outline">View History</Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-} 
+}

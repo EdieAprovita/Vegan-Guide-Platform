@@ -72,11 +72,7 @@ export function useBrowserExtensionFix() {
 /**
  * Componente wrapper que aplica el fix automáticamente
  */
-export function BrowserExtensionProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function BrowserExtensionProvider({ children }: { children: React.ReactNode }) {
   useBrowserExtensionFix();
   return <>{children}</>;
 }

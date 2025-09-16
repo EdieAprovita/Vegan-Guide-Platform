@@ -281,4 +281,4 @@ export interface ProfessionalProfile {
   };
   createdAt: string;
   updatedAt: string;
-} 
+}

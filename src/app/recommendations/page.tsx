@@ -2,4 +2,4 @@ import { RecommendationEngine } from "@/components/features/recommendations/reco
 
 export default function RecommendationsPage() {
   return <RecommendationEngine />;
-} 
+}

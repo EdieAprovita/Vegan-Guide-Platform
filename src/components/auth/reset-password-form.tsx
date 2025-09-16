@@ -13,10 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  resetPasswordSchema,
-  type ResetPasswordFormData,
-} from "@/lib/validations/auth";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@/lib/validations/auth";
 
 interface ResetPasswordFormProps {
   onSubmit: (data: ResetPasswordFormData) => Promise<void>;
@@ -24,11 +21,7 @@ interface ResetPasswordFormProps {
   isLoading: boolean;
 }
 
-export function ResetPasswordForm({
-  onSubmit,
-  onBackToLogin,
-  isLoading,
-}: ResetPasswordFormProps) {
+export function ResetPasswordForm({ onSubmit, onBackToLogin, isLoading }: ResetPasswordFormProps) {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<ResetPasswordFormData>({
@@ -49,14 +42,15 @@ export function ResetPasswordForm({
 
   if (isSuccess) {
     return (
-      <div className="w-full max-w-sm mx-auto space-y-6 text-center">
+      <div className="mx-auto w-full max-w-sm space-y-6 text-center">
         <div className="space-y-2">
-          <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <svg
-              className="w-8 h-8 text-green-600"
+              className="h-8 w-8 text-green-600"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24">
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -65,10 +59,10 @@ export function ResetPasswordForm({
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold font-['Playfair_Display'] text-green-800">
+          <h1 className="font-['Playfair_Display'] text-2xl font-bold text-green-800">
             Check Your Email
           </h1>
-          <p className="text-gray-600 font-['Playfair_Display']">
+          <p className="font-['Playfair_Display'] text-gray-600">
             We&apos;ve sent a password reset link to your email address.
           </p>
         </div>
@@ -76,7 +70,8 @@ export function ResetPasswordForm({
         <Button
           onClick={onBackToLogin}
           variant="outline"
-          className="w-full font-['Playfair_Display'] h-12 rounded-3xl border-green-500 text-green-600 hover:bg-green-50">
+          className="h-12 w-full rounded-3xl border-green-500 font-['Playfair_Display'] text-green-600 hover:bg-green-50"
+        >
           Back to Sign In
         </Button>
       </div>
@@ -84,32 +79,32 @@ export function ResetPasswordForm({
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold font-['Playfair_Display'] text-green-800">
+    <div className="mx-auto w-full max-w-sm space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="font-['Playfair_Display'] text-2xl font-bold text-green-800">
           Reset Password
         </h1>
-        <p className="text-gray-600 font-['Playfair_Display']">
-          Enter your email address and we&apos;ll send you a link to reset your
-          password.
+        <p className="font-['Playfair_Display'] text-gray-600">
+          Enter your email address and we&apos;ll send you a link to reset your password.
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 bg-white p-6 rounded-lg shadow-sm">
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-4 rounded-lg bg-white p-6 shadow-sm"
+        >
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display']">
-                  Email
-                </FormLabel>
+                <FormLabel className="font-['Playfair_Display']">Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     placeholder="Enter your email"
-                    className="font-['Playfair_Display'] bg-white"
+                    className="bg-white font-['Playfair_Display']"
                     {...field}
                   />
                 </FormControl>
@@ -121,7 +116,8 @@ export function ResetPasswordForm({
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-['Playfair_Display'] font-bold h-12 rounded-3xl shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] border-0">
+            className="h-12 w-full rounded-3xl border-0 bg-green-500 font-['Playfair_Display'] font-bold text-white shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] hover:bg-green-600"
+          >
             {isLoading ? "Sending..." : "Send Reset Link"}
           </Button>
         </form>
@@ -131,7 +127,8 @@ export function ResetPasswordForm({
         <button
           type="button"
           onClick={onBackToLogin}
-          className="text-green-600 hover:text-green-700 font-['Playfair_Display'] text-sm underline">
+          className="font-['Playfair_Display'] text-sm text-green-600 underline hover:text-green-700"
+        >
           Back to Sign In
         </button>
       </div>

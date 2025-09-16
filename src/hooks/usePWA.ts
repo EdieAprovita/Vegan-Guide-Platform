@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 // Agrega la interfaz al inicio del archivo
 interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
 export function usePWA() {
@@ -87,4 +87,4 @@ export function usePWA() {
     canInstall: !!deferredPrompt,
     installPWA,
   };
-} 
+}

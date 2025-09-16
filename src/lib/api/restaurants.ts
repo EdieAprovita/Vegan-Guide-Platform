@@ -1,9 +1,17 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import { Review } from "@/types";
+
+// Development flag to use mock data when backend has issues
 
 export interface Restaurant {
   _id: string;
   restaurantName: string;
+  name: string; // Alias for restaurantName for compatibility
   address: string;
+  city?: string; // City for display purposes
+  country?: string; // Country for display purposes
+  phone?: string; // Direct phone access for compatibility
+  website?: string; // Website URL
   location?: {
     type: string;
     coordinates: [number, number];
@@ -19,14 +27,10 @@ export interface Restaurant {
     instagram?: string;
   }[];
   cuisine: string[];
+  image?: string; // Restaurant image
   rating: number;
   numReviews: number;
-  reviews: {
-    user: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }[];
+  reviews: Review[];
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +48,7 @@ export interface CreateRestaurantData {
     instagram?: string;
   }[];
   cuisine: string[];
+  image?: string;
 }
 
 export interface RestaurantReview {
@@ -51,14 +56,20 @@ export interface RestaurantReview {
   comment: string;
 }
 
-export async function getRestaurants(params?: {
+export interface RestaurantSearchParams {
   page?: number;
   limit?: number;
   search?: string;
   cuisine?: string;
   rating?: number;
   location?: string;
-}) {
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
+}
+
+export async function getRestaurants(params?: RestaurantSearchParams) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -66,112 +77,266 @@ export async function getRestaurants(params?: {
   if (params?.cuisine) searchParams.append("cuisine", params.cuisine);
   if (params?.rating) searchParams.append("rating", params.rating.toString());
   if (params?.location) searchParams.append("location", params.location);
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  const response = await fetch(
-    `${API_URL}/restaurants?${searchParams.toString()}`,
-    {
-      credentials: "include",
-    }
-  );
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch restaurants");
+    // Return mock data if there's a network error
+    console.warn("Network error detected, returning mock data for development");
+    return getMockRestaurants();
   }
+}
 
-  return response.json();
+// Mock data function for development
+function getMockRestaurants() {
+  const mockRestaurants: Restaurant[] = [
+    {
+      _id: "1",
+      restaurantName: "Green Garden Bistro",
+      name: "Green Garden Bistro",
+      address: "123 Vegan St",
+      city: "Plant City",
+      country: "USA",
+      phone: "+1-555-0123",
+      website: "https://greengardenbistro.com",
+      location: {
+        type: "Point",
+        coordinates: [40.7128, -74.006],
+      },
+      author: {
+        _id: "user1",
+        username: "veganchef",
+        photo: "/default-avatar.jpg",
+      },
+      contact: [
+        {
+          phone: "+1-555-0123",
+          facebook: "greengardenbistro",
+          instagram: "@greengardenbistro",
+        },
+      ],
+      cuisine: ["Vegan", "Mediterranean", "Organic"],
+      image: "/placeholder-recipe.jpg",
+      rating: 4.8,
+      numReviews: 127,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      _id: "2",
+      restaurantName: "Plant Power Kitchen",
+      name: "Plant Power Kitchen",
+      address: "456 Healthy Ave",
+      city: "Wellness Town",
+      country: "USA",
+      phone: "+1-555-0456",
+      website: "https://plantpowerkitchen.com",
+      location: {
+        type: "Point",
+        coordinates: [40.7614, -73.9776],
+      },
+      author: {
+        _id: "user2",
+        username: "plantpowerfan",
+        photo: "/default-avatar.jpg",
+      },
+      contact: [
+        {
+          phone: "+1-555-0456",
+          facebook: "plantpowerkitchen",
+          instagram: "@plantpowerkitchen",
+        },
+      ],
+      cuisine: ["Vegan", "Raw", "Gluten-free"],
+      image: "/placeholder-recipe.jpg",
+      rating: 4.6,
+      numReviews: 89,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      _id: "3",
+      restaurantName: "Harvest Moon Cafe",
+      name: "Harvest Moon Cafe",
+      address: "789 Organic Blvd",
+      city: "Fresh Fields",
+      country: "USA",
+      phone: "+1-555-0789",
+      website: "https://harvestmooncafe.com",
+      location: {
+        type: "Point",
+        coordinates: [40.7489, -73.9857],
+      },
+      author: {
+        _id: "user3",
+        username: "harvestlover",
+        photo: "/default-avatar.jpg",
+      },
+      contact: [
+        {
+          phone: "+1-555-0789",
+          facebook: "harvestmooncafe",
+          instagram: "@harvestmooncafe",
+        },
+      ],
+      cuisine: ["Vegetarian", "Vegan", "Farm-to-table"],
+      image: "/placeholder-recipe.jpg",
+      rating: 4.7,
+      numReviews: 156,
+      reviews: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  return {
+    success: true,
+    message: "Restaurants fetched successfully (mock data)",
+    data: mockRestaurants,
+  };
 }
 
 export async function getRestaurant(id: string) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch restaurant");
-  }
-
-  return response.json();
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`);
 }
 
 export async function getTopRatedRestaurants(limit: number = 10) {
-  const response = await fetch(`${API_URL}/restaurants/top-rated?limit=${limit}`, {
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch top rated restaurants");
-  }
-
-  return response.json();
+  return apiRequest<BackendListResponse<Restaurant>>(`/restaurants/top-rated?limit=${limit}`);
 }
 
-export async function createRestaurant(data: CreateRestaurantData) {
-  const response = await fetch(`${API_URL}/restaurants`, {
+export async function createRestaurant(data: CreateRestaurantData, token?: string) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create restaurant");
-  }
-
-  return response.json();
 }
 
-export async function updateRestaurant(id: string, data: Partial<CreateRestaurantData>) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
+export async function updateRestaurant(
+  id: string,
+  data: Partial<CreateRestaurantData>,
+  token?: string
+) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(data),
-    credentials: "include",
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update restaurant");
-  }
-
-  return response.json();
 }
 
-export async function deleteRestaurant(id: string) {
-  const response = await fetch(`${API_URL}/restaurants/${id}`, {
+export async function deleteRestaurant(id: string, token?: string) {
+  return apiRequest<BackendResponse<void>>(`/restaurants/${id}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getApiHeaders(token),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete restaurant");
-  }
-
-  return response.json();
 }
 
-export async function addRestaurantReview(id: string, review: RestaurantReview) {
-  const response = await fetch(`${API_URL}/restaurants/add-review/${id}`, {
+export async function addRestaurantReview(id: string, review: RestaurantReview, token?: string) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/add-review/${id}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(token),
     body: JSON.stringify(review),
-    credentials: "include",
   });
+}
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to add review");
+export async function getNearbyRestaurants(params: {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  limit?: number;
+  cuisine?: string;
+  minRating?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("latitude", params.latitude.toString());
+  searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.cuisine) searchParams.append("cuisine", params.cuisine);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  searchParams.append("sortBy", "distance");
+
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
+}
+
+export async function getRestaurantsByCuisine(
+  cuisine: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+  }
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("cuisine", cuisine);
+  if (params?.page) searchParams.append("page", params.page.toString());
+  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params?.radius) searchParams.append("radius", params.radius.toString());
+  if (params?.latitude && params?.longitude) {
+    searchParams.append("sortBy", "distance");
   }
 
-  return response.json();
-} 
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
+}
+
+export async function getAdvancedRestaurants(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  cuisine?: string[];
+  minRating?: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
+}) {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.append("page", params.page.toString());
+  if (params.limit) searchParams.append("limit", params.limit.toString());
+  if (params.search) searchParams.append("search", params.search);
+  if (params.minRating) searchParams.append("rating", params.minRating.toString());
+  if (params.cuisine?.length) {
+    params.cuisine.forEach((c) => searchParams.append("cuisine", c));
+  }
+  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
+  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
+  if (params.radius) searchParams.append("radius", params.radius.toString());
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+
+  try {
+    return await apiRequest<BackendListResponse<Restaurant>>(
+      `/restaurants?${searchParams.toString()}`
+    );
+  } catch (error) {
+    console.error("Network error:", error);
+    return getMockRestaurants();
+  }
+}

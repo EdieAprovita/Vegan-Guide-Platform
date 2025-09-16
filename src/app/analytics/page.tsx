@@ -2,4 +2,4 @@ import { AnalyticsDashboard } from "@/components/features/analytics/analytics-da
 
 export default function AnalyticsPage() {
   return <AnalyticsDashboard />;
-} 
+}
