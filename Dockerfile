@@ -10,14 +10,16 @@ RUN npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Set environment variables for build
-ENV NEXT_PUBLIC_API_URL=http://localhost:3001/api
+ARG NEXT_PUBLIC_API_URL=https://api-guidetypescript-787324382752.europe-west1.run.app/api/v1
+ARG NEXT_PUBLIC_SITE_URL=https://your-frontend-domain.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY src/ ./src/
 COPY public/ ./public/
-COPY next.config.ts ./
+COPY next.config.js ./
 COPY tsconfig.json ./
 COPY tailwind.config.ts ./
 COPY postcss.config.mjs ./
@@ -29,6 +31,10 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL=https://api-guidetypescript-787324382752.europe-west1.run.app/api/v1
+ARG NEXT_PUBLIC_SITE_URL=https://your-frontend-domain.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Install only production dependencies for runtime
 COPY package.json package-lock.json* ./
