@@ -13,6 +13,11 @@ const config: Config = {
         "geist-mono": ["var(--font-geist-mono)"],
         "clicker-script": ["var(--font-clicker-script)"],
         "playfair-display": ["var(--font-playfair-display)"],
+        // Semantic font aliases
+        "brand-script": ["var(--font-clicker-script)"],
+        "brand-serif": ["var(--font-playfair-display)"],
+        sans: ["var(--font-geist-sans)"],
+        mono: ["var(--font-geist-mono)"],
       },
       colors: {
         border: "hsl(var(--border))",
