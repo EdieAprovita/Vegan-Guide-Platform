@@ -42,7 +42,7 @@ export function RecipeCard({
   }[difficulty];
 
   return (
-    <Card className="overflow-hidden bg-card transition-all hover:shadow-lg">
+    <Card className="bg-card overflow-hidden transition-all hover:shadow-lg">
       <div className="group relative h-48">
         <Image
           src={image}
@@ -51,9 +51,9 @@ export function RecipeCard({
           className="object-cover transition-transform group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/30" />
-        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-popover/90 px-2 py-1 backdrop-blur-sm">
-          <Star className="h-4 w-4 fill-primary text-primary" />
-          <span className="text-sm font-medium text-popover-foreground">
+        <div className="bg-popover/90 absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 backdrop-blur-sm">
+          <Star className="fill-primary text-primary h-4 w-4" />
+          <span className="text-popover-foreground text-sm font-medium">
             {averageRating.toFixed(1)}
           </span>
         </div>
@@ -61,13 +61,13 @@ export function RecipeCard({
 
       <div className="space-y-4 p-4">
         <div>
-          <h3 className="line-clamp-1 font-brand-serif text-xl font-bold text-foreground">
+          <h3 className="font-brand-serif text-foreground line-clamp-1 text-xl font-bold">
             {title}
           </h3>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{description}</p>
+          <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{description}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-sm text-foreground">
+        <div className="text-foreground grid grid-cols-2 gap-2 text-sm">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
             <span>{totalTime} min</span>
@@ -82,7 +82,7 @@ export function RecipeCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-border pt-2">
+        <div className="border-border flex items-center gap-2 border-t pt-2">
           {author.photo ? (
             <Image
               src={author.photo}
@@ -92,13 +92,13 @@ export function RecipeCard({
               className="rounded-full"
             />
           ) : (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent">
-              <span className="text-xs font-medium text-accent-foreground">
+            <div className="bg-accent flex h-6 w-6 items-center justify-center rounded-full">
+              <span className="text-accent-foreground text-xs font-medium">
                 {author.username[0]}
               </span>
             </div>
           )}
-          <span className="text-sm text-muted-foreground">{author.username}</span>
+          <span className="text-muted-foreground text-sm">{author.username}</span>
         </div>
 
         <Button onClick={onView} className="w-full">
