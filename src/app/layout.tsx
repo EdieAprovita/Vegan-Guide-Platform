@@ -5,6 +5,8 @@ import { Providers } from "./providers";
 import { InstallPrompt } from "@/components/features/pwa/install-prompt";
 import { DebugInfo } from "@/components/ui/debug-info";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -28,7 +30,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
   title: "Verde Guide - Tu Compañero Definitivo para el Estilo de Vida Vegano",
   description:
     "Descubre restaurantes veganos, recetas nutritivas, doctores especializados, mercados orgánicos y únete a una comunidad comprometida con la salud y la sostenibilidad. Todo lo que necesitas para tu viaje vegano en un solo lugar.",

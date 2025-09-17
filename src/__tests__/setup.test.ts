@@ -7,7 +7,7 @@ describe("Testing Setup", () => {
 
   test("should have access to environment variables", () => {
     // Test environment variables - set default for testing if not defined
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
     expect(apiUrl).toBeDefined();
     expect(typeof apiUrl).toBe("string");
   });
