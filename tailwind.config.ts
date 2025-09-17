@@ -1,12 +1,10 @@
 import type { Config } from "tailwindcss";
-const { nextui } = require("@nextui-org/react");
 
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -15,6 +13,11 @@ const config: Config = {
         "geist-mono": ["var(--font-geist-mono)"],
         "clicker-script": ["var(--font-clicker-script)"],
         "playfair-display": ["var(--font-playfair-display)"],
+        // Semantic font aliases
+        "brand-script": ["var(--font-clicker-script)"],
+        "brand-serif": ["var(--font-playfair-display)"],
+        sans: ["var(--font-geist-sans)"],
+        mono: ["var(--font-geist-mono)"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -59,7 +62,7 @@ const config: Config = {
     },
   },
   darkMode: "class",
-  plugins: [nextui()],
+  plugins: [],
 };
 
 export default config;

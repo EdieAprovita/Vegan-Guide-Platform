@@ -22,6 +22,90 @@
 
 ---
 
+## 🎨 UI/UX Consistencia y Sistema de Diseño — Plan de Implementación Cronológico
+
+> Objetivo: unificar estilo visual, accesibilidad y dark mode en toda la app. Sustituir colores crudos por tokens del tema, alinear tipografías, estandarizar estados de foco, reforzar navegación accesible, unificar notificaciones y, si aplica, eliminar librerías superpuestas.
+
+Alcance clave (archivos más impactados)
+- Tematización y tokens: src/app/globals.css, tailwind.config.ts
+- Navegación y marketing: src/components/vegan-landing/landing-page.tsx, src/components/vegan-landing/header.tsx
+- Cards y features: src/components/features/recipes/recipe-card.tsx, src/components/features/restaurants/restaurant-card.tsx, src/components/features/markets/market-card.tsx
+- Componentes base: src/components/ui/select.tsx, src/components/ui/button.tsx, src/components/ui/card.tsx
+- Notificaciones: src/app/providers.tsx, src/components/ui/sonner.tsx
+- Opcional: eliminación/documentación de @nextui-org/react y su plugin en tailwind.config.ts si no se usa
+
+Principios de diseño
+- Tokens primero: usar bg-background, bg-card, text-foreground, text-muted-foreground, border, input, ring, primary, secondary, accent, destructive, popover, card. Evitar bg-white, text-gray-*, hex directos o emerald/green crudos.
+- Tipografía coherente: definir alias en tailwind para las variables reales y usarlos siempre:
+  - font-sans -> var(--font-inter)
+  - font-mono -> var(--font-jetbrains-mono)
+  - font-brand-serif -> var(--font-playfair-display)
+  - font-brand-script -> var(--font-clicker-script)
+  Evitar font-[Playfair_Display] ad-hoc; usar clases semánticas.
+- Accesibilidad y focus-visible: usar focus-visible:ring-ring/50 + focus-visible:ring-[3px] + outline-none de forma consistente. Asegurar aria-* en navegación y toggles; tamaños táctiles >= 40px para icon-only; sr-only en acciones sin texto.
+- Radio y espaciado: respetar --radius y su escala (sm, md, lg, xl). Evitar rounded-3xl/full salvo casos justificados (chips/avatares).
+- Animaciones/micro-interacciones: apalancar data-state y utilidades del sistema; evitar transiciones custom dispersas.
+
+Plan cronológico (Sprint UI/UX de 5 días hábiles)
+- Día 1 — Quick Wins y Seguridad de Tema
+  - Reemplazar colores crudos por tokens en:
+    - landing-page.tsx: bg-[#FFFEFC] -> bg-background
+    - header.tsx: bg-white/text-gray-700/green-600 -> tokens background/foreground/primary
+    - recipe-card.tsx, restaurant-card.tsx, market-card.tsx: text-gray-600/900, emerald/green/yellow -> tokens (text-muted-foreground/foreground, primary, y un token rating si aplica)
+  - Unificar notificaciones: usar Toaster de src/components/ui/sonner.tsx en lugar de import directo de sonner en src/app/providers.tsx.
+  - Navegación accesible:
+    - Links con focus-visible consistente; estado activo con aria-current="page".
+    - Toggle móvil con aria-expanded y aria-controls; bloquear scroll del body al abrir.
+  - SelectTrigger: alinear foco a patrón de Button/Input (focus-visible, ring [3px]).
+  - Iconografía: estandarizar size-4 por defecto; variantes xs documentadas si se requieren.
+  - Criterios de aceptación: build ok, dark mode sin regresiones visibles, navegación con foco visible en teclado.
+
+- Día 2 — Tipografía y Semántica
+  - tailwind.config.ts: alinear fontFamily con variables reales; crear alias font-brand-*.
+  - Sustituir font-[Playfair_Display] por clases semánticas (font-brand-serif) en marketing/forms.
+  - Definir guía de uso: headings (brand-serif), body (sans), monospace solo para código.
+  - Criterios de aceptación: revisión visual de headings y cuerpos; ningún uso bracket-notation residual.
+
+- Día 3 — Tokens de Marca y Variantes de Componentes
+  - globals.css: definir --brand y --brand-foreground; opcionalmente --brand-start/--brand-end para gradientes de marca.
+  - Button: añadir variant="brand" centralizando colores/gradientes; migrar CTAs (RecipeCard/Hero/CTA) a esa variante.
+  - Rating: definir color token para estrellas (evitar fill-yellow-400 directo) y utilizarlo en cards.
+  - Criterios de aceptación: CTAs y ratings usan sistema; no hay gradientes/colores sueltos.
+
+- Día 4 — Dark Mode y A11y Sweep
+  - Auditar páginas de features (restaurants/markets/recipes) tras tokenización.
+  - Contraste AA: validar combinaciones primary/foreground, muted/foreground en ambas themes.
+  - Skeletons: usar ui/skeleton en listados durante carga para mejorar percepción.
+  - Imágenes: estandarizar LazyImage/SafeImage para placeholders/errores.
+  - Criterios de aceptación: contrastes AA, cargas sin parpadeos fuertes, accesos por teclado completos.
+
+- Día 5 — Limpieza, Librerías y Documentación
+  - NextUI: si no se usa, eliminar dependencia y plugin del tailwind; si se usa, documentar cuándo usar NextUI vs shadcn y cómo mapear tokens.
+  - Documentar “contrato de UI” en components/ui/README.md: tokens aceptados, foco, variantes por componente, tipografía, radio/espaciado.
+  - (Opcional) Crear una ruta interna /ui-guide con ejemplos reales para QA visual.
+  - Criterios de aceptación: dependencias saneadas, guía publicada y acordada, verificación rápida de temas.
+
+Checklist de migración a tokens (rápida)
+- Sustituir en vistas: bg-white/bg-[#...]/text-gray-*/text-emerald-*/text-green-* por:
+  - bg-background/bg-card, text-foreground/text-muted-foreground, primary/secondary/accent, border/input/ring.
+- Evitar fill-*/stroke-* directos en íconos; preferir clases de color del sistema o tokens de icono.
+- Revisar tamaños de botón/icon-only >= 40px táctiles.
+
+Definition of Done (UI/UX sprint)
+- 0 colores crudos detectados por grep (white/gray/emerald/green/yellow) fuera del sistema de tokens.
+- 100% de enlaces y triggers navegables por teclado con focus visible.
+- Dark mode consistente en vistas principales; AA mínimo en texto y elementos interactivos.
+- Tipografías consolidadas con alias; sin bracket-notation.
+- Notificaciones unificadas; cero estilos inline en toasts.
+- Documentación publicada y aceptada.
+
+Riesgos y mitigaciones
+- Cambios visuales en marketing: comunicar con stakeholders antes de tokenizar gradientes/tonos.
+- Dark mode: probar en dispositivos reales para evitar “tinte” inesperado.
+- Eliminación de NextUI: verificar que no existan imports residuales antes de desinstalar.
+
+---
+
 ## 📊 Análisis Inicial del Estado Actual
 
 ### Backend API (✅ 100% Implementado)
