@@ -61,7 +61,7 @@ export function RecipeCard({
 
       <div className="space-y-4 p-4">
         <div>
-          <h3 className="line-clamp-1 font-playfair-display text-xl font-bold text-foreground">
+          <h3 className="line-clamp-1 font-brand-serif text-xl font-bold text-foreground">
             {title}
           </h3>
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{description}</p>
