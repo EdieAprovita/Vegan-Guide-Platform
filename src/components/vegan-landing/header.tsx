@@ -31,11 +31,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full overflow-x-auto bg-background shadow-sm">
+    <header className="bg-background sticky top-0 z-50 w-full overflow-x-auto shadow-sm">
       <div className="flex h-16 w-full items-center px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
-          <span className="font-brand-script text-3xl text-primary transition-colors duration-200 hover:text-primary/80">
+          <span className="font-brand-script text-primary hover:text-primary/80 text-3xl transition-colors duration-200">
             Verde Guide
           </span>
         </Link>
@@ -47,11 +47,11 @@ export function Header() {
               <li key={item.href} className="flex-shrink-0">
                 <Link
                   href={item.href}
-                  className="group relative px-3 py-2 font-brand-serif text-sm font-medium text-foreground/70 transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="group font-brand-serif text-foreground/70 hover:text-primary focus-visible:ring-ring/50 relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
                   aria-current={item.href === "/" ? "page" : undefined}
                 >
                   {item.label}
-                  <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+                  <span className="bg-primary absolute bottom-0 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full" />
                 </Link>
               </li>
             ))}
@@ -62,9 +62,9 @@ export function Header() {
                 <li className="flex-shrink-0">
                   <LoginModal
                     trigger={
-                      <button className="group relative px-3 py-2 font-brand-serif text-sm font-medium text-foreground/70 transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                      <button className="group font-brand-serif text-foreground/70 hover:text-primary focus-visible:ring-ring/50 relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:ring-[3px] focus-visible:outline-none">
                         Sign In
-                        <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+                        <span className="bg-primary absolute bottom-0 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full" />
                       </button>
                     }
                   />
@@ -72,7 +72,7 @@ export function Header() {
                 <li className="flex-shrink-0">
                   <RegisterModal
                     trigger={
-                      <Button className="transform rounded-full bg-primary px-6 py-2 font-brand-serif text-sm font-medium text-primary-foreground shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                      <Button className="bg-primary font-brand-serif text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 transform rounded-full px-6 py-2 text-sm font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-[3px] focus-visible:outline-none">
                         Join Us
                       </Button>
                     }
@@ -81,13 +81,13 @@ export function Header() {
               </>
             ) : (
               <li className="flex flex-shrink-0 items-center space-x-4">
-                <span className="font-brand-serif text-sm font-medium text-foreground">
+                <span className="font-brand-serif text-foreground text-sm font-medium">
                   Welcome, {user.username}
                 </span>
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="rounded-full border-border px-6 py-2 font-brand-serif text-sm font-medium text-foreground transition-all duration-200 hover:border-foreground hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="border-border font-brand-serif text-foreground hover:border-foreground hover:bg-foreground hover:text-background focus-visible:ring-ring/50 rounded-full px-6 py-2 text-sm font-medium transition-all duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
                 >
                   Logout
                 </Button>
@@ -98,7 +98,7 @@ export function Header() {
 
         {/* Mobile toggle */}
         <button
-          className="ml-auto min-h-[40px] min-w-[40px] p-2 text-foreground lg:hidden focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="text-foreground focus-visible:ring-ring/50 ml-auto min-h-[40px] min-w-[40px] p-2 focus-visible:ring-[3px] focus-visible:outline-none lg:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
@@ -117,16 +117,13 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <nav
-          id="mobile-menu"
-          className="border-t border-border bg-background shadow-lg lg:hidden"
-        >
+        <nav id="mobile-menu" className="border-border bg-background border-t shadow-lg lg:hidden">
           <ul className="flex flex-col">
             {NAV_ITEMS.map((it) => (
-              <li key={it.href} className="border-b border-border/50 last:border-b-0">
+              <li key={it.href} className="border-border/50 border-b last:border-b-0">
                 <Link
                   href={it.href}
-                  className="block px-6 py-4 font-brand-serif text-base font-medium text-foreground transition-colors duration-200 hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="font-brand-serif text-foreground hover:bg-muted hover:text-primary focus-visible:ring-ring/50 block px-6 py-4 text-base font-medium transition-colors duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
                 >
                   {it.label}
                 </Link>
@@ -134,19 +131,19 @@ export function Header() {
             ))}
             {!isAuth ? (
               <>
-                <li className="border-b border-border/50">
+                <li className="border-border/50 border-b">
                   <LoginModal
                     trigger={
-                      <button className="w-full px-6 py-4 text-left font-brand-serif text-base font-medium text-foreground transition-colors duration-200 hover:text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                      <button className="font-brand-serif text-foreground hover:text-primary focus-visible:ring-ring/50 w-full px-6 py-4 text-left text-base font-medium transition-colors duration-200 focus-visible:ring-[3px] focus-visible:outline-none">
                         Sign In
                       </button>
                     }
                   />
                 </li>
-                <li className="border-b border-border/50">
+                <li className="border-border/50 border-b">
                   <RegisterModal
                     trigger={
-                      <Button className="w-full transform rounded-lg bg-primary py-3 font-brand-serif text-base font-medium text-primary-foreground shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                      <Button className="bg-primary font-brand-serif text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 w-full transform rounded-lg py-3 text-base font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:outline-none">
                         Join Us
                       </Button>
                     }
@@ -158,7 +155,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="w-full rounded-lg border-border py-3 font-brand-serif font-medium text-foreground transition-all duration-200 hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="border-border font-brand-serif text-foreground hover:bg-foreground hover:text-background focus-visible:ring-ring/50 w-full rounded-lg py-3 font-medium transition-all duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
                 >
                   Logout
                 </Button>

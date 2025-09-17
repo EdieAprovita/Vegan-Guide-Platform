@@ -30,18 +30,18 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="line-clamp-1 text-lg font-semibold text-foreground">
+            <CardTitle className="text-foreground line-clamp-1 text-lg font-semibold">
               {restaurant.restaurantName}
             </CardTitle>
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
               <MapPin className="h-4 w-4" />
               <span className="line-clamp-1">{restaurant.address}</span>
             </div>
           </div>
           <div className="ml-2 flex items-center gap-1">
-            <Star className="h-4 w-4 fill-primary text-primary" />
+            <Star className="fill-primary text-primary h-4 w-4" />
             <span className="text-sm font-medium">{formatRating(restaurant.rating)}</span>
-            <span className="text-xs text-muted-foreground">({restaurant.numReviews})</span>
+            <span className="text-muted-foreground text-xs">({restaurant.numReviews})</span>
           </div>
         </div>
       </CardHeader>
@@ -60,7 +60,7 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
 
           {/* Contact Information */}
           {restaurant.contact.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               {restaurant.contact[0].phone && (
                 <div className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />
