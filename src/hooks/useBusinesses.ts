@@ -63,7 +63,7 @@ export function useBusinesses(
     } finally {
       setLoading(false);
     }
-  }, [filters, userCoords]);
+  }, [filters?.page, filters?.limit, filters?.search, filters?.category, filters?.rating, filters?.useUserLocation, filters?.radius, userCoords?.lat, userCoords?.lng]);
 
   // Auto-fetch cuando cambien los filtros o la ubicación del usuario
   useEffect(() => {
