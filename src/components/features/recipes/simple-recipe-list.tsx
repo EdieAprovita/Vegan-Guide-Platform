@@ -39,11 +39,14 @@ export function SimpleRecipeList({
   }, []);
 
   const fetchRecipes = useCallback(
-    async (isLoadMore = false) => {
+    async (isLoadMore = false, currentPage?: number) => {
       if (!mounted) return;
 
+      // Use the passed currentPage or calculate based on isLoadMore
+      const targetPage = currentPage ?? (isLoadMore ? page + 1 : 1);
+
       console.log("Fetching recipes with params:", {
-        page: isLoadMore ? page + 1 : 1,
+        page: targetPage,
         limit: initialLimit,
         search: searchValue,
         category: categoryValue,
@@ -55,7 +58,7 @@ export function SimpleRecipeList({
         setError(null);
 
         const params = {
-          page: isLoadMore ? page + 1 : 1,
+          page: targetPage,
           limit: initialLimit,
           search: searchValue.trim(),
           category: categoryValue,
@@ -72,7 +75,7 @@ export function SimpleRecipeList({
 
         if (isLoadMore) {
           setRecipes((prev) => [...(Array.isArray(prev) ? prev : []), ...recipesArray]);
-          setPage((prev) => prev + 1);
+          setPage(targetPage);
         } else {
           setRecipes(recipesArray);
           setPage(1);
