@@ -80,6 +80,9 @@ async function runDiagnostics() {
   const endpoints = [
     ['Recipes', '/recipes?page=1&limit=3'],
     ['Restaurants', '/restaurants?page=1&limit=3'],
+    ['Doctors', '/doctors?page=1&limit=3'],
+    ['Markets', '/markets?page=1&limit=3'],
+    ['Businesses', '/businesses?page=1&limit=3'],
     ['Health Check', '/health'], // If available
   ];
   
