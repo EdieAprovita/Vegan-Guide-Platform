@@ -109,14 +109,14 @@ export function SimpleRestaurantList({
         setLoading(false);
       }
     },
-    [mounted, search, cuisineFilter, ratingFilter, locationFilter, page]
+    [mounted, search, cuisineFilter, ratingFilter, locationFilter]
   );
 
   useEffect(() => {
     if (mounted) {
       fetchRestaurants();
     }
-  }, [mounted, fetchRestaurants]);
+  }, [fetchRestaurants, mounted]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
