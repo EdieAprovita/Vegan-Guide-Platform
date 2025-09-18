@@ -109,7 +109,7 @@ export function SimpleRestaurantList({
         setLoading(false);
       }
     },
-    [mounted, search, cuisineFilter, ratingFilter, locationFilter]
+    [mounted, search, cuisineFilter, ratingFilter, locationFilter, page]
   );
 
   useEffect(() => {

@@ -92,7 +92,7 @@ export function SimpleRecipeList({
         setIsLoading(false);
       }
     },
-    [mounted, searchValue, categoryValue, difficultyValue, initialLimit]
+    [mounted, searchValue, categoryValue, difficultyValue, initialLimit, page]
   );
 
   useEffect(() => {
