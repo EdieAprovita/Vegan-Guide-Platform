@@ -63,14 +63,29 @@ export function useBusinesses(
     } finally {
       setLoading(false);
     }
-  }, [filters, userCoords]);
+  }, [
+    // ✅ FIJO: Destructurar las propiedades específicas de filters para evitar recreación
+    filters?.page,
+    filters?.limit,
+    filters?.search,
+    filters?.typeBusiness,
+    filters?.rating,
+    filters?.location,
+    filters?.budget,
+    filters?.lat,
+    filters?.lng,
+    filters?.radius,
+    filters?.useUserLocation,
+    userCoords?.lat,
+    userCoords?.lng
+  ]);
 
   // Auto-fetch cuando cambien los filtros o la ubicación del usuario
   useEffect(() => {
     if (filters?.autoFetch !== false) {
       fetchBusinesses();
     }
-  }, [fetchBusinesses, filters?.autoFetch]);
+  }, [fetchBusinesses]); // ✅ AHORA es seguro usar fetchBusinesses porque tiene dependencias estables
 
   return {
     businesses,
