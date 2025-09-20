@@ -39,11 +39,14 @@ export function SimpleRecipeList({
   }, []);
 
   const fetchRecipes = useCallback(
-    async (isLoadMore = false) => {
+    async (isLoadMore = false, currentPage?: number) => {
       if (!mounted) return;
 
+      // Use the passed currentPage or calculate based on isLoadMore
+      const targetPage = currentPage ?? (isLoadMore ? page + 1 : 1);
+
       console.log("Fetching recipes with params:", {
-        page: isLoadMore ? page + 1 : 1,
+        page: targetPage,
         limit: initialLimit,
         search: searchValue,
         category: categoryValue,
@@ -55,7 +58,7 @@ export function SimpleRecipeList({
         setError(null);
 
         const params = {
-          page: isLoadMore ? page + 1 : 1,
+          page: targetPage,
           limit: initialLimit,
           search: searchValue.trim(),
           category: categoryValue,
@@ -63,21 +66,22 @@ export function SimpleRecipeList({
         };
 
         const response = await getRecipes(params);
-        console.log("getRecipes response:", response);
 
         // Process backend response using the universal helper
-        const recipesData = processBackendResponse<Recipe>(response) as Recipe[];
-        console.log("Processed recipes data:", recipesData);
+        const recipesData = processBackendResponse<Recipe>(response);
+
+        // Ensure we always work with arrays
+        const recipesArray = Array.isArray(recipesData) ? recipesData : [];
 
         if (isLoadMore) {
-          setRecipes((prev) => [...(Array.isArray(prev) ? prev : []), ...recipesData]);
-          setPage((prev) => prev + 1);
+          setRecipes((prev) => [...(Array.isArray(prev) ? prev : []), ...recipesArray]);
+          setPage(targetPage);
         } else {
-          setRecipes(Array.isArray(recipesData) ? recipesData : []);
+          setRecipes(recipesArray);
           setPage(1);
         }
 
-        setHasMore(recipesData.length === initialLimit);
+        setHasMore(recipesArray.length === initialLimit);
       } catch (err) {
         console.error("Error fetching recipes:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load recipes";
