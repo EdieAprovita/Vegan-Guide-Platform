@@ -1,9 +1,11 @@
 // Configuración centralizada de la API
+console.log('🔧 DEBUG: process.env.NEXT_PUBLIC_API_URL =', process.env.NEXT_PUBLIC_API_URL);
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1",
   TIMEOUT: 15000, // Aumentar timeout a 15 segundos
   RETRY_ATTEMPTS: 3,
 } as const;
+console.log('🔧 DEBUG: API_CONFIG.BASE_URL =', API_CONFIG.BASE_URL);
 
 // Tipos para respuestas paginadas (para mantener compatibilidad)
 export interface PaginatedResponse<T> {

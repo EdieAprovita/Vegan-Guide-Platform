@@ -14,7 +14,10 @@ export function usePWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    // Register service worker
+    // Register service worker - TEMPORARILY DISABLED FOR DEBUGGING
+    console.log("🚫 PWA Service Worker registration DISABLED for debugging");
+    return; // Early return to skip SW registration
+    /*
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
@@ -25,6 +28,7 @@ export function usePWA() {
           console.log("SW registration failed: ", registrationError);
         });
     }
+    */
 
     // Check if app is installed
     const checkIfInstalled = () => {
