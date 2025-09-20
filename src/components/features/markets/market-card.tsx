@@ -38,18 +38,18 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="line-clamp-1 text-lg font-semibold text-foreground">
+            <CardTitle className="text-foreground line-clamp-1 text-lg font-semibold">
               {market.marketName}
             </CardTitle>
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
               <MapPin className="h-4 w-4" />
               <span className="line-clamp-1">{market.address}</span>
             </div>
           </div>
           <div className="ml-2 flex items-center gap-1">
-            <Star className="h-4 w-4 fill-primary text-primary" />
+            <Star className="fill-primary text-primary h-4 w-4" />
             <span className="text-sm font-medium">{formatRating(market.rating)}</span>
-            <span className="text-xs text-muted-foreground">({market.numReviews})</span>
+            <span className="text-muted-foreground text-xs">({market.numReviews})</span>
           </div>
         </div>
       </CardHeader>
@@ -68,7 +68,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
 
           {/* Today's Hours */}
           {getTodayHours() && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Clock className="h-3 w-3" />
               <span>
                 Today: {getTodayHours()?.open} - {getTodayHours()?.close}
@@ -78,7 +78,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
 
           {/* Contact Information */}
           {market.contact && market.contact.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               {market.contact[0].phone && (
                 <div className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />

@@ -1,7 +1,7 @@
 // Configuración centralizada de la API
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1",
-  TIMEOUT: 10000,
+  TIMEOUT: 15000, // Aumentar timeout a 15 segundos
   RETRY_ATTEMPTS: 3,
 } as const;
 
@@ -118,6 +118,11 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
       ...options,
       signal: controller.signal,
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...options.headers,
+      },
     });
 
     clearTimeout(timeoutId);

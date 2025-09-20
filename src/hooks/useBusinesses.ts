@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useUserLocation } from "./useGeolocation";
+import { processBackendResponse } from "@/lib/api/config";
 import {
   getBusinesses,
   getBusiness,
@@ -49,10 +50,12 @@ export function useBusinesses(
       }
 
       const response = await getBusinesses(params);
-      const data = Array.isArray(response.data) ? response.data : [response.data];
 
-      setBusinesses(data);
-      setTotalCount(data.length);
+      // Use the universal backend response processor
+      const businessesData = processBackendResponse<Business>(response) as Business[];
+
+      setBusinesses(Array.isArray(businessesData) ? businessesData : []);
+      setTotalCount(Array.isArray(businessesData) ? businessesData.length : 0);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al cargar negocios";
       setError(errorMessage);

@@ -17,7 +17,8 @@
     "test:coverage": "jest --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "format:staged": "prettier --write --cache"
+    "format:staged": "prettier --write --cache",
+    "debug:api": "node scripts/debug-api.js"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",

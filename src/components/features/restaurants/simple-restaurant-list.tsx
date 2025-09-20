@@ -59,15 +59,18 @@ export function SimpleRestaurantList({
   }, []);
 
   const fetchRestaurants = useCallback(
-    async (isLoadMore = false) => {
+    async (isLoadMore = false, currentPage?: number) => {
       if (!mounted) return;
+
+      // Use the passed currentPage or calculate based on isLoadMore
+      const targetPage = currentPage ?? (isLoadMore ? page + 1 : 1);
 
       console.log("Fetching restaurants with filters:", {
         search: search.trim(),
         cuisine: cuisineFilter,
         rating: ratingFilter ? parseInt(ratingFilter) : undefined,
         location: locationFilter.trim(),
-        page: isLoadMore ? page + 1 : 1,
+        page: targetPage,
         limit: 12,
       });
 
@@ -78,7 +81,7 @@ export function SimpleRestaurantList({
           cuisine: cuisineFilter,
           rating: ratingFilter ? parseInt(ratingFilter) : undefined,
           location: locationFilter.trim(),
-          page: isLoadMore ? page + 1 : 1,
+          page: targetPage,
           limit: 12,
         };
 
@@ -91,7 +94,7 @@ export function SimpleRestaurantList({
 
         if (isLoadMore) {
           setRestaurants((prev) => [...(Array.isArray(prev) ? prev : []), ...restaurantsData]);
-          setPage((prev) => prev + 1);
+          setPage(targetPage);
         } else {
           setRestaurants(restaurantsData);
           setPage(1);
@@ -116,7 +119,7 @@ export function SimpleRestaurantList({
     if (mounted) {
       fetchRestaurants();
     }
-  }, [mounted, fetchRestaurants]);
+  }, [fetchRestaurants, mounted]);
 
   const handleSearch = (value: string) => {
     setSearch(value);

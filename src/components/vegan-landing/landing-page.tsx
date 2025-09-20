@@ -14,7 +14,7 @@ import { Footer } from "./footer";
 
 export function VeganLandingPage() {
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-background">
+    <div className="bg-background relative min-h-screen w-full overflow-x-hidden">
       {/* Hero Section with Header */}
       <div className="relative">
         <Header />
