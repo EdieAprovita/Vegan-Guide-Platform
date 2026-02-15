@@ -1,11 +1,17 @@
 import { z } from "zod";
 
+const passwordRules = z
+  .string()
+  .min(1, "Password is required")
+  .min(8, "Password must be at least 8 characters")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+  );
+
 export const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+  password: passwordRules,
 });
 
 export const registerSchema = z
@@ -16,14 +22,7 @@ export const registerSchema = z
       .min(2, "Username must be at least 2 characters")
       .max(50, "Username must be less than 50 characters"),
     email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-    password: z
-      .string()
-      .min(1, "Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-      ),
+    password: passwordRules,
     confirmPassword: z.string().min(1, "Please confirm your password"),
     role: z.enum(["user", "professional"], {
       required_error: "Please select a role",
@@ -40,14 +39,7 @@ export const resetPasswordSchema = z.object({
 
 export const newPasswordSchema = z
   .object({
-    password: z
-      .string()
-      .min(1, "Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-      ),
+    password: passwordRules,
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
