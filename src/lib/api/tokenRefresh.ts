@@ -63,25 +63,40 @@ export async function apiRequestWithRefresh<T>(
       const newTokens = await refreshAccessToken(refreshToken);
       onTokenRefreshed?.(newTokens);
 
-      const retryResponse = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
-        ...options,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${newTokens.accessToken}`,
-          ...options.headers,
-        },
-      });
+      // Create new abort controller for retry with fresh timeout
+      const retryController = new AbortController();
+      const retryTimeoutId = setTimeout(() => retryController.abort(), API_CONFIG.TIMEOUT);
 
-      if (!retryResponse.ok) {
-        const errorData = await retryResponse.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP ${retryResponse.status}: ${retryResponse.statusText}`
-        );
+      try {
+        const retryResponse = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
+          ...options,
+          signal: retryController.signal,
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${newTokens.accessToken}`,
+            ...options.headers,
+          },
+        });
+
+        clearTimeout(retryTimeoutId);
+
+        if (!retryResponse.ok) {
+          const errorData = await retryResponse.json().catch(() => ({}));
+          throw new Error(
+            errorData.message || `HTTP ${retryResponse.status}: ${retryResponse.statusText}`
+          );
+        }
+
+        return retryResponse.json();
+      } catch (retryError) {
+        clearTimeout(retryTimeoutId);
+        if (retryError instanceof Error && retryError.name === "AbortError") {
+          throw new Error("Retry request timeout");
+        }
+        throw retryError;
       }
-
-      return retryResponse.json();
     }
 
     if (!response.ok) {

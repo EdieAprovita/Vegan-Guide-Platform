@@ -34,7 +34,11 @@ export function useBusinesses(
 
   const autoFetch = filters?.autoFetch;
 
-  // Stabilize filters reference by memoizing on individual primitive values
+  // Stabilize filters reference by memoizing on individual primitive values.
+  // This prevents unnecessary re-renders when parent passes new object reference
+  // with same filter values. Dependencies list tracks primitives to catch actual changes.
+  // Note: eslint-disable is intentional for this pattern; alternatives (JSON.stringify,
+  // deep equality) would be more expensive and have same result.
   const stableFilters = useMemo(
     () => filters,
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -100,13 +100,15 @@ export const config = {
       }
 
       const expiry = (token.backendTokenExpiry as number) ?? 0;
-      if (Date.now() > expiry && token.backendRefreshToken) {
+      const REFRESH_MARGIN = 60 * 1000; // Refresh 1 min before expiry to avoid race conditions
+      if (Date.now() >= expiry - REFRESH_MARGIN && token.backendRefreshToken) {
         try {
           const newTokens = await refreshAccessToken(token.backendRefreshToken as string);
           token.backendToken = newTokens.accessToken;
           token.backendRefreshToken = newTokens.refreshToken;
           token.backendTokenExpiry = Date.now() + 14 * 60 * 1000;
-        } catch {
+        } catch (error) {
+          console.error("Failed to refresh access token:", error);
           token.error = "RefreshTokenError";
         }
       }
