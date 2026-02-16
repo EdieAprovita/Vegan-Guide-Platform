@@ -107,7 +107,8 @@ export const config = {
           token.backendToken = newTokens.accessToken;
           token.backendRefreshToken = newTokens.refreshToken;
           token.backendTokenExpiry = Date.now() + 14 * 60 * 1000;
-        } catch {
+        } catch (error) {
+          console.error("Failed to refresh access token", error);
           token.error = "RefreshTokenError";
         }
       }
