@@ -34,9 +34,13 @@ export async function refreshAccessToken(currentRefreshToken: string): Promise<T
   return refreshPromise;
 }
 
+interface RequestOptionsWithRetry extends RequestInit {
+  _retry?: boolean;
+}
+
 export async function apiRequestWithRefresh<T>(
   url: string,
-  options: RequestInit,
+  options: RequestOptionsWithRetry,
   token: string,
   refreshToken: string,
   onTokenRefreshed?: (tokens: TokenPair) => void
@@ -59,7 +63,8 @@ export async function apiRequestWithRefresh<T>(
 
     clearTimeout(timeoutId);
 
-    if (response.status === 401 && refreshToken) {
+    // Only attempt refresh once to prevent infinite retry loops
+    if (response.status === 401 && refreshToken && !options._retry) {
       const newTokens = await refreshAccessToken(refreshToken);
       onTokenRefreshed?.(newTokens);
 
@@ -68,8 +73,11 @@ export async function apiRequestWithRefresh<T>(
       const retryTimeoutId = setTimeout(() => retryController.abort(), API_CONFIG.TIMEOUT);
 
       try {
+        // Build fetch options without _retry (not a standard RequestInit property)
+        const { _retry, ...cleanOptions } = options as { _retry?: boolean; [key: string]: unknown };
+
         const retryResponse = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
-          ...options,
+          ...cleanOptions,
           signal: retryController.signal,
           credentials: "include",
           headers: {
