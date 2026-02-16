@@ -38,6 +38,16 @@ interface RequestOptionsWithRetry extends RequestInit {
   _retry?: boolean;
 }
 
+/**
+ * Helper to extract RequestInit from RequestOptionsWithRetry
+ * Removes the _retry flag which is not part of standard RequestInit
+ */
+function toRequestInit(options: RequestOptionsWithRetry): RequestInit {
+  // Destructure to safely remove _retry without type assertions
+  const { _retry, ...requestInit } = options;
+  return requestInit;
+}
+
 export async function apiRequestWithRefresh<T>(
   url: string,
   options: RequestOptionsWithRetry,
@@ -73,11 +83,10 @@ export async function apiRequestWithRefresh<T>(
       const retryTimeoutId = setTimeout(() => retryController.abort(), API_CONFIG.TIMEOUT);
 
       try {
-        // Build fetch options without _retry (not a standard RequestInit property)
-        const { _retry, ...cleanOptions } = options as { _retry?: boolean; [key: string]: unknown };
+        const cleanedOptions = toRequestInit(options);
 
         const retryResponse = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
-          ...cleanOptions,
+          ...cleanedOptions,
           signal: retryController.signal,
           credentials: "include",
           headers: {
