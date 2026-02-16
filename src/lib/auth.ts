@@ -100,7 +100,8 @@ export const config = {
       }
 
       const expiry = (token.backendTokenExpiry as number) ?? 0;
-      if (Date.now() > expiry && token.backendRefreshToken) {
+      const refreshMargin = 60 * 1000; // refresh 1 minute before expiry to avoid race conditions
+      if (Date.now() >= expiry - refreshMargin && token.backendRefreshToken) {
         try {
           const newTokens = await refreshAccessToken(token.backendRefreshToken as string);
           token.backendToken = newTokens.accessToken;
