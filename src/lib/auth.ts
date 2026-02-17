@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { API_CONFIG } from "./api/config";
+import { refreshAccessToken } from "./api/tokenRefresh";
 
 export type UserRole = "user" | "professional" | "admin";
 
@@ -9,7 +10,8 @@ declare module "next-auth" {
   interface User {
     id: string;
     role: UserRole;
-    token?: string; // JWT token from backend
+    token?: string;
+    refreshToken?: string;
   }
   interface Session {
     user: {
@@ -18,7 +20,7 @@ declare module "next-auth" {
       email: string;
       image?: string;
       role: UserRole;
-      token?: string; // JWT token for backend requests
+      token?: string;
     };
   }
 }
@@ -78,7 +80,8 @@ export const config = {
             email: data.user.email,
             image: data.user.photo,
             role: data.user.role,
-            token: data.token, // Store the JWT token from backend
+            token: data.token,
+            refreshToken: data.refreshToken,
           };
         } catch {
           return null;
@@ -91,9 +94,25 @@ export const config = {
       if (user) {
         token.id = user.id as string;
         token.role = user.role as UserRole;
-        // Store backend JWT securely in NextAuth token (server-side only)
         token.backendToken = user.token;
+        token.backendRefreshToken = user.refreshToken;
+        token.backendTokenExpiry = Date.now() + 14 * 60 * 1000; // ~14 min (access token is 15 min)
       }
+
+      const expiry = (token.backendTokenExpiry as number) ?? 0;
+      const REFRESH_MARGIN = 60 * 1000; // Refresh 1 min before expiry to avoid race conditions
+      if (Date.now() >= expiry - REFRESH_MARGIN && token.backendRefreshToken) {
+        try {
+          const newTokens = await refreshAccessToken(token.backendRefreshToken as string);
+          token.backendToken = newTokens.accessToken;
+          token.backendRefreshToken = newTokens.refreshToken;
+          token.backendTokenExpiry = Date.now() + 14 * 60 * 1000;
+        } catch (error) {
+          console.error("Failed to refresh access token:", error);
+          token.error = "RefreshTokenError";
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

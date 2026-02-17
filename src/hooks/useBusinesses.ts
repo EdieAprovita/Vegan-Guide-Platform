@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/lib/store/auth";
 import { useUserLocation } from "./useGeolocation";
 import { processBackendResponse } from "@/lib/api/config";
@@ -32,15 +32,41 @@ export function useBusinesses(
   const [totalCount, setTotalCount] = useState(0);
   const { userCoords } = useUserLocation();
 
+  const autoFetch = filters?.autoFetch;
+
+  // Stabilize filters reference by memoizing on individual primitive values.
+  // This prevents unnecessary re-renders when parent passes new object reference
+  // with same filter values. Dependencies list tracks primitives to catch actual changes.
+  // Note: eslint-disable is intentional for this pattern; alternatives (JSON.stringify,
+  // deep equality) would be more expensive and have same result.
+  const stableFilters = useMemo(
+    () => filters,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      filters?.page,
+      filters?.limit,
+      filters?.search,
+      filters?.typeBusiness,
+      filters?.rating,
+      filters?.location,
+      filters?.budget,
+      filters?.lat,
+      filters?.lng,
+      filters?.radius,
+      filters?.useUserLocation,
+      autoFetch,
+    ]
+  );
+
   const fetchBusinesses = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      let params = { ...filters };
+      let params = { ...stableFilters };
 
       // Si se solicita usar ubicación del usuario y está disponible
-      if (filters?.useUserLocation && userCoords) {
+      if (stableFilters?.useUserLocation && userCoords) {
         params = {
           ...params,
           lat: userCoords.lat,
@@ -63,29 +89,14 @@ export function useBusinesses(
     } finally {
       setLoading(false);
     }
-  }, [
-    // ✅ FIJO: Destructurar las propiedades específicas de filters para evitar recreación
-    filters?.page,
-    filters?.limit,
-    filters?.search,
-    filters?.typeBusiness,
-    filters?.rating,
-    filters?.location,
-    filters?.budget,
-    filters?.lat,
-    filters?.lng,
-    filters?.radius,
-    filters?.useUserLocation,
-    userCoords?.lat,
-    userCoords?.lng
-  ]);
+  }, [stableFilters, userCoords]);
 
   // Auto-fetch cuando cambien los filtros o la ubicación del usuario
   useEffect(() => {
-    if (filters?.autoFetch !== false) {
+    if (autoFetch !== false) {
       fetchBusinesses();
     }
-  }, [fetchBusinesses]); // ✅ AHORA es seguro usar fetchBusinesses porque tiene dependencias estables
+  }, [fetchBusinesses, autoFetch]);
 
   return {
     businesses,
