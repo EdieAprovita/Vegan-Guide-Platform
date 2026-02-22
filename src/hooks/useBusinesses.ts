@@ -31,6 +31,8 @@ export function useBusinesses(
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const { userCoords } = useUserLocation();
+  const userLat = userCoords?.lat;
+  const userLng = userCoords?.lng;
 
   const autoFetch = filters?.autoFetch;
 
@@ -66,11 +68,11 @@ export function useBusinesses(
       let params = { ...stableFilters };
 
       // Si se solicita usar ubicación del usuario y está disponible
-      if (stableFilters?.useUserLocation && userCoords) {
+      if (stableFilters?.useUserLocation && userLat !== undefined && userLng !== undefined) {
         params = {
           ...params,
-          lat: userCoords.lat,
-          lng: userCoords.lng,
+          lat: userLat,
+          lng: userLng,
           radius: params.radius || 10, // Default 10km
         };
       }
@@ -89,7 +91,7 @@ export function useBusinesses(
     } finally {
       setLoading(false);
     }
-  }, [stableFilters, userCoords?.lat, userCoords?.lng]);
+  }, [stableFilters, userLat, userLng]);
 
   // Auto-fetch cuando cambien los filtros o la ubicación del usuario
   useEffect(() => {
