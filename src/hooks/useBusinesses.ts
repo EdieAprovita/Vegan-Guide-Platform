@@ -89,7 +89,7 @@ export function useBusinesses(
     } finally {
       setLoading(false);
     }
-  }, [stableFilters, userCoords]);
+  }, [stableFilters, userCoords?.lat, userCoords?.lng]);
 
   // Auto-fetch cuando cambien los filtros o la ubicación del usuario
   useEffect(() => {

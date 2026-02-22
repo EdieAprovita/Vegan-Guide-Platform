@@ -1,20 +1,19 @@
 # Cambios Requeridos en Frontend - API v2.3.0
 
-**Fecha:** 17 de Enero de 2025
-**Autor:** Frontend Team
-**Status:** Implementation Guide (Post-Backend Meeting)
-**Propósito:** Roadmap detallado de implementación una vez backend confirme cambios
+**Fecha:** 17 de Enero de 2025 **Autor:** Frontend Team **Status:**
+Implementation Guide (Post-Backend Meeting) **Propósito:** Roadmap detallado de
+implementación una vez backend confirme cambios
 
 ---
 
 ## Resumen Ejecutivo
 
-Este documento detalla TODOS los cambios de código requeridos en el frontend para alinear con el contrato API v2.3.0. Debe usarse DESPUÉS de la reunión con backend y confirmación de que los endpoints necesarios están disponibles.
+Este documento detalla TODOS los cambios de código requeridos en el frontend
+para alinear con el contrato API v2.3.0. Debe usarse DESPUÉS de la reunión con
+backend y confirmación de que los endpoints necesarios están disponibles.
 
-**Estimación:** 8-10 horas de desarrollo
-**Archivos a modificar:** 8
-**Archivos a crear:** 5
-**Total:** 13 archivos
+**Estimación:** 8-10 horas de desarrollo **Archivos a modificar:** 8 **Archivos
+a crear:** 5 **Total:** 13 archivos
 
 ---
 
@@ -24,10 +23,11 @@ Este documento detalla TODOS los cambios de código requeridos en el frontend pa
 
 #### 1.1 Actualizar [src/lib/api/config.ts](src/lib/api/config.ts)
 
-**Líneas:** 45-120
-**Cambio:** Agregar interceptor de 401 para refresh automático
+**Líneas:** 45-120 **Cambio:** Agregar interceptor de 401 para refresh
+automático
 
 **Diff:**
+
 ```diff
 export const apiRequest = async <T>(
   url: string,
@@ -50,29 +50,10 @@ export const apiRequest = async <T>(
 
     clearTimeout(timeoutId);
 
-+   // ✅ Interceptor de 401 para refresh automático
-+   if (response.status === 401 && !options._retry) {
-+     const refreshToken = localStorage.getItem('refreshToken');
-+
-+     if (refreshToken) {
-+       try {
-+         const { refreshToken: refreshTokenApi } = await import('./auth');
-+         const newTokens = await refreshTokenApi(refreshToken);
-+
-+         localStorage.setItem('refreshToken', newTokens.refreshToken);
-+
-+         // Reintentar request original
-+         return apiRequest(url, { ...options, _retry: true });
-+       } catch (refreshError) {
-+         localStorage.removeItem('refreshToken');
-+         window.location.href = '/login';
-+         throw refreshError;
-+       }
-+     } else {
-+       window.location.href = '/login';
-+       throw new Error('Session expired');
-+     }
-+   }
++   // 🚨 NOTA HISTÓRICA: Anteriormente se proponía almacenar el refreshToken en localStorage.
++   // SIN EMBARGO, en la implementación final se utiliza NextAuth callbacks + src/lib/api/tokenRefresh.ts.
++   // La autenticación se maneja desde el lado del servidor/cookies de forma más segura.
++   // Este documento sirve de referencia comparativa pero no refleja el enfoque final real.
 
     if (!response.ok) {
       // ... resto del código sin cambios
@@ -86,16 +67,17 @@ export const apiRequest = async <T>(
 ```
 
 **Testing:**
+
 ```typescript
 // tests/api/config.test.ts
-describe('apiRequest - Refresh Token', () => {
-  it('should automatically refresh on 401', async () => {
+describe("apiRequest - Refresh Token", () => {
+  it("should automatically refresh on 401", async () => {
     // Mock 401 response
     // Mock successful refresh
     // Verify retry
   });
 
-  it('should redirect to login if refresh fails', async () => {
+  it("should redirect to login if refresh fails", async () => {
     // Mock 401 response
     // Mock failed refresh
     // Verify redirect
@@ -110,22 +92,23 @@ describe('apiRequest - Refresh Token', () => {
 **Cambio:** Agregar funciones de refresh, logout, revoke
 
 **Código a agregar:**
+
 ```typescript
 /**
  * Refresca el access token usando refresh token
  */
 export async function refreshToken(refreshToken: string) {
   const response = await fetch(`${API_CONFIG.BASE_URL}/auth/refresh-token`, {
-    method: 'POST',
-    credentials: 'include',
+    method: "POST",
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ refreshToken }),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to refresh token');
+    throw new Error("Failed to refresh token");
   }
 
   const data = await response.json();
@@ -138,14 +121,14 @@ export async function refreshToken(refreshToken: string) {
 export async function logout(token: string) {
   try {
     await fetch(`${API_CONFIG.BASE_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch (error) {
-    console.error('Backend logout failed:', error);
+    console.error("Backend logout failed:", error);
     // No throw - queremos limpiar frontend aunque backend falle
   }
 }
@@ -155,10 +138,10 @@ export async function logout(token: string) {
  */
 export async function revokeAllTokens(token: string) {
   await fetch(`${API_CONFIG.BASE_URL}/auth/revoke-all-tokens`, {
-    method: 'POST',
-    credentials: 'include',
+    method: "POST",
+    credentials: "include",
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 }
@@ -166,24 +149,24 @@ export async function revokeAllTokens(token: string) {
 // Actualizar función de login para guardar refreshToken
 export async function login(credentials: { email: string; password: string }) {
   const response = await fetch(`${API_CONFIG.BASE_URL}/users/login`, {
-    method: 'POST',
-    credentials: 'include',
+    method: "POST",
+    credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(credentials),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Login failed');
+    throw new Error(error.message || "Login failed");
   }
 
   const data = await response.json();
 
   // ✅ Guardar refresh token en localStorage
   if (data.data.refreshToken) {
-    localStorage.setItem('refreshToken', data.data.refreshToken);
+    localStorage.setItem("refreshToken", data.data.refreshToken);
   }
 
   return data.data;
@@ -194,10 +177,10 @@ export async function login(credentials: { email: string; password: string }) {
 
 #### 1.3 Actualizar [src/components/auth/register-client.tsx](src/components/auth/register-client.tsx)
 
-**Línea:** 19
-**Cambio:** Agregar `credentials: "include"`
+**Línea:** 19 **Cambio:** Agregar `credentials: "include"`
 
 **Diff:**
+
 ```diff
 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register`, {
   method: "POST",
@@ -221,10 +204,10 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register`, {
 
 #### 2.1 Actualizar [src/types/index.ts](src/types/index.ts)
 
-**Líneas:** 120-150
-**Cambio:** Actualizar interface Review
+**Líneas:** 120-150 **Cambio:** Actualizar interface Review
 
 **Diff:**
+
 ```diff
 export interface Review {
   _id: string;
@@ -278,32 +261,37 @@ export interface Review {
 **Archivo nuevo**
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const reviewSchema = z.object({
-  rating: z.number()
-    .int('Rating must be an integer')
-    .min(1, 'Rating must be at least 1')
-    .max(5, 'Rating cannot exceed 5'),
+  rating: z
+    .number()
+    .int("Rating must be an integer")
+    .min(1, "Rating must be at least 1")
+    .max(5, "Rating cannot exceed 5"),
 
-  title: z.string()
-    .min(5, 'Title must be at least 5 characters')
-    .max(100, 'Title cannot exceed 100 characters')
+  title: z
+    .string()
+    .min(5, "Title must be at least 5 characters")
+    .max(100, "Title cannot exceed 100 characters")
     .trim(),
 
-  content: z.string()
-    .min(10, 'Content must be at least 10 characters')
-    .max(1000, 'Content cannot exceed 1000 characters'),
+  content: z
+    .string()
+    .min(10, "Content must be at least 10 characters")
+    .max(1000, "Content cannot exceed 1000 characters"),
 
   visitDate: z.string().datetime().optional(),
 
-  recommendedDishes: z.array(
-    z.string().max(50, 'Each dish name cannot exceed 50 characters')
-  ).max(10, 'Cannot recommend more than 10 dishes').optional(),
+  recommendedDishes: z
+    .array(z.string().max(50, "Each dish name cannot exceed 50 characters"))
+    .max(10, "Cannot recommend more than 10 dishes")
+    .optional(),
 
-  tags: z.array(
-    z.string().max(30, 'Each tag cannot exceed 30 characters')
-  ).max(10, 'Cannot have more than 10 tags').optional(),
+  tags: z
+    .array(z.string().max(30, "Each tag cannot exceed 30 characters"))
+    .max(10, "Cannot have more than 10 tags")
+    .optional(),
 });
 
 export type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -313,8 +301,7 @@ export type ReviewFormData = z.infer<typeof reviewSchema>;
 
 #### 2.3 Actualizar [src/components/features/reviews/review-form.tsx](src/components/features/reviews/review-form.tsx)
 
-**Líneas:** 15-100
-**Cambio:** Agregar nuevos campos y validaciones
+**Líneas:** 15-100 **Cambio:** Agregar nuevos campos y validaciones
 
 ```typescript
 'use client';
@@ -573,10 +560,10 @@ export default function ReviewForm({ onSubmit, onCancel }: Props) {
 
 #### 3.1 Actualizar [src/lib/validations/auth.ts](src/lib/validations/auth.ts)
 
-**Líneas:** 8-12
-**Cambio:** Agregar validación completa de password
+**Líneas:** 8-12 **Cambio:** Agregar validación completa de password
 
 **Diff:**
+
 ```diff
 export const registerSchema = z.object({
   username: z.string().min(2).max(50),
@@ -598,35 +585,35 @@ export const registerSchema = z.object({
 
 ### Archivos a Modificar (8)
 
-| # | Archivo | Líneas | Esfuerzo | Prioridad |
-|---|---------|--------|----------|-----------|
-| 1 | `src/lib/api/config.ts` | +30 | 1h | P0 |
-| 2 | `src/lib/api/auth.ts` | +80 | 2h | P0 |
-| 3 | `src/components/auth/register-client.tsx` | +1 | 5s | P0 |
-| 4 | `src/types/index.ts` | Modificar interface | 30min | P0 |
-| 5 | `src/components/features/reviews/review-form.tsx` | Reescribir | 2h | P0 |
-| 6 | `src/lib/validations/auth.ts` | +6 | 15min | P1 |
-| 7 | `src/lib/api/restaurants.ts` | Mock condicional | 15min | P2 |
-| 8 | `src/lib/api/search.ts` | lat→latitude | 15min | P2 |
+| #   | Archivo                                           | Líneas              | Esfuerzo | Prioridad |
+| --- | ------------------------------------------------- | ------------------- | -------- | --------- |
+| 1   | `src/lib/api/config.ts`                           | +30                 | 1h       | P0        |
+| 2   | `src/lib/api/auth.ts`                             | +80                 | 2h       | P0        |
+| 3   | `src/components/auth/register-client.tsx`         | +1                  | 5s       | P0        |
+| 4   | `src/types/index.ts`                              | Modificar interface | 30min    | P0        |
+| 5   | `src/components/features/reviews/review-form.tsx` | Reescribir          | 2h       | P0        |
+| 6   | `src/lib/validations/auth.ts`                     | +6                  | 15min    | P1        |
+| 7   | `src/lib/api/restaurants.ts`                      | Mock condicional    | 15min    | P2        |
+| 8   | `src/lib/api/search.ts`                           | lat→latitude        | 15min    | P2        |
 
 ### Archivos a Crear (5)
 
-| # | Archivo | Propósito | Esfuerzo | Prioridad |
-|---|---------|-----------|----------|-----------|
-| 1 | `src/lib/validations/review.ts` | Validaciones Zod | 30min | P0 |
-| 2 | `src/lib/adapters/review-adapter.ts` | Backward compatibility | 1h | P0 |
-| 3 | `src/lib/store/rate-limit.ts` | Store de rate limit | 30min | P1 |
-| 4 | `src/types/geospatial.ts` | Tipos geoespaciales | 20min | P2 |
-| 5 | `src/components/ui/rate-limit-indicator.tsx` | UI de rate limit | 30min | P2 |
+| #   | Archivo                                      | Propósito              | Esfuerzo | Prioridad |
+| --- | -------------------------------------------- | ---------------------- | -------- | --------- |
+| 1   | `src/lib/validations/review.ts`              | Validaciones Zod       | 30min    | P0        |
+| 2   | `src/lib/adapters/review-adapter.ts`         | Backward compatibility | 1h       | P0        |
+| 3   | `src/lib/store/rate-limit.ts`                | Store de rate limit    | 30min    | P1        |
+| 4   | `src/types/geospatial.ts`                    | Tipos geoespaciales    | 20min    | P2        |
+| 5   | `src/components/ui/rate-limit-indicator.tsx` | UI de rate limit       | 30min    | P2        |
 
 ### Estimación Total
 
-| Prioridad | Archivos | Tiempo Estimado |
-|-----------|----------|-----------------|
-| P0 (Crítico) | 7 | 6-7 horas |
-| P1 (Importante) | 2 | 1 hora |
-| P2 (Mejoras) | 4 | 1.5 horas |
-| **TOTAL** | **13** | **8-10 horas** |
+| Prioridad       | Archivos | Tiempo Estimado |
+| --------------- | -------- | --------------- |
+| P0 (Crítico)    | 7        | 6-7 horas       |
+| P1 (Importante) | 2        | 1 hora          |
+| P2 (Mejoras)    | 4        | 1.5 horas       |
+| **TOTAL**       | **13**   | **8-10 horas**  |
 
 ---
 
@@ -670,7 +657,9 @@ En caso de issues:
 **Este documento debe usarse POST-reunión con backend**
 
 Próximos pasos:
-1. Reunión con backend (usar [BACKEND_DISCUSSION_POINTS.md](BACKEND_DISCUSSION_POINTS.md))
+
+1. Reunión con backend (usar
+   [BACKEND_DISCUSSION_POINTS.md](BACKEND_DISCUSSION_POINTS.md))
 2. Backend confirma endpoints
 3. Implementar cambios usando este documento
 4. Testing exhaustivo
@@ -678,6 +667,5 @@ Próximos pasos:
 
 ---
 
-**Documento preparado por:** Frontend Team
-**Fecha:** 17 de Enero de 2025
+**Documento preparado por:** Frontend Team **Fecha:** 17 de Enero de 2025
 **Status:** Ready for implementation (post-backend confirmation)

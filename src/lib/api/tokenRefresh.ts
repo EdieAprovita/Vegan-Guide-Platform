@@ -25,6 +25,16 @@ export async function refreshAccessToken(currentRefreshToken: string): Promise<T
         body: JSON.stringify({ refreshToken: currentRefreshToken }),
       });
 
+      if (
+        !response ||
+        response.success !== true ||
+        !response.data ||
+        typeof response.data.accessToken !== "string" ||
+        typeof response.data.refreshToken !== "string"
+      ) {
+        throw new Error("Failed to refresh access token: invalid refresh response from server.");
+      }
+
       return response.data;
     } finally {
       refreshPromises.delete(currentRefreshToken);
