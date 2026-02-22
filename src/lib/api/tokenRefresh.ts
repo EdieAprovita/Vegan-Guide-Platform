@@ -10,14 +10,14 @@ interface RefreshResponse {
   data: TokenPair;
 }
 
-let refreshPromise: Promise<TokenPair> | null = null;
+const refreshPromises = new Map<string, Promise<TokenPair>>();
 
 export async function refreshAccessToken(currentRefreshToken: string): Promise<TokenPair> {
-  if (refreshPromise) {
-    return refreshPromise;
+  if (refreshPromises.has(currentRefreshToken)) {
+    return refreshPromises.get(currentRefreshToken)!;
   }
 
-  refreshPromise = (async () => {
+  const promise = (async () => {
     try {
       const response = await apiRequest<RefreshResponse>("/auth/refresh-token", {
         method: "POST",
@@ -27,11 +27,12 @@ export async function refreshAccessToken(currentRefreshToken: string): Promise<T
 
       return response.data;
     } finally {
-      refreshPromise = null;
+      refreshPromises.delete(currentRefreshToken);
     }
   })();
 
-  return refreshPromise;
+  refreshPromises.set(currentRefreshToken, promise);
+  return promise;
 }
 
 interface RequestOptionsWithRetry extends RequestInit {
@@ -118,9 +119,7 @@ export async function apiRequestWithRefresh<T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
-      );
+      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
     }
 
     return response.json();
