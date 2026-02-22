@@ -42,7 +42,9 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
     }
   };
 
-  const formatBusinessHours = (hours: Date[]) => {
+  const formatBusinessHours = (
+    hours: { dayOfWeek: string; openTime: string; closeTime: string }[]
+  ) => {
     if (!hours || hours.length === 0) return "Horarios no disponibles";
     return "Lunes a Viernes: 9:00 AM - 6:00 PM"; // Simplified - implement proper formatting
   };

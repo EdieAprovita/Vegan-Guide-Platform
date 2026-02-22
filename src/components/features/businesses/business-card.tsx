@@ -17,7 +17,9 @@ export const BusinessCard = ({ business }: BusinessCardProps) => {
     window.location.href = `tel:${phone}`;
   };
 
-  const formatBusinessHours = (hours: Date[]) => {
+  const formatBusinessHours = (
+    hours: { dayOfWeek: string; openTime: string; closeTime: string }[]
+  ) => {
     if (!hours || hours.length === 0) return "Horarios no disponibles";
     // Simplified display - you might want to implement proper hour formatting
     return "Ver horarios";

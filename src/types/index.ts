@@ -46,7 +46,7 @@ export interface Doctor {
 export interface Restaurant {
   _id: string;
   name: string;
-  cuisine: string;
+  cuisine: string[];
   address: string;
   city: string;
   country: string;
@@ -160,7 +160,7 @@ export interface Business {
   }[];
   budget: number;
   typeBusiness: string;
-  hours: Date[];
+  hours: { dayOfWeek: string; openTime: string; closeTime: string }[];
   reviews: Review[];
   rating: number;
   numReviews: number;

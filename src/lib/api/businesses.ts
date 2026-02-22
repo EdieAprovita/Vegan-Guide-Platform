@@ -16,7 +16,7 @@ export interface Business {
   }>;
   budget: number;
   typeBusiness: string;
-  hours: Date[];
+  hours: { dayOfWeek: string; openTime: string; closeTime: string }[];
   rating?: number;
   numReviews?: number;
   reviews?: BusinessReview[];
@@ -44,7 +44,7 @@ export interface CreateBusinessData {
   }>;
   budget: number;
   typeBusiness: string;
-  hours: Date[];
+  hours: { dayOfWeek: string; openTime: string; closeTime: string }[];
 }
 
 export interface BusinessReview {
