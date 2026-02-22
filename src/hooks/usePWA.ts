@@ -15,8 +15,7 @@ export function usePWA() {
 
   useEffect(() => {
     // Register service worker - TEMPORARILY DISABLED FOR DEBUGGING
-    console.log("🚫 PWA Service Worker registration DISABLED for debugging");
-    return; // Early return to skip SW registration
+    // console.log("🚫 PWA Service Worker registration DISABLED for debugging");
     /*
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
