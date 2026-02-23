@@ -151,12 +151,11 @@ export function useAdvancedSearch() {
         // Save search analytics
         if (searchState.filters.query && token) {
           try {
-            await saveSearchQuery(
-              searchState.filters.query,
-              searchState.filters,
-              searchData.total,
-              token
-            );
+            const resourceType =
+              searchState.filters.resourceTypes.length === 1
+                ? searchState.filters.resourceTypes[0]
+                : undefined;
+            await saveSearchQuery(searchState.filters.query, resourceType, token);
           } catch (error) {
             console.warn("Error saving search analytics:", error);
           }

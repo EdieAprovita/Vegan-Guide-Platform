@@ -13,7 +13,7 @@ interface Comment {
     username: string;
     photo?: string;
   };
-  content: string;
+  text: string;
   createdAt: string;
 }
 import { processBackendResponse } from "@/lib/api/config";

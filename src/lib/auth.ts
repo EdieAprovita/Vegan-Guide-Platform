@@ -68,20 +68,21 @@ export const config = {
             }),
           });
 
-          const data = await res.json();
+          const response = await res.json();
 
-          if (!res.ok) {
+          if (!res.ok || !response.success) {
             return null;
           }
 
+          const userData = response.data;
           return {
-            id: data.user._id,
-            name: data.user.username,
-            email: data.user.email,
-            image: data.user.photo,
-            role: data.user.role,
-            token: data.token,
-            refreshToken: data.refreshToken,
+            id: userData._id,
+            name: userData.username,
+            email: userData.email,
+            image: userData.photo,
+            role: userData.role,
+            token: userData.token,
+            refreshToken: userData.refreshToken,
           };
         } catch {
           return null;
@@ -105,7 +106,10 @@ export const config = {
         try {
           const newTokens = await refreshAccessToken(token.backendRefreshToken as string);
           token.backendToken = newTokens.accessToken;
-          token.backendRefreshToken = newTokens.refreshToken;
+          // Only update refresh token if returned in body; otherwise it's in HttpOnly cookie
+          if (newTokens.refreshToken) {
+            token.backendRefreshToken = newTokens.refreshToken;
+          }
           token.backendTokenExpiry = Date.now() + 14 * 60 * 1000;
         } catch (error) {
           console.error("Failed to refresh access token:", error);

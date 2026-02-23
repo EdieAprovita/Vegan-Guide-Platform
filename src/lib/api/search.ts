@@ -141,11 +141,11 @@ export async function getSearchAggregations(filters?: Partial<SearchFilters>): P
 
 /**
  * Save search query for analytics/history
+ * Backend consumes: { query, resourceType }
  */
 export async function saveSearchQuery(
   query: string,
-  filters: Partial<SearchFilters>,
-  resultCount: number,
+  resourceType?: ResourceType,
   token?: string
 ): Promise<BackendResponse<void>> {
   const headers: Record<string, string> = {
@@ -161,9 +161,7 @@ export async function saveSearchQuery(
     headers,
     body: JSON.stringify({
       query,
-      filters,
-      resultCount,
-      timestamp: new Date().toISOString(),
+      resourceType,
     }),
   });
 }

@@ -2,12 +2,15 @@ import { API_CONFIG, apiRequest, getApiHeaders } from "./config";
 
 interface TokenPair {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Optional: backend sends refresh token in HttpOnly cookie, not in body
 }
 
 interface RefreshResponse {
   success: boolean;
-  data: TokenPair;
+  data: {
+    accessToken: string;
+    refreshToken?: string;
+  };
 }
 
 const refreshPromises = new Map<string, Promise<TokenPair>>();
@@ -29,8 +32,7 @@ export async function refreshAccessToken(currentRefreshToken: string): Promise<T
         !response ||
         response.success !== true ||
         !response.data ||
-        typeof response.data.accessToken !== "string" ||
-        typeof response.data.refreshToken !== "string"
+        typeof response.data.accessToken !== "string"
       ) {
         throw new Error("Failed to refresh access token: invalid refresh response from server.");
       }

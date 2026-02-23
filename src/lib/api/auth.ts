@@ -23,10 +23,27 @@ export async function register(data: RegisterFormData): Promise<User> {
   });
 }
 
-export async function logout() {
+export async function logout(token?: string) {
+  // Blacklist the current token via the auth endpoint
+  if (token) {
+    await apiRequest<void>("/auth/logout", {
+      method: "POST",
+      headers: getApiHeaders(token),
+    }).catch(() => {
+      // Non-blocking: proceed with logout even if blacklist fails
+    });
+  }
+
   return apiRequest<void>("/users/logout", {
     method: "POST",
     headers: getApiHeaders(),
+  });
+}
+
+export async function revokeAllSessions(token: string) {
+  return apiRequest<void>("/auth/revoke-all-tokens", {
+    method: "POST",
+    headers: getApiHeaders(token),
   });
 }
 

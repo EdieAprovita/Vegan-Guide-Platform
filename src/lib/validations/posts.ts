@@ -20,7 +20,7 @@ export const createPostSchema = z.object({
 export const updatePostSchema = createPostSchema.partial();
 
 export const createCommentSchema = z.object({
-  content: z
+  text: z
     .string()
     .min(1, "Comment is required")
     .min(2, "Comment must be at least 2 characters")

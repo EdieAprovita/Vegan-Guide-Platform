@@ -18,7 +18,7 @@ export interface Post {
       username: string;
       photo?: string;
     };
-    content: string;
+    text: string;
     createdAt: string;
   }[];
   location?: {
@@ -44,7 +44,7 @@ export interface CreatePostData {
 }
 
 export interface CreateCommentData {
-  content: string;
+  text: string;
 }
 
 export interface PostSearchParams {
@@ -112,7 +112,7 @@ export async function likePost(id: string, token?: string) {
 }
 
 export async function unlikePost(id: string, token?: string) {
-  return apiRequest<BackendResponse<Post>>(`/posts/unlike/${id}`, {
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}/likes`, {
     method: "DELETE",
     headers: getApiHeaders(token),
   });
