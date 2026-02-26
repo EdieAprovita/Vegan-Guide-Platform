@@ -21,7 +21,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: session.user.email || "",
         role: session.user.role as "user" | "professional" | "admin",
         photo: session.user.image,
-        bio: "",
         createdAt: new Date().toISOString(), // Default value since NextAuth doesn't provide this
         isAdmin: session.user.role === "admin", // Now this should work correctly
       });
