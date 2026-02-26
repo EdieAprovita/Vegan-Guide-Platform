@@ -132,11 +132,15 @@ export interface User {
   _id: string;
   username: string;
   email: string;
-  role: "user" | "admin" | "professional";
+  role: "user" | "professional" | "admin";
   photo?: string;
-  bio?: string;
-  createdAt: string;
+  firstName?: string;
+  lastName?: string;
   isAdmin?: boolean;
+  isActive?: boolean;
+  isDeleted?: boolean;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Business {
@@ -168,14 +172,30 @@ export interface Business {
   updatedAt: string;
 }
 
+export interface Contact {
+  phone: string;
+  email: string;
+  facebook?: string;
+  instagram?: string;
+}
+
 export interface Animal {
-  name: string;
-  species: string;
+  _id?: string;
+  name?: string;
+  species?: string;
+  animalName?: string;
+  specie?: string;
   breed?: string;
   age?: number;
+  gender?: string;
+  habitat?: string;
+  diet?: string[];
+  image?: string;
+  vaccines?: string[];
+  lastVaccine?: string;
   description?: string;
   rescued?: boolean;
-  rescueDate?: Date;
+  rescueDate?: string;
   healthStatus?: string;
   specialNeeds?: string[];
 }
@@ -183,6 +203,7 @@ export interface Animal {
 export interface Sanctuary {
   _id: string;
   sanctuaryName: string;
+  name?: string;
   author: {
     _id: string;
     username: string;
@@ -198,11 +219,7 @@ export interface Sanctuary {
   animals: Animal[];
   capacity: number;
   caretakers: string[];
-  contact: {
-    phone?: string;
-    email?: string;
-    website?: string;
-  }[];
+  contact: Contact[];
   reviews: Review[];
   rating: number;
   numReviews: number;
@@ -240,6 +257,44 @@ export interface Profession {
   updatedAt: string;
 }
 
+export interface Experience {
+  title: string;
+  company: string;
+  location: string;
+  from: string;
+  to?: string;
+  current: boolean;
+  description: string;
+}
+
+export interface Education {
+  school: string;
+  degree: string;
+  fieldOfStudy: string;
+  from: string;
+  to?: string;
+  current: boolean;
+  description: string;
+}
+
+export interface Social {
+  youtube?: string;
+  facebook?: string;
+  twitter?: string;
+  instagram?: string;
+  linkedin?: string;
+}
+
+export interface Skill {
+  skill: string;
+  company: string;
+  location: string;
+  from: string;
+  to?: string;
+  current: boolean;
+  description: string;
+}
+
 export interface ProfessionalProfile {
   _id: string;
   user: {
@@ -248,37 +303,15 @@ export interface ProfessionalProfile {
     email: string;
     photo?: string;
   };
-  profession: {
-    _id: string;
-    professionName: string;
-  };
-  bio: string;
-  experience: string;
-  education: string[];
-  certifications: string[];
-  skills: string[];
-  portfolio: {
-    title: string;
-    description: string;
-    url?: string;
-    image?: string;
-  }[];
-  contactInfo: {
-    phone?: string;
-    email?: string;
-    website?: string;
-    linkedin?: string;
-  };
-  availability: boolean;
-  rates?: {
-    hourly?: number;
-    project?: number;
-    currency: string;
-  };
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  contact: Contact[];
+  skills: Skill[];
+  experience: Experience[];
+  education: Education[];
+  social: Social[];
+  date: string;
+  reviews: Review[];
+  rating: number;
+  numReviews: number;
   createdAt: string;
   updatedAt: string;
 }
