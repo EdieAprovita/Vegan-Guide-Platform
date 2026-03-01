@@ -1,94 +1,16 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { RecipeCard } from "@/components/features/recipes/recipe-card";
+import { createMockRecipeCardProps } from "@/__tests__/helpers/test-data-factories";
 
-// Mock next/image
-jest.mock("next/image", () => ({
-  __esModule: true,
-  default: ({
-    src,
-    alt,
-    className,
-    fill,
-    width,
-    height,
-  }: {
-    src: string;
-    alt: string;
-    className?: string;
-    fill?: boolean;
-    width?: number;
-    height?: number;
-  }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      data-fill={fill ? "true" : undefined}
-      width={width}
-      height={height}
-    />
-  ),
-}));
-
-// Mock lucide-react icons
-jest.mock("lucide-react", () => ({
-  Clock: ({ className }: { className?: string }) => (
-    <svg data-testid="icon-clock" className={className} />
-  ),
-  Users: ({ className }: { className?: string }) => (
-    <svg data-testid="icon-users" className={className} />
-  ),
-  ChefHat: ({ className }: { className?: string }) => (
-    <svg data-testid="icon-chef-hat" className={className} />
-  ),
-  Star: ({ className }: { className?: string }) => (
-    <svg data-testid="icon-star" className={className} />
-  ),
-}));
-
-jest.mock("@/components/ui/card", () => ({
-  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card" className={className}>
-      {children}
-    </div>
-  ),
-}));
-
-jest.mock("@/components/ui/button", () => ({
-  Button: ({
-    children,
-    onClick,
-    className,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    className?: string;
-  }) => (
-    <button onClick={onClick} className={className}>
-      {children}
-    </button>
-  ),
-}));
-
-jest.mock("@/lib/utils", () => ({
-  cn: (...args: (string | undefined | false | null)[]) =>
-    args.filter(Boolean).join(" "),
-}));
-
-const baseProps = {
-  title: "Vegan Tacos",
-  description: "Delicious plant-based tacos with all the fixings.",
-  image: "/images/tacos.jpg",
-  preparationTime: 15,
-  cookingTime: 20,
-  servings: 4,
-  difficulty: "easy" as const,
-  averageRating: 4.7,
-  author: { username: "chef_jane" },
-  onView: jest.fn(),
-};
+// Jest hoists jest.mock() calls before imports are evaluated, so static
+// import bindings are not available inside the factory. We use require() here
+// to load the shared factory objects lazily at mock-call time.
+jest.mock("next/image", () => require("@/__tests__/setup/mock-components").nextImageMock);
+jest.mock("lucide-react", () => require("@/__tests__/setup/mock-components").lucideReactMock);
+jest.mock("@/components/ui/card", () => require("@/__tests__/setup/mock-components").cardMock);
+jest.mock("@/components/ui/button", () => require("@/__tests__/setup/mock-components").buttonMock);
+jest.mock("@/lib/utils", () => require("@/__tests__/setup/mock-components").utilsMock);
 
 describe("RecipeCard", () => {
   beforeEach(() => {
@@ -96,70 +18,74 @@ describe("RecipeCard", () => {
   });
 
   it("renders the recipe title", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(screen.getByText("Vegan Tacos")).toBeInTheDocument();
   });
 
   it("renders the recipe description", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(
       screen.getByText("Delicious plant-based tacos with all the fixings.")
     ).toBeInTheDocument();
   });
 
   it("renders the main image with the correct alt text", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     const img = screen.getByAltText("Vegan Tacos");
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute("src", "/images/tacos.jpg");
   });
 
   it("renders the total time (prep + cooking)", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     // 15 + 20 = 35
     expect(screen.getByText("35 min")).toBeInTheDocument();
   });
 
   it("renders the servings count", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(screen.getByText("4 servings")).toBeInTheDocument();
   });
 
   it("renders the difficulty label in Spanish", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(screen.getByText("Fácil")).toBeInTheDocument();
   });
 
   it("renders medium difficulty in Spanish", () => {
-    render(<RecipeCard {...baseProps} difficulty="medium" />);
+    render(<RecipeCard {...createMockRecipeCardProps({ difficulty: "medium" })} />);
     expect(screen.getByText("Medio")).toBeInTheDocument();
   });
 
   it("renders hard difficulty in Spanish", () => {
-    render(<RecipeCard {...baseProps} difficulty="hard" />);
+    render(<RecipeCard {...createMockRecipeCardProps({ difficulty: "hard" })} />);
     expect(screen.getByText("Difícil")).toBeInTheDocument();
   });
 
   it("renders the formatted average rating", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     // 4.7 -> "4.7"
     expect(screen.getByText("4.7")).toBeInTheDocument();
   });
 
   it("renders the author username", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(screen.getByText("chef_jane")).toBeInTheDocument();
   });
 
   it("renders the author initial avatar when no photo is provided", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     // First char of username: "c"
     expect(screen.getByText("c")).toBeInTheDocument();
   });
 
   it("renders an author photo image when provided", () => {
     render(
-      <RecipeCard {...baseProps} author={{ username: "chef_jane", photo: "/avatar.jpg" }} />
+      <RecipeCard
+        {...createMockRecipeCardProps({
+          author: { username: "chef_jane", photo: "/avatar.jpg" },
+        })}
+      />
     );
     const avatarImg = screen.getByAltText("chef_jane");
     expect(avatarImg).toBeInTheDocument();
@@ -168,13 +94,13 @@ describe("RecipeCard", () => {
 
   it("calls onView when the View Recipe button is clicked", () => {
     const onView = jest.fn();
-    render(<RecipeCard {...baseProps} onView={onView} />);
+    render(<RecipeCard {...createMockRecipeCardProps({ onView })} />);
     fireEvent.click(screen.getByText("View Recipe"));
     expect(onView).toHaveBeenCalledTimes(1);
   });
 
   it("renders the View Recipe button", () => {
-    render(<RecipeCard {...baseProps} />);
+    render(<RecipeCard {...createMockRecipeCardProps()} />);
     expect(screen.getByText("View Recipe")).toBeInTheDocument();
   });
 

@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { ReviewCard } from "@/components/features/reviews/review-card";
-import { Review } from "@/lib/api/reviews";
+import { createMockReview } from "@/__tests__/helpers/test-data-factories";
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -32,157 +32,24 @@ jest.mock("@/components/features/reviews/helpful-votes", () => ({
   ),
 }));
 
-// Mock lucide-react icons used inside ReviewCard
-jest.mock("lucide-react", () => ({
-  Star: ({ className }: { className?: string }) => (
-    <svg data-testid="icon-star" className={className} />
-  ),
-  MoreVertical: () => <svg data-testid="icon-more-vertical" />,
-  Edit: () => <svg data-testid="icon-edit" />,
-  Trash2: () => <svg data-testid="icon-trash2" />,
-  Flag: () => <svg data-testid="icon-flag" />,
-}));
-
-// Mock shadcn UI components
-jest.mock("@/components/ui/card", () => ({
-  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card" className={className}>
-      {children}
-    </div>
-  ),
-  CardContent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card-content" className={className}>
-      {children}
-    </div>
-  ),
-}));
-
-jest.mock("@/components/ui/avatar", () => ({
-  Avatar: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="avatar" className={className}>
-      {children}
-    </div>
-  ),
-  AvatarImage: ({ src, alt }: { src?: string; alt?: string }) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img data-testid="avatar-image" src={src} alt={alt} />
-  ),
-  AvatarFallback: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="avatar-fallback">{children}</span>
-  ),
-}));
-
-jest.mock("@/components/ui/badge", () => ({
-  Badge: ({
-    children,
-    className,
-    variant,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-    variant?: string;
-  }) => (
-    <span data-testid="badge" data-variant={variant} className={className}>
-      {children}
-    </span>
-  ),
-}));
-
-jest.mock("@/components/ui/button", () => ({
-  Button: ({
-    children,
-    onClick,
-    variant,
-    size,
-    className,
-    disabled,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    variant?: string;
-    size?: string;
-    className?: string;
-    disabled?: boolean;
-  }) => (
-    <button
-      onClick={onClick}
-      data-variant={variant}
-      data-size={size}
-      className={className}
-      disabled={disabled}
-    >
-      {children}
-    </button>
-  ),
-}));
-
-jest.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-menu">{children}</div>
-  ),
-  DropdownMenuTrigger: ({
-    children,
-    asChild,
-  }: {
-    children: React.ReactNode;
-    asChild?: boolean;
-  }) => <div data-testid="dropdown-trigger">{children}</div>,
-  DropdownMenuContent: ({
-    children,
-    align,
-  }: {
-    children: React.ReactNode;
-    align?: string;
-  }) => <div data-testid="dropdown-content">{children}</div>,
-  DropdownMenuItem: ({
-    children,
-    onClick,
-    disabled,
-    className,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
-    className?: string;
-  }) => (
-    <button
-      data-testid="dropdown-item"
-      onClick={onClick}
-      disabled={disabled}
-      className={className}
-    >
-      {children}
-    </button>
-  ),
-  DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
-}));
+// Jest hoists jest.mock() calls before imports are evaluated, so static
+// import bindings are not available inside the factory. We use require() here
+// to load the shared factory objects lazily at mock-call time.
+jest.mock("lucide-react", () => require("@/__tests__/setup/mock-components").lucideReactMock);
+jest.mock("@/components/ui/card", () => require("@/__tests__/setup/mock-components").cardMock);
+jest.mock("@/components/ui/badge", () => require("@/__tests__/setup/mock-components").badgeMock);
+jest.mock("@/components/ui/button", () => require("@/__tests__/setup/mock-components").buttonMock);
+jest.mock("@/components/ui/avatar", () => require("@/__tests__/setup/mock-components").avatarMock);
+jest.mock("@/components/ui/dropdown-menu", () =>
+  require("@/__tests__/setup/mock-components").dropdownMenuMock
+);
 
 // ---------------------------------------------------------------------------
-// Fixtures
+// Shared fixture
 // ---------------------------------------------------------------------------
-
-const FIXED_DATE = "2024-06-01T10:00:00Z";
-
-const baseReview: Review = {
-  _id: "review-abc123",
-  user: {
-    _id: "user-001",
-    username: "johndoe",
-    photo: undefined,
-  },
-  rating: 4,
-  comment: "Great vegan food, highly recommend!",
-  resourceType: "restaurant",
-  resourceId: "rest-001",
-  helpful: [],
-  helpfulCount: 0,
-  createdAt: FIXED_DATE,
-  updatedAt: FIXED_DATE,
-};
-
 const defaultProps = {
-  review: baseReview,
-  resourceType: "restaurant",
+  review: createMockReview(),
+  resourceType: "restaurant" as const,
   resourceId: "rest-001",
 };
 
@@ -217,22 +84,22 @@ describe("ReviewCard (full view)", () => {
   });
 
   it("renders 'Excelente' for rating >= 4.5", () => {
-    render(<ReviewCard {...defaultProps} review={{ ...baseReview, rating: 5 }} />);
+    render(<ReviewCard {...defaultProps} review={createMockReview({ rating: 5 })} />);
     expect(screen.getByText("Excelente")).toBeInTheDocument();
   });
 
   it("renders 'Bueno' for rating >= 3 and < 4", () => {
-    render(<ReviewCard {...defaultProps} review={{ ...baseReview, rating: 3 }} />);
+    render(<ReviewCard {...defaultProps} review={createMockReview({ rating: 3 })} />);
     expect(screen.getByText("Bueno")).toBeInTheDocument();
   });
 
   it("renders 'Regular' for rating >= 2 and < 3", () => {
-    render(<ReviewCard {...defaultProps} review={{ ...baseReview, rating: 2 }} />);
+    render(<ReviewCard {...defaultProps} review={createMockReview({ rating: 2 })} />);
     expect(screen.getByText("Regular")).toBeInTheDocument();
   });
 
   it("renders 'Malo' for rating < 2", () => {
-    render(<ReviewCard {...defaultProps} review={{ ...baseReview, rating: 1 }} />);
+    render(<ReviewCard {...defaultProps} review={createMockReview({ rating: 1 })} />);
     expect(screen.getByText("Malo")).toBeInTheDocument();
   });
 
@@ -271,7 +138,6 @@ describe("ReviewCard (full view)", () => {
 
   it("renders the shortened review ID in the footer", () => {
     render(<ReviewCard {...defaultProps} />);
-    // _id.slice(-8) of "review-abc123" = "bc123"... let's compute
     const shortId = "review-abc123".slice(-8);
     expect(screen.getByText(`ID: ${shortId}`)).toBeInTheDocument();
   });
@@ -326,10 +192,7 @@ describe("ReviewCard (full view)", () => {
   });
 
   it("shows 'Editado' footer when updatedAt differs from createdAt", () => {
-    const review: Review = {
-      ...baseReview,
-      updatedAt: "2024-07-01T12:00:00Z",
-    };
+    const review = createMockReview({ updatedAt: "2024-07-01T12:00:00Z" });
     render(<ReviewCard {...defaultProps} review={review} />);
     expect(screen.getByText(/Editado/)).toBeInTheDocument();
   });
@@ -363,14 +226,13 @@ describe("ReviewCard (compact view)", () => {
   });
 
   it("renders helpfulCount in compact mode when > 0", () => {
-    const review: Review = { ...baseReview, helpfulCount: 5 };
+    const review = createMockReview({ helpfulCount: 5 });
     render(<ReviewCard {...defaultProps} review={review} compact />);
     expect(screen.getByLabelText(/5 personas encontraron esto útil/i)).toBeInTheDocument();
   });
 
   it("does not render thumbs-up count when helpfulCount is 0 in compact mode", () => {
     render(<ReviewCard {...defaultProps} compact />);
-    // The emoji/count span should not be present
     expect(screen.queryByText(/👍/)).not.toBeInTheDocument();
   });
 });

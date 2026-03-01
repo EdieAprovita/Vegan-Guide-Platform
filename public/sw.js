@@ -42,7 +42,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok) {
+          // Check if it's safe to cache
+          const isCacheable =
+            response.ok &&
+            !request.headers.has('Authorization') &&
+            !response.headers.get('cache-control')?.includes('no-store') &&
+            !response.headers.get('cache-control')?.includes('private') &&
+            !url.pathname.includes('/auth/') &&
+            !url.pathname.includes('/user/');
+
+          if (isCacheable) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
