@@ -86,6 +86,26 @@ self.addEventListener('fetch', (event) => {
   }
 
   // HTML navigation pages: Network first with offline fallback
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches
+            .match(request)
+            .then((cached) => cached || caches.match('/offline.html'))
+        )
+    );
+    return;
+  }
+
+  // All other GET requests (manifest.json, etc.): Network only, cache fallback, no HTML
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -98,7 +118,11 @@ self.addEventListener('fetch', (event) => {
       .catch(() =>
         caches
           .match(request)
-          .then((cached) => cached || caches.match('/offline.html'))
+          .then(
+            (cached) =>
+              cached ||
+              new Response('', { status: 503, statusText: 'Service Unavailable' })
+          )
       )
   );
 });
