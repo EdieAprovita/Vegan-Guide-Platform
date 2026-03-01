@@ -22,13 +22,8 @@ const SUGGESTED_LINKS = [
   { href: "/community",   labelKey: "resources.community",   icon: Users            },
 ] as const;
 
-// NOTE: "community" is not in the resources namespace — fall back to the
-// Spanish label at the resource definition level so both locales work.
-const RESOURCES_COMMUNITY_ES = "Comunidad";
-const RESOURCES_COMMUNITY_EN = "Community";
-
 export default function NotFound() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-emerald-50 via-white to-white px-4 py-16">
@@ -109,31 +104,21 @@ export default function NotFound() {
         </p>
         <nav aria-label="Secciones sugeridas">
           <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="list">
-            {SUGGESTED_LINKS.map(({ href, labelKey, icon: Icon }) => {
-              // "community" lives under nav, not resources — resolve manually
-              const label =
-                labelKey === "resources.community"
-                  ? locale === "es"
-                    ? RESOURCES_COMMUNITY_ES
-                    : RESOURCES_COMMUNITY_EN
-                  : t(labelKey);
-
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="bg-card border-border text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-                  >
-                    <Icon
-                      className="h-4 w-4 flex-shrink-0 text-emerald-500"
-                      aria-hidden="true"
-                      strokeWidth={1.75}
-                    />
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
+            {SUGGESTED_LINKS.map(({ href, labelKey, icon: Icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className="bg-card border-border text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                >
+                  <Icon
+                    className="h-4 w-4 flex-shrink-0 text-emerald-500"
+                    aria-hidden="true"
+                    strokeWidth={1.75}
+                  />
+                  {t(labelKey)}
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>

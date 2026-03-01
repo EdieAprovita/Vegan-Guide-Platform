@@ -24,8 +24,7 @@ export function ErrorFallback({
   const { t } = useTranslation();
 
   const resolvedTitle = title ?? t("errors.generic");
-  const resolvedDescription =
-    description ?? "Ha ocurrido un error inesperado. Por favor intenta de nuevo.";
+  const resolvedDescription = description ?? t("errors.unexpected");
 
   return (
     <div

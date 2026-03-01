@@ -105,7 +105,7 @@ export default function MapClient() {
 
       setMarkerInstances(newMarkers);
     }
-  }, [map, markers, filters, markerInstances]);
+  }, [map, markers, filters]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

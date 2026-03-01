@@ -42,6 +42,7 @@ jest.mock("@/lib/i18n", () => ({
         "common.retry": "Intentar de nuevo",
         "common.goHome": "Volver al inicio",
         "common.error": "Algo salió mal",
+        "errors.unexpected": "Ha ocurrido un error inesperado. Por favor intenta de nuevo.",
       };
       return map[key] || key;
     },
