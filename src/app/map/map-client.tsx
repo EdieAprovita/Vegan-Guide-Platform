@@ -16,9 +16,9 @@ interface MarkerData {
 
 export default function MapClient() {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const markerInstancesRef = useRef<google.maps.Marker[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<MarkerData[]>([]);
-  const [markerInstances, setMarkerInstances] = useState<google.maps.Marker[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     restaurants: true,
@@ -73,20 +73,20 @@ export default function MapClient() {
     }
   }, [map]);
 
-  // Clean up markers when component unmounts or map changes
+  // Clean up markers when component unmounts
   useEffect(() => {
     return () => {
-      markerInstances.forEach((marker) => {
+      markerInstancesRef.current.forEach((marker) => {
         marker.setMap(null);
       });
     };
-  }, [markerInstances]);
+  }, []);
 
   // Manage markers based on filters and data
   useEffect(() => {
     if (map && markers.length > 0 && google && google.maps) {
       // Clear existing markers
-      markerInstances.forEach((marker) => {
+      markerInstancesRef.current.forEach((marker) => {
         marker.setMap(null);
       });
 
@@ -103,7 +103,7 @@ export default function MapClient() {
         }
       });
 
-      setMarkerInstances(newMarkers);
+      markerInstancesRef.current = newMarkers;
     }
   }, [map, markers, filters]);
 
