@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { useRestaurants } from "@/hooks/useRestaurants";
 import * as restaurantsApi from "@/lib/api/restaurants";
+import { setupStoreTest } from "./store-test-utils";
 
 jest.mock("@/lib/api/restaurants", () => ({
   getRestaurants: jest.fn(),
@@ -27,26 +28,13 @@ const mockRestaurant = {
   updatedAt: "2024-01-01",
 };
 
-const resetStore = () => {
-  useRestaurants.setState({
-    restaurants: [],
-    currentRestaurant: null,
-    isLoading: false,
-    error: null,
-    totalPages: 0,
-    currentPage: 1,
-  });
-};
-
-const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-beforeEach(() => {
-  resetStore();
-  jest.clearAllMocks();
-});
-
-afterAll(() => {
-  consoleErrorSpy.mockRestore();
+setupStoreTest(useRestaurants, {
+  restaurants: [],
+  currentRestaurant: null,
+  isLoading: false,
+  error: null,
+  totalPages: 0,
+  currentPage: 1,
 });
 
 describe("useRestaurants store actions", () => {

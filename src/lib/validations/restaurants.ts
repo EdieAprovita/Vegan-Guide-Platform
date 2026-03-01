@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reviewCommonSchema, type ReviewCommonFormData } from "./shared";
 
 export const createRestaurantSchema = z.object({
   restaurantName: z
@@ -27,15 +28,8 @@ export const createRestaurantSchema = z.object({
 
 export const updateRestaurantSchema = createRestaurantSchema.partial();
 
-export const restaurantReviewSchema = z.object({
-  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
-  comment: z
-    .string()
-    .min(1, "Comment is required")
-    .min(10, "Comment must be at least 10 characters")
-    .max(500, "Comment must be less than 500 characters"),
-});
+export const restaurantReviewSchema = reviewCommonSchema;
 
 export type CreateRestaurantFormData = z.infer<typeof createRestaurantSchema>;
 export type UpdateRestaurantFormData = z.infer<typeof updateRestaurantSchema>;
-export type RestaurantReviewFormData = z.infer<typeof restaurantReviewSchema>;
+export type RestaurantReviewFormData = ReviewCommonFormData;

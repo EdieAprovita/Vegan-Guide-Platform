@@ -9,37 +9,11 @@ import {
   createRestaurantReview,
 } from "@/lib/api/reviews";
 import { API_CONFIG } from "@/lib/api/config";
+import { mockOkJson, mockError, setupFetchMocks } from "./fetch-mocks";
 
 const BASE = API_CONFIG.BASE_URL;
 
-function mockOkJson(data: unknown) {
-  (global.fetch as jest.Mock).mockResolvedValue({
-    ok: true,
-    headers: { get: () => "application/json" },
-    json: jest.fn().mockResolvedValue(data),
-  });
-}
-
-function mockError(status: number, message: string) {
-  (global.fetch as jest.Mock).mockResolvedValue({
-    ok: false,
-    status,
-    statusText: "Error",
-    headers: { get: () => "application/json" },
-    json: jest.fn().mockResolvedValue({ message }),
-  });
-}
-
-const originalFetch = global.fetch;
-
-beforeEach(() => {
-  global.fetch = jest.fn();
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-  global.fetch = originalFetch;
-});
+setupFetchMocks();
 
 // ---------------------------------------------------------------------------
 describe("getReview", () => {

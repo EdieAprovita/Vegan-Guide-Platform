@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reviewCommonSchema, type ReviewCommonFormData } from "./shared";
 
 export const createDoctorSchema = z.object({
   name: z
@@ -36,15 +37,8 @@ export const createDoctorSchema = z.object({
 
 export const updateDoctorSchema = createDoctorSchema.partial();
 
-export const doctorReviewSchema = z.object({
-  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
-  comment: z
-    .string()
-    .min(1, "Comment is required")
-    .min(10, "Comment must be at least 10 characters")
-    .max(500, "Comment must be less than 500 characters"),
-});
+export const doctorReviewSchema = reviewCommonSchema;
 
 export type CreateDoctorFormData = z.infer<typeof createDoctorSchema>;
 export type UpdateDoctorFormData = z.infer<typeof updateDoctorSchema>;
-export type DoctorReviewFormData = z.infer<typeof doctorReviewSchema>;
+export type DoctorReviewFormData = ReviewCommonFormData;

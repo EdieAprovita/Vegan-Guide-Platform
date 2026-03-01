@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { useRecipes } from "@/hooks/useRecipes";
 import * as recipesApi from "@/lib/api/recipes";
+import { setupStoreTest } from "./store-test-utils";
 
 jest.mock("@/lib/api/recipes", () => ({
   getRecipes: jest.fn(),
@@ -26,26 +27,13 @@ const mockRecipe = {
   updatedAt: "2024-01-01",
 };
 
-const resetStore = () => {
-  useRecipes.setState({
-    recipes: [],
-    currentRecipe: null,
-    isLoading: false,
-    error: null,
-    totalPages: 0,
-    currentPage: 1,
-  });
-};
-
-const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-beforeEach(() => {
-  resetStore();
-  jest.clearAllMocks();
-});
-
-afterAll(() => {
-  consoleErrorSpy.mockRestore();
+setupStoreTest(useRecipes, {
+  recipes: [],
+  currentRecipe: null,
+  isLoading: false,
+  error: null,
+  totalPages: 0,
+  currentPage: 1,
 });
 
 describe("useRecipes store actions", () => {

@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { useSanctuaries } from "@/hooks/useSanctuaries";
 import * as sanctuariesApi from "@/lib/api/sanctuaries";
+import { setupStoreTest } from "./store-test-utils";
 
 jest.mock("@/lib/api/sanctuaries", () => ({
   getSanctuaries: jest.fn(),
@@ -31,26 +32,13 @@ const mockSanctuary = {
   updatedAt: "2024-01-01",
 };
 
-const resetStore = () => {
-  useSanctuaries.setState({
-    sanctuaries: [],
-    currentSanctuary: null,
-    isLoading: false,
-    error: null,
-    totalPages: 0,
-    currentPage: 1,
-  });
-};
-
-const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-beforeEach(() => {
-  resetStore();
-  jest.clearAllMocks();
-});
-
-afterAll(() => {
-  consoleErrorSpy.mockRestore();
+setupStoreTest(useSanctuaries, {
+  sanctuaries: [],
+  currentSanctuary: null,
+  isLoading: false,
+  error: null,
+  totalPages: 0,
+  currentPage: 1,
 });
 
 describe("useSanctuaries store actions", () => {
