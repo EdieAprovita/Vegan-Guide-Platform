@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -40,6 +38,9 @@ export function RecipeShowcase() {
         className="absolute top-[508px] right-[-127px] z-10 hidden h-[261px] w-[478px] object-cover opacity-20 xl:block"
         width={478}
         height={261}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 478px"
       />
 
       <div className="mx-auto mb-4 max-w-[795px] text-center font-['Playfair_Display'] text-2xl leading-tight font-bold text-green-800 sm:text-3xl md:text-4xl lg:text-[54px]">
@@ -63,6 +64,9 @@ export function RecipeShowcase() {
               className="h-[200px] w-full object-cover sm:h-[222px]"
               width={280}
               height={200}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
             />
 
             <div className="p-4 pb-20 text-center">

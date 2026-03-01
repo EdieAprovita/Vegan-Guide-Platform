@@ -56,17 +56,22 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
           variant="ghost"
           className="mb-6 text-emerald-600 hover:text-emerald-700"
           onClick={() => window.history.back()}
+          aria-label="Volver a Recetas"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
           Back to Recipes
         </Button>
 
         <div className="relative h-96 overflow-hidden rounded-xl">
           <Image
             src={currentRecipe.image || "/placeholder-recipe.jpg"}
-            alt={currentRecipe.title}
+            alt={currentRecipe.title + " - Receta vegana"}
             fill
             className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 896px"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute right-0 bottom-0 left-0 p-6 text-white">
@@ -85,7 +90,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
 
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="flex items-center gap-2 text-emerald-700">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-5 w-5" aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Total Time</p>
               <p className="font-medium">
@@ -94,14 +99,14 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             </div>
           </div>
           <div className="flex items-center gap-2 text-emerald-700">
-            <Users className="h-5 w-5" />
+            <Users className="h-5 w-5" aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Servings</p>
               <p className="font-medium">{currentRecipe.servings}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <ChefHat className={`h-5 w-5 ${difficultyColor}`} />
+            <ChefHat className={`h-5 w-5 ${difficultyColor}`} aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Difficulty</p>
               <p className={`font-medium capitalize ${difficultyColor}`}>
@@ -110,7 +115,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             </div>
           </div>
           <div className="flex items-center gap-2 text-emerald-700">
-            <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+            <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Rating</p>
               <p className="font-medium">
@@ -124,15 +129,17 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
           <Button
             variant="outline"
             className="flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            aria-label="Guardar receta en favoritos"
           >
-            <Heart className="mr-2 h-4 w-4" />
+            <Heart className="mr-2 h-4 w-4" aria-hidden="true" />
             Save Recipe
           </Button>
           <Button
             variant="outline"
             className="flex-1 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            aria-label="Compartir receta"
           >
-            <Share2 className="mr-2 h-4 w-4" />
+            <Share2 className="mr-2 h-4 w-4" aria-hidden="true" />
             Share Recipe
           </Button>
         </div>
@@ -163,9 +170,22 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <h2 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-emerald-800">
               Instructions
             </h2>
-            <div className="leading-relaxed whitespace-pre-line text-emerald-600">
-              {currentRecipe.instructions}
-            </div>
+            {Array.isArray(currentRecipe.instructions) ? (
+              <ol className="list-decimal space-y-3 pl-5 leading-relaxed text-emerald-600">
+                {currentRecipe.instructions.map((step: string, index: number) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ol>
+            ) : (
+              <ol className="list-decimal space-y-3 pl-5 leading-relaxed text-emerald-600">
+                {String(currentRecipe.instructions)
+                  .split(/\n+/)
+                  .filter((s: string) => s.trim())
+                  .map((step: string, index: number) => (
+                    <li key={index}>{step.trim()}</li>
+                  ))}
+              </ol>
+            )}
           </div>
 
           {user && (
@@ -173,17 +193,22 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
               <h2 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-emerald-800">
                 Rate this Recipe
               </h2>
-              <div className="flex gap-2">
+              <div
+                role="group"
+                aria-label="Calificacion de la receta"
+                className="flex gap-2"
+              >
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <Button
                     key={rating}
                     variant="ghost"
+                    aria-label={`Calificar con ${rating} estrellas`}
                     onClick={() => {
                       /* TODO: implement rating */
                     }}
                     className="text-yellow-400 hover:text-yellow-500"
                   >
-                    <Star className="h-8 w-8" />
+                    <Star className="h-8 w-8" aria-hidden="true" />
                   </Button>
                 ))}
               </div>

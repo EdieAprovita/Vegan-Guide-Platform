@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { useMarkets } from "@/hooks/useMarkets";
 import * as marketsApi from "@/lib/api/markets";
+import { setupStoreTest } from "./store-test-utils";
 
 jest.mock("@/lib/api/markets", () => ({
   getMarkets: jest.fn(),
@@ -29,26 +30,13 @@ const mockMarket = {
   updatedAt: "2024-01-01",
 };
 
-const resetStore = () => {
-  useMarkets.setState({
-    markets: [],
-    currentMarket: null,
-    isLoading: false,
-    error: null,
-    totalPages: 0,
-    currentPage: 1,
-  });
-};
-
-const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-beforeEach(() => {
-  resetStore();
-  jest.clearAllMocks();
-});
-
-afterAll(() => {
-  consoleErrorSpy.mockRestore();
+setupStoreTest(useMarkets, {
+  markets: [],
+  currentMarket: null,
+  isLoading: false,
+  error: null,
+  totalPages: 0,
+  currentPage: 1,
 });
 
 describe("useMarkets store actions", () => {

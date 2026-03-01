@@ -50,24 +50,31 @@ export function LoginForm({ onSubmit, onForgotPassword, onRegister, isLoading }:
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5" noValidate>
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Email
+                  Email{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="login-email"
                     type="email"
                     placeholder="Enter your email"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-email-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="login-email-error" className="text-rose-500" />
               </FormItem>
             )}
           />
@@ -75,20 +82,27 @@ export function LoginForm({ onSubmit, onForgotPassword, onRegister, isLoading }:
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Password
+                  Password{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="login-password"
                     type="password"
                     placeholder="Enter your password"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-password-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="login-password-error" className="text-rose-500" />
               </FormItem>
             )}
           />

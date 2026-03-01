@@ -1,8 +1,28 @@
+import { Metadata } from "next";
 import { getMarkets, Market } from "@/lib/api/markets";
 import { SimpleMarketList } from "@/components/features/markets/simple-market-list";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Mercados Veganos | Verde Guide",
+  description:
+    "Descubre mercados orgánicos y tiendas locales con productos veganos frescos cerca de ti. Encuentra los mejores mercados plant-based de tu ciudad.",
+  keywords: [
+    "mercados veganos",
+    "mercados orgánicos",
+    "tiendas veganas",
+    "productos veganos",
+    "alimentación plant-based",
+    "compras veganas",
+  ],
+  openGraph: {
+    title: "Mercados Veganos | Verde Guide",
+    description:
+      "Descubre mercados orgánicos y tiendas locales con productos veganos frescos cerca de ti.",
+  },
+};
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -14,7 +34,6 @@ export default async function MarketsPage() {
     const response = await getMarkets();
     // Ensure we always pass an array
     initialMarkets = Array.isArray(response) ? response : response?.data || [];
-    console.log("Server-side markets fetch result:", initialMarkets);
   } catch (error) {
     console.error("Failed to fetch markets:", error);
     // Continue with empty array, the client-side will handle the loading

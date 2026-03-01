@@ -1,5 +1,7 @@
 import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import { buildSearchParams } from "./utils";
 import { Review } from "@/types";
+import { GeoLocation } from "@/types/geospatial";
 
 // Development flag to use mock data when backend has issues
 
@@ -12,10 +14,7 @@ export interface Restaurant {
   country?: string; // Country for display purposes
   phone?: string; // Direct phone access for compatibility
   website?: string; // Website URL
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   author: {
     _id: string;
     username: string;
@@ -38,10 +37,7 @@ export interface Restaurant {
 export interface CreateRestaurantData {
   restaurantName: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   contact: {
     phone?: string;
     facebook?: string;
@@ -70,17 +66,18 @@ export interface RestaurantSearchParams {
 }
 
 export async function getRestaurants(params?: RestaurantSearchParams) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.search) searchParams.append("search", params.search);
-  if (params?.cuisine) searchParams.append("cuisine", params.cuisine);
-  if (params?.rating) searchParams.append("rating", params.rating.toString());
-  if (params?.location) searchParams.append("location", params.location);
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams({
+    page: params?.page,
+    limit: params?.limit,
+    search: params?.search,
+    cuisine: params?.cuisine,
+    rating: params?.rating,
+    location: params?.location,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy: params?.sortBy,
+  });
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
@@ -257,14 +254,18 @@ export async function getNearbyRestaurants(params: {
   cuisine?: string;
   minRating?: number;
 }) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("latitude", params.latitude.toString());
-  searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.cuisine) searchParams.append("cuisine", params.cuisine);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  searchParams.append("sortBy", "distance");
+  const searchParams = buildSearchParams(
+    {
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      limit: params.limit,
+      cuisine: params.cuisine,
+      minRating: params.minRating,
+      sortBy: "distance",
+    },
+    { minRating: "rating" }
+  );
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
@@ -286,16 +287,19 @@ export async function getRestaurantsByCuisine(
     radius?: number;
   }
 ) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("cuisine", cuisine);
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.latitude && params?.longitude) {
-    searchParams.append("sortBy", "distance");
-  }
+  // sortBy is conditionally added only when both coordinates are present
+  const sortBy =
+    params?.latitude !== undefined && params?.longitude !== undefined ? "distance" : undefined;
+
+  const searchParams = buildSearchParams({
+    cuisine,
+    page: params?.page,
+    limit: params?.limit,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy,
+  });
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
@@ -318,18 +322,20 @@ export async function getAdvancedRestaurants(params: {
   radius?: number;
   sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
 }) {
-  const searchParams = new URLSearchParams();
-  if (params.page) searchParams.append("page", params.page.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.search) searchParams.append("search", params.search);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  if (params.cuisine?.length) {
-    params.cuisine.forEach((c) => searchParams.append("cuisine", c));
-  }
-  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams(
+    {
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      minRating: params.minRating,
+      cuisine: params.cuisine,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      sortBy: params.sortBy,
+    },
+    { minRating: "rating" }
+  );
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(

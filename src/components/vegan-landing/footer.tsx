@@ -1,5 +1,3 @@
-"use client";
-
 export function Footer() {
   return (
     <div className="relative min-h-[400px] w-full bg-green-900 px-4 pt-12 sm:min-h-[492px] sm:px-6 sm:pt-16 lg:px-24 lg:pt-[162px] xl:px-[93px]">

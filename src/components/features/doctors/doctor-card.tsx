@@ -1,7 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import { Doctor } from "@/lib/api/doctors";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, Mail, Globe } from "lucide-react";
@@ -12,28 +13,36 @@ interface DoctorCardProps {
   showActions?: boolean;
 }
 
-export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
+function DoctorCardComponent({ doctor, showActions = true }: DoctorCardProps) {
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
   };
 
   return (
-    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+    <article
+      aria-label={`Doctor: ${doctor.name}`}
+      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="line-clamp-1 text-lg font-semibold text-gray-900">
+            <h3 className="text-foreground line-clamp-1 text-lg font-semibold leading-none">
               Dr. {doctor.name}
-            </CardTitle>
-            <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4" />
+            </h3>
+            <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+              <MapPin aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
               <span className="line-clamp-1">{doctor.address}</span>
             </div>
           </div>
           <div className="ml-2 flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{formatRating(doctor.rating)}</span>
-            <span className="text-xs text-gray-500">({doctor.numReviews})</span>
+            <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
+            <span
+              className="text-sm font-medium"
+              aria-label={`Calificación: ${formatRating(doctor.rating)} de 5`}
+            >
+              {formatRating(doctor.rating)}
+            </span>
+            <span className="text-muted-foreground text-xs">({doctor.numReviews})</span>
           </div>
         </div>
       </CardHeader>
@@ -58,29 +67,29 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
           </div>
 
           {/* Experience */}
-          <div className="text-sm text-gray-600">
+          <div className="text-muted-foreground text-sm">
             <p className="line-clamp-2">{doctor.experience}</p>
           </div>
 
           {/* Contact Information */}
           {doctor.contact && doctor.contact.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               {doctor.contact[0].phone && (
                 <div className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
+                  <Phone aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
                   <span>{doctor.contact[0].phone}</span>
                 </div>
               )}
               {doctor.contact[0].email && (
                 <div className="flex items-center gap-1">
-                  <Mail className="h-3 w-3" />
+                  <Mail aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
                   <span className="truncate">{doctor.contact[0].email}</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* Social Links */}
+          {/* Website Link */}
           {doctor.contact && doctor.contact.length > 0 && doctor.contact[0].website && (
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" className="h-8 px-2">
@@ -90,7 +99,7 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-xs"
                 >
-                  <Globe className="h-3 w-3" />
+                  <Globe aria-hidden="true" className="h-3 w-3" />
                   Website
                 </a>
               </Button>
@@ -103,13 +112,16 @@ export function DoctorCard({ doctor, showActions = true }: DoctorCardProps) {
               <Button asChild className="flex-1">
                 <Link href={`/doctors/${doctor._id}`}>View Details</Link>
               </Button>
-              <Button variant="outline" size="sm">
-                <Star className="h-4 w-4" />
+              <Button variant="outline" size="sm" aria-label="Guardar doctor">
+                <Star aria-hidden="true" className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
       </CardContent>
-    </Card>
+    </article>
   );
 }
+
+export const DoctorCard = memo(DoctorCardComponent);
+DoctorCard.displayName = "DoctorCard";

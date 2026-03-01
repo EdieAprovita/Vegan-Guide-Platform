@@ -46,6 +46,14 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     setState((prev) => ({ ...prev, error, loading: false }));
   }, 500);
 
+  // Stabilize restOptions: the spread object is recreated on every render, so we
+  // hold it in a ref to avoid it invalidating useCallback / useEffect dependencies.
+  const restOptionsRef = useRef(restOptions);
+  useEffect(() => {
+    restOptionsRef.current = restOptions;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty – extra keys in restOptions are exotic; callers should memoize
+
   const getCurrentPosition = useCallback(async () => {
     if (!state.supported) {
       const error = "Geolocation is not supported by this browser";
@@ -70,7 +78,7 @@ export function useGeolocation(options: GeolocationOptions = {}) {
       enableHighAccuracy,
       timeout,
       maximumAge,
-      ...restOptions,
+      ...restOptionsRef.current,
     };
 
     const attemptGeolocation = async (attempt: number): Promise<GeolocationPosition> => {
@@ -120,7 +128,7 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     retryAttempts,
     retryDelay,
     debouncedErrorHandler,
-    restOptions,
+    // restOptions intentionally omitted – stabilized via restOptionsRef above
   ]);
 
   // Watch position with cleanup
@@ -143,7 +151,7 @@ export function useGeolocation(options: GeolocationOptions = {}) {
         const errorMessage = getGeolocationErrorMessage(error);
         debouncedErrorHandler(errorMessage);
       },
-      { enableHighAccuracy, timeout, maximumAge, ...restOptions }
+      { enableHighAccuracy, timeout, maximumAge, ...restOptionsRef.current }
     );
 
     return () => {
@@ -159,7 +167,7 @@ export function useGeolocation(options: GeolocationOptions = {}) {
     timeout,
     maximumAge,
     debouncedErrorHandler,
-    restOptions,
+    // restOptions intentionally omitted – stabilized via restOptionsRef above
   ]);
 
   const clearError = useCallback(() => {

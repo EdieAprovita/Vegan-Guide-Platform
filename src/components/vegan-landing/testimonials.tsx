@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 
 export function Testimonials() {
@@ -12,6 +10,9 @@ export function Testimonials() {
         className="absolute top-12 left-[-26px] z-10 hidden h-[272px] w-[498px] object-cover opacity-20 xl:block"
         width={498}
         height={272}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 498px"
       />
       <Image
         src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
@@ -19,6 +20,9 @@ export function Testimonials() {
         className="absolute top-[521px] right-0 z-10 hidden h-[226px] w-[414px] object-cover opacity-20 xl:block"
         width={414}
         height={226}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 414px"
       />
 
       <div className="mx-auto mb-4 max-w-[764px] font-['Playfair_Display'] text-2xl leading-tight font-bold text-green-800 sm:text-3xl md:text-4xl lg:text-[54px]">
@@ -56,6 +60,9 @@ export function Testimonials() {
           className="mx-auto h-[80px] w-[80px] rounded-2xl object-cover shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] sm:h-[112px] sm:w-[112px]"
           width={112}
           height={112}
+          placeholder="blur"
+          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+          sizes="112px"
         />
       </div>
 

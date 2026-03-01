@@ -156,7 +156,10 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
               alt={business.namePlace}
               fill
               className="object-cover"
+              priority
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
             />
             <div className="absolute top-4 left-4">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
@@ -211,6 +214,9 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                     width={32}
                     height={32}
                     className="rounded-full object-cover"
+                    sizes="32px"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
                   />
                   <span className="font-medium text-gray-900">{business.author.username}</span>
                 </div>

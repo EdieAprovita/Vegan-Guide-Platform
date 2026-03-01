@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reviewCommonSchema, type ReviewCommonFormData } from "./shared";
 
 export const createMarketSchema = z.object({
   marketName: z
@@ -36,15 +37,8 @@ export const createMarketSchema = z.object({
 
 export const updateMarketSchema = createMarketSchema.partial();
 
-export const marketReviewSchema = z.object({
-  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
-  comment: z
-    .string()
-    .min(1, "Comment is required")
-    .min(10, "Comment must be at least 10 characters")
-    .max(500, "Comment must be less than 500 characters"),
-});
+export const marketReviewSchema = reviewCommonSchema;
 
 export type CreateMarketFormData = z.infer<typeof createMarketSchema>;
 export type UpdateMarketFormData = z.infer<typeof updateMarketSchema>;
-export type MarketReviewFormData = z.infer<typeof marketReviewSchema>;
+export type MarketReviewFormData = ReviewCommonFormData;

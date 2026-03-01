@@ -63,10 +63,6 @@ export function useGoogleMaps(options: UseGoogleMapsOptions = {}) {
 
       loadPromise
         .then(() => {
-          if (process.env.NODE_ENV === "development") {
-            console.log("Google Maps loaded successfully");
-            console.log("google.maps available:", !!window.google?.maps);
-          }
           setIsLoaded(true);
           setIsLoading(false);
         })

@@ -1,6 +1,3 @@
-"use client";
-
-import { Header } from "./header";
 import { Hero } from "./hero";
 import { About } from "./about";
 import { Features } from "./features";
@@ -15,9 +12,8 @@ import { Footer } from "./footer";
 export function VeganLandingPage() {
   return (
     <div className="bg-background relative min-h-screen w-full overflow-x-hidden">
-      {/* Hero Section with Header */}
+      {/* Hero Section — Header is rendered globally in RootLayout */}
       <div className="relative">
-        <Header />
         <Hero />
       </div>
 

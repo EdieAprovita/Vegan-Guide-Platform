@@ -149,7 +149,7 @@ export function NotificationCenter() {
       case "mention":
         return <MessageSquare className="h-4 w-4 text-purple-500" />;
       case "system":
-        return <Bell className="h-4 w-4 text-gray-500" />;
+        return <Bell className="text-muted-foreground h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
@@ -201,9 +201,9 @@ export function NotificationCenter() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-4xl text-center">
-          <Bell className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">Sign in to view notifications</h2>
-          <p className="text-gray-600">Please sign in to access your notifications.</p>
+          <Bell className="text-muted-foreground/60 mx-auto mb-4 h-16 w-16" />
+          <h2 className="text-foreground mb-2 text-2xl font-bold">Sign in to view notifications</h2>
+          <p className="text-muted-foreground">Please sign in to access your notifications.</p>
         </div>
       </div>
     );
@@ -216,8 +216,8 @@ export function NotificationCenter() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="mb-2 text-3xl font-bold text-gray-900">Notifications</h1>
-              <p className="text-gray-600">Stay updated with your community activity</p>
+              <h1 className="text-foreground mb-2 text-3xl font-bold">Notifications</h1>
+              <p className="text-muted-foreground">Stay updated with your community activity</p>
             </div>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && <Badge variant="destructive">{unreadCount} unread</Badge>}
@@ -250,16 +250,16 @@ export function NotificationCenter() {
             {loading ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-                  <p className="text-gray-600">Loading notifications...</p>
+                  <div className="border-foreground mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+                  <p className="text-muted-foreground">Loading notifications...</p>
                 </CardContent>
               </Card>
             ) : filteredNotifications.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Bell className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                  <h3 className="mb-2 text-lg font-medium text-gray-900">No notifications</h3>
-                  <p className="text-gray-600">
+                  <Bell className="text-muted-foreground/60 mx-auto mb-4 h-12 w-12" />
+                  <h3 className="text-foreground mb-2 text-lg font-medium">No notifications</h3>
+                  <p className="text-muted-foreground">
                     {activeTab === "unread"
                       ? "You're all caught up! No unread notifications."
                       : "No notifications to show."}
@@ -272,7 +272,7 @@ export function NotificationCenter() {
                   <Card
                     key={notification.id}
                     className={`transition-colors ${
-                      !notification.read ? "border-blue-200 bg-blue-50" : ""
+                      !notification.read ? "border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40" : ""
                     }`}
                   >
                     <CardContent className="p-4">
@@ -284,7 +284,7 @@ export function NotificationCenter() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="mb-1 flex items-center gap-2">
-                                <h3 className="text-sm font-medium text-gray-900">
+                                <h3 className="text-foreground text-sm font-medium">
                                   {notification.title}
                                 </h3>
                                 <Badge variant="outline" className="text-xs">
@@ -294,8 +294,8 @@ export function NotificationCenter() {
                                   <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                                 )}
                               </div>
-                              <p className="mb-2 text-sm text-gray-600">{notification.message}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-muted-foreground mb-2 text-sm">{notification.message}</p>
+                              <p className="text-muted-foreground/60 text-xs">
                                 {formatTimestamp(notification.timestamp)}
                               </p>
                             </div>

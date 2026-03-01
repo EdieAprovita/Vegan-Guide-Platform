@@ -7,6 +7,7 @@ import { Review } from "@/lib/api/reviews";
 import { extractBackendData } from "@/lib/api/config";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { notFound } from "next/navigation";
 
@@ -77,22 +78,29 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-4xl">
-        <button
+        {/* Back navigation — placed before the card for keyboard/screen-reader flow */}
+        <Button
+          variant="ghost"
           onClick={() => window.history.back()}
           className="mb-6 flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+          aria-label="Volver a Restaurantes"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
           Back to Restaurants
-        </button>
+        </Button>
         <div className="overflow-hidden rounded-xl bg-white shadow-lg">
           <div className="md:flex">
             <div className="md:flex-shrink-0">
               <Image
                 src={restaurant.image || "/placeholder-restaurant.jpg"}
-                alt={`Photo of ${restaurant.name}`}
+                alt={restaurant.restaurantName + " - Restaurante vegano"}
                 width={300}
                 height={300}
                 className="h-full w-full object-cover md:w-64"
+                priority
+                sizes="(max-width: 768px) 100vw, 300px"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
               />
             </div>
             <div className="p-8">
@@ -104,12 +112,12 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
               </h1>
               <div className="mt-4">
                 <p className="flex items-center text-gray-600">
-                  <MapPin className="mr-2 h-4 w-4" />
+                  <MapPin className="mr-2 h-4 w-4" aria-hidden="true" />
                   {restaurant.address}, {restaurant.city}, {restaurant.country}
                 </p>
                 {restaurant.phone && (
                   <p className="mt-2 flex items-center text-gray-600">
-                    <Phone className="mr-2 h-4 w-4" />
+                    <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
                     {restaurant.phone}
                   </p>
                 )}
@@ -120,7 +128,7 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
                     rel="noopener noreferrer"
                     className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
                   >
-                    <Globe className="mr-2 h-4 w-4" />
+                    <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
                     Visit website
                   </a>
                 )}
@@ -128,6 +136,7 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
             </div>
           </div>
           <div className="border-t border-gray-200 p-8">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">Resenas</h2>
             <ReviewSystem reviews={adaptedReviews} onReviewSubmit={handleAddReview} />
           </div>
         </div>

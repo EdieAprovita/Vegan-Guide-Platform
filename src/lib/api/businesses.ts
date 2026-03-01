@@ -1,13 +1,12 @@
 import { apiRequest, getApiHeaders, BackendResponse } from "./config";
+import { buildSearchParams } from "./utils";
+import { GeoLocation } from "@/types/geospatial";
 
 export interface Business {
   _id: string;
   namePlace: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   image: string;
   contact: Array<{
     phone?: string;
@@ -32,10 +31,7 @@ export interface Business {
 export interface CreateBusinessData {
   namePlace: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   image: string;
   contact: Array<{
     phone?: string;
@@ -67,24 +63,26 @@ export interface BusinessFilters {
 }
 
 export async function getBusinesses(filters?: BusinessFilters) {
-  const searchParams = new URLSearchParams();
+  // Geospatial params are only sent when both lat and lng are present (original logic).
+  const geoParams =
+    filters?.lat !== undefined && filters?.lng !== undefined
+      ? {
+          lat: filters.lat,
+          lng: filters.lng,
+          ...(filters.radius !== undefined ? { radius: filters.radius } : {}),
+        }
+      : {};
 
-  if (filters?.page) searchParams.append("page", filters.page.toString());
-  if (filters?.limit) searchParams.append("limit", filters.limit.toString());
-  if (filters?.search) searchParams.append("search", filters.search);
-  if (filters?.typeBusiness) searchParams.append("typeBusiness", filters.typeBusiness);
-  if (filters?.rating) searchParams.append("rating", filters.rating.toString());
-  if (filters?.location) searchParams.append("location", filters.location);
-  if (filters?.budget) searchParams.append("budget", filters.budget.toString());
-
-  // Parámetros geoespaciales
-  if (filters?.lat && filters?.lng) {
-    searchParams.append("lat", filters.lat.toString());
-    searchParams.append("lng", filters.lng.toString());
-    if (filters?.radius) {
-      searchParams.append("radius", filters.radius.toString());
-    }
-  }
+  const searchParams = buildSearchParams({
+    page: filters?.page,
+    limit: filters?.limit,
+    search: filters?.search,
+    typeBusiness: filters?.typeBusiness,
+    rating: filters?.rating,
+    location: filters?.location,
+    budget: filters?.budget,
+    ...geoParams,
+  });
 
   const queryString = searchParams.toString();
   const url = queryString ? `/businesses?${queryString}` : "/businesses";
@@ -138,9 +136,10 @@ export async function getBusinessReviews(
     limit?: number;
   }
 ) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
+  const searchParams = buildSearchParams({
+    page: params?.page,
+    limit: params?.limit,
+  });
 
   return apiRequest<BackendResponse<BusinessReview[]>>(
     `/businesses/${id}/reviews?${searchParams.toString()}`
@@ -156,14 +155,7 @@ export async function getBusinessesByProximity(lat: number, lng: number, radius:
 
 // Nueva función para búsqueda avanzada
 export async function searchBusinesses(query: string, filters: BusinessFilters = {}) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("q", query);
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, value.toString());
-    }
-  });
+  const searchParams = buildSearchParams({ q: query, ...filters });
 
   return apiRequest<BackendResponse<Business[]>>(`/businesses/search?${searchParams.toString()}`);
 }

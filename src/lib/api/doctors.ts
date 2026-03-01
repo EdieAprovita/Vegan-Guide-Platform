@@ -1,14 +1,13 @@
 import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import { buildSearchParams } from "./utils";
+import { GeoLocation } from "@/types/geospatial";
 
 export interface Doctor {
   _id: string;
   name: string;
   specialty: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   author: {
     _id: string;
     username: string;
@@ -38,10 +37,7 @@ export interface CreateDoctorData {
   name: string;
   specialty: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   contact: {
     phone?: string;
     email?: string;
@@ -71,17 +67,18 @@ export interface DoctorSearchParams {
 }
 
 export async function getDoctors(params?: DoctorSearchParams) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.search) searchParams.append("search", params.search);
-  if (params?.specialty) searchParams.append("specialty", params.specialty);
-  if (params?.rating) searchParams.append("rating", params.rating.toString());
-  if (params?.location) searchParams.append("location", params.location);
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams({
+    page: params?.page,
+    limit: params?.limit,
+    search: params?.search,
+    specialty: params?.specialty,
+    rating: params?.rating,
+    location: params?.location,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy: params?.sortBy,
+  });
 
   return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
@@ -133,14 +130,18 @@ export async function getNearbyDoctors(params: {
   specialty?: string;
   minRating?: number;
 }) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("latitude", params.latitude.toString());
-  searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.specialty) searchParams.append("specialty", params.specialty);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  searchParams.append("sortBy", "distance");
+  const searchParams = buildSearchParams(
+    {
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      limit: params.limit,
+      specialty: params.specialty,
+      minRating: params.minRating,
+      sortBy: "distance",
+    },
+    { minRating: "rating" }
+  );
 
   return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
@@ -155,16 +156,19 @@ export async function getDoctorsBySpecialty(
     radius?: number;
   }
 ) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("specialty", specialty);
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.latitude && params?.longitude) {
-    searchParams.append("sortBy", "distance");
-  }
+  // sortBy is conditionally added only when both coordinates are present
+  const sortBy =
+    params?.latitude !== undefined && params?.longitude !== undefined ? "distance" : undefined;
+
+  const searchParams = buildSearchParams({
+    specialty,
+    page: params?.page,
+    limit: params?.limit,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy,
+  });
 
   return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }
@@ -181,19 +185,21 @@ export async function getAdvancedDoctors(params: {
   radius?: number;
   sortBy?: "distance" | "rating" | "name" | "createdAt";
 }) {
-  const searchParams = new URLSearchParams();
-  if (params.page) searchParams.append("page", params.page.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.search) searchParams.append("search", params.search);
-  if (params.specialty) searchParams.append("specialty", params.specialty);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  if (params.languages?.length) {
-    params.languages.forEach((lang) => searchParams.append("languages", lang));
-  }
-  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams(
+    {
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      specialty: params.specialty,
+      minRating: params.minRating,
+      languages: params.languages,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      sortBy: params.sortBy,
+    },
+    { minRating: "rating" }
+  );
 
   return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
 }

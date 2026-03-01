@@ -42,8 +42,6 @@ export const useRecipes = create<RecipesState>((set) => ({
       // Use the universal helper to process backend response
       const recipes = processBackendResponse<Recipe>(response) as Recipe[];
 
-      console.log("getRecipes - processed response:", { recipes: recipes.length });
-
       set({
         recipes: Array.isArray(recipes) ? recipes : [],
         totalPages: 1, // Backend doesn't implement pagination yet
@@ -78,7 +76,8 @@ export const useRecipes = create<RecipesState>((set) => ({
   createRecipe: async (data) => {
     try {
       set({ isLoading: true, error: null });
-      const recipe = await recipesApi.createRecipe(data);
+      const response = await recipesApi.createRecipe(data);
+      const recipe = processBackendResponse<Recipe>(response) as Recipe;
       set((state) => ({
         recipes: [recipe, ...state.recipes],
         isLoading: false,
@@ -93,7 +92,8 @@ export const useRecipes = create<RecipesState>((set) => ({
   updateRecipe: async (id, data) => {
     try {
       set({ isLoading: true, error: null });
-      const updatedRecipe = await recipesApi.updateRecipe(id, data);
+      const response = await recipesApi.updateRecipe(id, data);
+      const updatedRecipe = processBackendResponse<Recipe>(response) as Recipe;
       set((state) => ({
         recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
         currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
@@ -125,7 +125,8 @@ export const useRecipes = create<RecipesState>((set) => ({
   addRecipeReview: async (id, review, token) => {
     try {
       set({ isLoading: true, error: null });
-      const updatedRecipe = await recipesApi.addRecipeReview(id, review, token);
+      const response = await recipesApi.addRecipeReview(id, review, token);
+      const updatedRecipe = processBackendResponse<Recipe>(response) as Recipe;
       set((state) => ({
         recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
         currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,

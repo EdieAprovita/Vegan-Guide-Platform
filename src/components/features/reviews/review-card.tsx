@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Star, MoreVertical, Edit, Trash2, Flag } from "lucide-react";
 import { Review } from "@/lib/api/reviews";
 import { useAuthStore } from "@/lib/store/auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,25 @@ interface ReviewCardProps {
   compact?: boolean;
 }
 
+/** Renders 5 star icons with aria-hidden and a visually-hidden text alternative. */
+function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const sizeClass = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  return (
+    <span className="flex items-center gap-0.5">
+      <span className="sr-only">Calificación: {rating} de 5</span>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          aria-hidden="true"
+          className={`${sizeClass} ${
+            star <= rating ? "fill-primary text-primary" : "text-muted-foreground/40"
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
 export const ReviewCard = ({
   review,
   resourceType,
@@ -47,7 +66,6 @@ export const ReviewCard = ({
 
   const handleEditReview = () => {
     // This would typically open an edit modal or navigate to edit page
-    console.log("Edit review:", review._id);
     onReviewUpdate?.();
   };
 
@@ -85,7 +103,6 @@ export const ReviewCard = ({
 
   const handleReportReview = () => {
     // This would typically open a report modal
-    console.log("Report review:", review._id);
   };
 
   const handleHelpfulVoteChange = (reviewId: string, isHelpful: boolean, newCount: number) => {
@@ -98,10 +115,10 @@ export const ReviewCard = ({
   };
 
   const getRatingColor = (rating: number) => {
-    if (rating >= 4) return "text-green-600";
+    if (rating >= 4) return "text-emerald-600";
     if (rating >= 3) return "text-yellow-600";
     if (rating >= 2) return "text-orange-600";
-    return "text-red-600";
+    return "text-destructive";
   };
 
   const getRatingLabel = (rating: number) => {
@@ -114,7 +131,10 @@ export const ReviewCard = ({
 
   if (compact) {
     return (
-      <Card className="transition-shadow hover:shadow-sm">
+      <article
+        aria-label={`Reseña de ${review.user.username}`}
+        className="bg-card text-card-foreground rounded-xl border shadow-sm transition-shadow hover:shadow-sm"
+      >
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
             <Avatar className="h-8 w-8">
@@ -124,24 +144,15 @@ export const ReviewCard = ({
 
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
-                <span className="truncate text-sm font-medium text-gray-900">
+                <span className="truncate text-sm font-medium text-foreground">
                   {review.user.username}
                 </span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-3 w-3 ${
-                        star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
+                <StarRating rating={review.rating} size="sm" />
               </div>
 
-              <p className="mb-2 line-clamp-2 text-sm text-gray-700">{review.comment}</p>
+              <p className="mb-2 line-clamp-2 text-sm text-muted-foreground">{review.comment}</p>
 
-              <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
                   {formatDistanceToNow(new Date(review.createdAt), {
                     addSuffix: true,
@@ -149,20 +160,23 @@ export const ReviewCard = ({
                   })}
                 </span>
                 {review.helpfulCount > 0 && (
-                  <span className="flex items-center gap-1">
-                    <span>👍 {review.helpfulCount}</span>
+                  <span className="flex items-center gap-1" aria-label={`${review.helpfulCount} personas encontraron esto útil`}>
+                    <span aria-hidden="true">👍</span> {review.helpfulCount}
                   </span>
                 )}
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
+      </article>
     );
   }
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <article
+      aria-label={`Reseña de ${review.user.username}`}
+      className="bg-card text-card-foreground rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+    >
       <CardContent className="p-4">
         <div className="space-y-4">
           {/* Header */}
@@ -175,7 +189,7 @@ export const ReviewCard = ({
 
               <div className="min-w-0">
                 <div className="mb-1 flex items-center gap-2">
-                  <h4 className="truncate font-semibold text-gray-900">{review.user.username}</h4>
+                  <h3 className="truncate font-semibold text-foreground">{review.user.username}</h3>
                   {user?.role === "admin" && (
                     <Badge variant="outline" className="text-xs">
                       {user.role}
@@ -183,24 +197,15 @@ export const ReviewCard = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-4 w-4 ${
-                          star <= review.rating
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
+                    <StarRating rating={review.rating} size="md" />
                     <span className={`ml-1 font-medium ${getRatingColor(review.rating)}`}>
                       {review.rating}
                     </span>
                   </div>
 
-                  <span className="text-gray-400">•</span>
+                  <span aria-hidden="true" className="text-muted-foreground/40">•</span>
 
                   <span>
                     {formatDistanceToNow(new Date(review.createdAt), {
@@ -216,14 +221,19 @@ export const ReviewCard = ({
             {showActions && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    aria-label={`Opciones para la reseña de ${review.user.username}`}
+                  >
+                    <MoreVertical aria-hidden="true" className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {canEditReview && (
                     <DropdownMenuItem onClick={handleEditReview}>
-                      <Edit className="mr-2 h-4 w-4" />
+                      <Edit aria-hidden="true" className="mr-2 h-4 w-4" />
                       Editar
                     </DropdownMenuItem>
                   )}
@@ -232,9 +242,9 @@ export const ReviewCard = ({
                     <DropdownMenuItem
                       onClick={handleDeleteReview}
                       disabled={isDeleting}
-                      className="text-red-600 focus:text-red-600"
+                      className="text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 aria-hidden="true" className="mr-2 h-4 w-4" />
                       {isDeleting ? "Eliminando..." : "Eliminar"}
                     </DropdownMenuItem>
                   )}
@@ -245,14 +255,14 @@ export const ReviewCard = ({
 
                   {canModerateReview && (
                     <DropdownMenuItem onClick={handleReportReview}>
-                      <Flag className="mr-2 h-4 w-4" />
+                      <Flag aria-hidden="true" className="mr-2 h-4 w-4" />
                       Moderar
                     </DropdownMenuItem>
                   )}
 
                   {!canEditReview && !canDeleteReview && isAuthenticated && (
                     <DropdownMenuItem onClick={handleReportReview}>
-                      <Flag className="mr-2 h-4 w-4" />
+                      <Flag aria-hidden="true" className="mr-2 h-4 w-4" />
                       Reportar
                     </DropdownMenuItem>
                   )}
@@ -266,17 +276,17 @@ export const ReviewCard = ({
             <Badge variant="secondary" className={`${getRatingColor(review.rating)} bg-opacity-10`}>
               {getRatingLabel(review.rating)}
             </Badge>
-            <span className="text-sm text-gray-600">Calificación: {review.rating}/5</span>
+            <span className="text-sm text-muted-foreground">Calificación: {review.rating}/5</span>
           </div>
 
           {/* Review Content */}
           <div className="space-y-3">
-            <p className="leading-relaxed whitespace-pre-wrap text-gray-700">{review.comment}</p>
+            <p className="leading-relaxed whitespace-pre-wrap text-foreground">{review.comment}</p>
 
             {/* Resource Context */}
-            <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-500">
+            <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
               <span>Review para: </span>
-              <span className="font-medium text-gray-700">
+              <span className="font-medium text-foreground">
                 {resourceType === "restaurant" && "Restaurante"}
                 {resourceType === "recipe" && "Receta"}
                 {resourceType === "market" && "Mercado"}
@@ -300,7 +310,7 @@ export const ReviewCard = ({
           </div>
 
           {/* Footer Info */}
-          <div className="flex items-center justify-between border-t pt-2 text-xs text-gray-500">
+          <div className="flex items-center justify-between border-t pt-2 text-xs text-muted-foreground">
             <span>ID: {review._id.slice(-8)}</span>
             {review.updatedAt !== review.createdAt && (
               <span>
@@ -311,6 +321,6 @@ export const ReviewCard = ({
           </div>
         </div>
       </CardContent>
-    </Card>
+    </article>
   );
 };

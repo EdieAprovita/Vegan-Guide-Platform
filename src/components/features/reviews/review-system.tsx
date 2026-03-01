@@ -65,7 +65,6 @@ export const ReviewSystem = ({
 
   const handleHelpfulClick = async (reviewId: string, isCurrentlyHelpful: boolean) => {
     // Implement helpful voting logic
-    console.log("Toggle helpful vote for review:", reviewId, !isCurrentlyHelpful);
     // Call API endpoint and refresh reviews
     onReviewUpdate?.();
   };
@@ -81,7 +80,6 @@ export const ReviewSystem = ({
   const handleDeleteReview = async (reviewId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta review?")) {
       // Implement delete logic
-      console.log("Delete review:", reviewId);
       onReviewUpdate?.();
     }
   };

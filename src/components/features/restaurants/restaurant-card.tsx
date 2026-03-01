@@ -1,7 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import { Restaurant } from "@/lib/api/restaurants";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, ExternalLink } from "lucide-react";
@@ -12,7 +13,7 @@ interface RestaurantCardProps {
   showActions?: boolean;
 }
 
-export function RestaurantCard({ restaurant, showActions = true }: RestaurantCardProps) {
+function RestaurantCardComponent({ restaurant, showActions = true }: RestaurantCardProps) {
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
   };
@@ -26,21 +27,26 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
   };
 
   return (
-    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+    <article
+      aria-label={`Restaurante: ${restaurant.restaurantName}`}
+      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-foreground line-clamp-1 text-lg font-semibold">
+            <h3 className="text-foreground line-clamp-1 text-lg font-semibold leading-none">
               {restaurant.restaurantName}
-            </CardTitle>
+            </h3>
             <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4" />
+              <MapPin aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
               <span className="line-clamp-1">{restaurant.address}</span>
             </div>
           </div>
           <div className="ml-2 flex items-center gap-1">
-            <Star className="fill-primary text-primary h-4 w-4" />
-            <span className="text-sm font-medium">{formatRating(restaurant.rating)}</span>
+            <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
+            <span className="text-sm font-medium" aria-label={`Calificación: ${formatRating(restaurant.rating)} de 5`}>
+              {formatRating(restaurant.rating)}
+            </span>
             <span className="text-muted-foreground text-xs">({restaurant.numReviews})</span>
           </div>
         </div>
@@ -63,7 +69,7 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               {restaurant.contact[0].phone && (
                 <div className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
+                  <Phone aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
                   <span>{restaurant.contact[0].phone}</span>
                 </div>
               )}
@@ -81,7 +87,7 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-xs"
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink aria-hidden="true" className="h-3 w-3" />
                     Facebook
                   </a>
                 </Button>
@@ -94,7 +100,7 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-xs"
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink aria-hidden="true" className="h-3 w-3" />
                     Instagram
                   </a>
                 </Button>
@@ -108,13 +114,16 @@ export function RestaurantCard({ restaurant, showActions = true }: RestaurantCar
               <Button asChild className="flex-1">
                 <Link href={`/restaurants/${restaurant._id}`}>View Details</Link>
               </Button>
-              <Button variant="outline" size="sm">
-                <Star className="h-4 w-4" />
+              <Button variant="outline" size="sm" aria-label="Guardar restaurante">
+                <Star aria-hidden="true" className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
       </CardContent>
-    </Card>
+    </article>
   );
 }
+
+export const RestaurantCard = memo(RestaurantCardComponent);
+RestaurantCard.displayName = "RestaurantCard";

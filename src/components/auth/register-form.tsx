@@ -52,24 +52,31 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5" noValidate>
           <FormField
             control={form.control}
             name="username"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Username
+                  Username{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="register-username"
                     type="text"
                     placeholder="Enter your username"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "register-username-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="register-username-error" className="text-rose-500" />
               </FormItem>
             )}
           />
@@ -77,20 +84,27 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Email
+                  Email{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="register-email"
                     type="email"
                     placeholder="Enter your email"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "register-email-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="register-email-error" className="text-rose-500" />
               </FormItem>
             )}
           />
@@ -98,15 +112,25 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
           <FormField
             control={form.control}
             name="role"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Account Type
+                <FormLabel
+                  htmlFor="register-role"
+                  className="font-['Playfair_Display'] font-medium text-emerald-900"
+                >
+                  Account Type{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <select
+                    id="register-role"
                     value={field.value}
                     onChange={field.onChange}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "register-role-error" : undefined}
                     className="border-input focus:ring-ring w-full rounded-md border bg-white px-3 py-2 font-['Playfair_Display'] text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Select your account type</option>
@@ -114,7 +138,7 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
                     <option value="professional">Professional</option>
                   </select>
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="register-role-error" className="text-rose-500" />
               </FormItem>
             )}
           />
@@ -122,20 +146,27 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Password
+                  Password{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="register-password"
                     type="password"
                     placeholder="Create a strong password"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "register-password-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="register-password-error" className="text-rose-500" />
               </FormItem>
             )}
           />
@@ -143,20 +174,27 @@ export function RegisterForm({ onSubmit, onLogin, isLoading }: RegisterFormProps
           <FormField
             control={form.control}
             name="confirmPassword"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
                 <FormLabel className="font-['Playfair_Display'] font-medium text-emerald-900">
-                  Confirm Password
+                  Confirm Password{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
                 </FormLabel>
                 <FormControl>
                   <Input
+                    id="register-confirm-password"
                     type="password"
                     placeholder="Confirm your password"
                     className="h-11 border-emerald-100 bg-white/90 font-['Playfair_Display'] focus:border-emerald-500 focus:ring-emerald-500"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "register-confirm-password-error" : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-rose-500" />
+                <FormMessage id="register-confirm-password-error" className="text-rose-500" />
               </FormItem>
             )}
           />

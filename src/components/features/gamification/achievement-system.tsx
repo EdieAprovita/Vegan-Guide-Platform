@@ -196,17 +196,17 @@ export function AchievementSystem() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "community":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300";
       case "restaurants":
-        return "bg-green-100 text-green-800";
+        return "bg-primary/10 text-primary";
       case "recipes":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
       case "health":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
       case "exploration":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -219,9 +219,9 @@ export function AchievementSystem() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mx-auto max-w-4xl text-center">
-          <Trophy className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">Sign in to view achievements</h2>
-          <p className="text-gray-600">Please sign in to access your achievements and progress.</p>
+          <Trophy className="text-muted-foreground/60 mx-auto mb-4 h-16 w-16" />
+          <h2 className="text-foreground mb-2 text-2xl font-bold">Sign in to view achievements</h2>
+          <p className="text-muted-foreground">Please sign in to access your achievements and progress.</p>
         </div>
       </div>
     );
@@ -232,24 +232,24 @@ export function AchievementSystem() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">Achievements & Progress</h1>
-          <p className="text-gray-600">Track your vegan journey and unlock amazing achievements</p>
+          <h1 className="text-foreground mb-2 text-3xl font-bold">Achievements & Progress</h1>
+          <p className="text-muted-foreground">Track your vegan journey and unlock amazing achievements</p>
         </div>
 
         {/* User Stats */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-6 text-center">
-              <div className="mb-2 text-3xl font-bold text-green-600">{userStats.level}</div>
-              <div className="text-sm text-gray-600">Level</div>
-              <div className="mt-1 text-xs text-gray-500">{userStats.rank}</div>
+              <div className="text-primary mb-2 text-3xl font-bold">{userStats.level}</div>
+              <div className="text-muted-foreground text-sm">Level</div>
+              <div className="text-muted-foreground/60 mt-1 text-xs">{userStats.rank}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6 text-center">
               <div className="mb-2 text-3xl font-bold text-blue-600">{userStats.totalPoints}</div>
-              <div className="text-sm text-gray-600">Total Points</div>
+              <div className="text-muted-foreground text-sm">Total Points</div>
             </CardContent>
           </Card>
 
@@ -258,7 +258,7 @@ export function AchievementSystem() {
               <div className="mb-2 text-3xl font-bold text-purple-600">
                 {userStats.achievementsUnlocked}/{userStats.totalAchievements}
               </div>
-              <div className="text-sm text-gray-600">Achievements</div>
+              <div className="text-muted-foreground text-sm">Achievements</div>
               <Progress
                 value={(userStats.achievementsUnlocked / userStats.totalAchievements) * 100}
                 className="mt-2"
@@ -269,8 +269,8 @@ export function AchievementSystem() {
           <Card>
             <CardContent className="p-6 text-center">
               <div className="mb-2 text-3xl font-bold text-orange-600">{userStats.streak}</div>
-              <div className="text-sm text-gray-600">Day Streak</div>
-              <div className="mt-1 text-xs text-gray-500">🔥 Keep it up!</div>
+              <div className="text-muted-foreground text-sm">Day Streak</div>
+              <div className="text-muted-foreground/60 mt-1 text-xs">🔥 Keep it up!</div>
             </CardContent>
           </Card>
         </div>
@@ -295,7 +295,7 @@ export function AchievementSystem() {
                       key={achievement.id}
                       className={`transition-all duration-300 ${
                         achievement.isUnlocked
-                          ? "border-green-200 bg-green-50/50"
+                          ? "border-primary/20 bg-primary/5"
                           : "hover:shadow-md"
                       }`}
                     >
@@ -304,14 +304,14 @@ export function AchievementSystem() {
                           <div className="text-3xl">{achievement.icon}</div>
                           <div className="flex-1">
                             <div className="mb-2 flex items-center gap-2">
-                              <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
+                              <h3 className="text-foreground font-semibold">{achievement.title}</h3>
                               {achievement.isUnlocked && (
-                                <Badge variant="default" className="bg-green-100 text-green-800">
+                                <Badge variant="default" className="bg-primary/10 text-primary">
                                   Unlocked
                                 </Badge>
                               )}
                             </div>
-                            <p className="mb-3 text-sm text-gray-600">{achievement.description}</p>
+                            <p className="text-muted-foreground mb-3 text-sm">{achievement.description}</p>
 
                             <div className="mb-3 flex items-center justify-between">
                               <Badge
@@ -331,7 +331,7 @@ export function AchievementSystem() {
 
                             {!achievement.isUnlocked && (
                               <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-gray-500">
+                                <div className="text-muted-foreground/60 flex justify-between text-xs">
                                   <span>Progress</span>
                                   <span>
                                     {achievement.progress}/{achievement.maxProgress}
@@ -345,7 +345,7 @@ export function AchievementSystem() {
                             )}
 
                             {achievement.isUnlocked && achievement.unlockedAt && (
-                              <div className="mt-2 text-xs text-gray-500">
+                              <div className="text-muted-foreground/60 mt-2 text-xs">
                                 Unlocked {achievement.unlockedAt.toLocaleDateString()}
                               </div>
                             )}
@@ -370,23 +370,23 @@ export function AchievementSystem() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-lg bg-green-50 p-3">
+              <div className="bg-primary/5 flex items-center gap-3 rounded-lg p-3">
                 <div className="text-2xl">🎉</div>
                 <div>
-                  <p className="text-sm font-medium">Achievement Unlocked!</p>
-                  <p className="text-xs text-gray-600">First Steps - Complete your profile</p>
+                  <p className="text-foreground text-sm font-medium">Achievement Unlocked!</p>
+                  <p className="text-muted-foreground text-xs">First Steps - Complete your profile</p>
                 </div>
-                <div className="ml-auto text-xs text-gray-500">
+                <div className="text-muted-foreground/60 ml-auto text-xs">
                   {new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toLocaleDateString()}
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-3">
+              <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-3 dark:bg-blue-950/40">
                 <div className="text-2xl">📈</div>
                 <div>
-                  <p className="text-sm font-medium">Level Up!</p>
-                  <p className="text-xs text-gray-600">You reached Level 2</p>
+                  <p className="text-foreground text-sm font-medium">Level Up!</p>
+                  <p className="text-muted-foreground text-xs">You reached Level 2</p>
                 </div>
-                <div className="ml-auto text-xs text-gray-500">
+                <div className="text-muted-foreground/60 ml-auto text-xs">
                   {new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toLocaleDateString()}
                 </div>
               </div>

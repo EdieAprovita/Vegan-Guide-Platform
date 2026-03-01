@@ -61,15 +61,6 @@ export function SimpleMarketList({
     async (isLoadMore = false) => {
       if (!mounted) return;
 
-      console.log("Fetching markets with filters:", {
-        search: search.trim(),
-        products: productFilter,
-        rating: ratingFilter ? parseInt(ratingFilter) : undefined,
-        location: locationFilter.trim(),
-        page: isLoadMore ? page + 1 : 1,
-        limit: 12,
-      });
-
       try {
         setLoading(true);
         const filters = {
@@ -82,11 +73,9 @@ export function SimpleMarketList({
         };
 
         const response = await getMarkets(filters);
-        console.log("getMarkets response:", response);
 
         // Extract markets from backend response format {success: true, data: [...]}
         const marketsData = Array.isArray(response) ? response : response?.data || [];
-        console.log("Processed markets data:", marketsData);
 
         if (isLoadMore) {
           setMarkets((prev) => [...(Array.isArray(prev) ? prev : []), ...marketsData]);
@@ -149,17 +138,17 @@ export function SimpleMarketList({
           <Card>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
               </div>
             </CardContent>
           </Card>
         )}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
+            <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
       </div>
@@ -168,7 +157,7 @@ export function SimpleMarketList({
 
   return (
     <div className="space-y-6">
-      {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
+      {title && <h2 className="text-foreground text-2xl font-bold">{title}</h2>}
 
       {showFilters && (
         <Card>
@@ -176,7 +165,7 @@ export function SimpleMarketList({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Search className="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   placeholder="Search markets..."
                   value={search}
@@ -214,7 +203,7 @@ export function SimpleMarketList({
 
               {/* Location Filter */}
               <div className="relative">
-                <Store className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Store className="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
@@ -230,13 +219,13 @@ export function SimpleMarketList({
       {loading && markets.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
+            <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
       ) : !markets || !Array.isArray(markets) || markets.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-lg text-gray-500">No markets found.</p>
-          <p className="text-gray-400">Try adjusting your search criteria.</p>
+          <p className="text-muted-foreground text-lg">No markets found.</p>
+          <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <>

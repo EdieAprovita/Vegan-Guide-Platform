@@ -1,13 +1,12 @@
 import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import { buildSearchParams } from "./utils";
+import { GeoLocation } from "@/types/geospatial";
 
 export interface Market {
   _id: string;
   marketName: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   author: {
     _id: string;
     username: string;
@@ -39,10 +38,7 @@ export interface Market {
 export interface CreateMarketData {
   marketName: string;
   address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  location?: GeoLocation;
   contact: {
     phone?: string;
     email?: string;
@@ -75,17 +71,18 @@ export interface MarketSearchParams {
 }
 
 export async function getMarkets(params?: MarketSearchParams) {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.search) searchParams.append("search", params.search);
-  if (params?.products) searchParams.append("products", params.products);
-  if (params?.rating) searchParams.append("rating", params.rating.toString());
-  if (params?.location) searchParams.append("location", params.location);
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams({
+    page: params?.page,
+    limit: params?.limit,
+    search: params?.search,
+    products: params?.products,
+    rating: params?.rating,
+    location: params?.location,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy: params?.sortBy,
+  });
 
   return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }
@@ -133,14 +130,18 @@ export async function getNearbyMarkets(params: {
   products?: string;
   minRating?: number;
 }) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("latitude", params.latitude.toString());
-  searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.products) searchParams.append("products", params.products);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  searchParams.append("sortBy", "distance");
+  const searchParams = buildSearchParams(
+    {
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      limit: params.limit,
+      products: params.products,
+      minRating: params.minRating,
+      sortBy: "distance",
+    },
+    { minRating: "rating" }
+  );
 
   return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }
@@ -155,16 +156,19 @@ export async function getMarketsByProducts(
     radius?: number;
   }
 ) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("products", products);
-  if (params?.page) searchParams.append("page", params.page.toString());
-  if (params?.limit) searchParams.append("limit", params.limit.toString());
-  if (params?.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params?.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params?.radius) searchParams.append("radius", params.radius.toString());
-  if (params?.latitude && params?.longitude) {
-    searchParams.append("sortBy", "distance");
-  }
+  // sortBy is conditionally added only when both coordinates are present
+  const sortBy =
+    params?.latitude !== undefined && params?.longitude !== undefined ? "distance" : undefined;
+
+  const searchParams = buildSearchParams({
+    products,
+    page: params?.page,
+    limit: params?.limit,
+    latitude: params?.latitude,
+    longitude: params?.longitude,
+    radius: params?.radius,
+    sortBy,
+  });
 
   return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }
@@ -180,18 +184,20 @@ export async function getAdvancedMarkets(params: {
   radius?: number;
   sortBy?: "distance" | "rating" | "marketName" | "createdAt";
 }) {
-  const searchParams = new URLSearchParams();
-  if (params.page) searchParams.append("page", params.page.toString());
-  if (params.limit) searchParams.append("limit", params.limit.toString());
-  if (params.search) searchParams.append("search", params.search);
-  if (params.minRating) searchParams.append("rating", params.minRating.toString());
-  if (params.products?.length) {
-    params.products.forEach((product) => searchParams.append("products", product));
-  }
-  if (params.latitude) searchParams.append("latitude", params.latitude.toString());
-  if (params.longitude) searchParams.append("longitude", params.longitude.toString());
-  if (params.radius) searchParams.append("radius", params.radius.toString());
-  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  const searchParams = buildSearchParams(
+    {
+      page: params.page,
+      limit: params.limit,
+      search: params.search,
+      minRating: params.minRating,
+      products: params.products,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      radius: params.radius,
+      sortBy: params.sortBy,
+    },
+    { minRating: "rating" }
+  );
 
   return apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
 }

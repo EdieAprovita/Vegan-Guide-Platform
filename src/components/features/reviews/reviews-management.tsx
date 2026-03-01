@@ -226,7 +226,6 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
 
   const handleReviewUpdate = () => {
     // Refresh reviews after update
-    console.log("Review updated, refreshing...");
   };
 
   const handleReviewDelete = (reviewId: string) => {
