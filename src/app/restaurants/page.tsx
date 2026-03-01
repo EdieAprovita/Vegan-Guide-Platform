@@ -3,6 +3,7 @@ import { SimpleRestaurantList } from "@/components/features/restaurants/simple-r
 import { Button } from "@/components/ui/button";
 import { Plus, Star, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { BreadcrumbJsonLd } from "@/lib/seo/json-ld";
 
 export const metadata: Metadata = {
   title: "Restaurants | Vegan Guide",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function RestaurantsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Inicio", url: "/" },
+          { name: "Restaurantes", url: "/restaurants" },
+        ]}
+      />
       {/* Back to Home Button */}
       <div className="mb-6">
         <Button

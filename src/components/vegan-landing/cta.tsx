@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -71,6 +69,9 @@ export function CallToAction() {
         className="absolute top-0 right-0 z-20 hidden h-full w-[657px] object-cover opacity-60 xl:block"
         width={657}
         height={574}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 657px"
       />
 
       <Image
@@ -79,6 +80,9 @@ export function CallToAction() {
         className="absolute top-[54px] right-[173px] z-30 hidden h-[467px] w-[300px] rounded-lg object-cover shadow-[0px_10px_12px_0px_rgba(0,0,0,0.34)] xl:block"
         width={300}
         height={467}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 300px"
       />
     </div>
   );

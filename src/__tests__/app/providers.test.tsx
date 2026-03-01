@@ -2,6 +2,23 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { Providers } from "@/app/providers";
 
+// Mock next-themes (requires window.matchMedia not available in jsdom)
+jest.mock("next-themes", () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="theme">{children}</div>
+  ),
+  useTheme: () => ({ theme: "system", setTheme: jest.fn() }),
+}));
+
+// Mock i18n
+jest.mock("@/lib/i18n", () => ({
+  I18nProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="i18n">{children}</div>
+  ),
+  useTranslation: () => (key: string) => key,
+  useLocale: () => ({ locale: "es", setLocale: jest.fn() }),
+}));
+
 jest.mock("@tanstack/react-query", () => ({
   QueryClient: jest.fn().mockImplementation(() => ({})),
   QueryClientProvider: ({ children }: { children: React.ReactNode }) => (
@@ -22,6 +39,11 @@ jest.mock("@/components/auth/auth-provider", () => ({
 }));
 
 jest.mock("sonner", () => ({
+  Toaster: () => <div data-testid="toaster" />,
+}));
+
+// Mock the custom sonner wrapper that uses useTheme from next-themes
+jest.mock("@/components/ui/sonner", () => ({
   Toaster: () => <div data-testid="toaster" />,
 }));
 

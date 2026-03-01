@@ -1,7 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import { Market } from "@/lib/api/markets";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
@@ -12,7 +13,7 @@ interface MarketCardProps {
   showActions?: boolean;
 }
 
-export function MarketCard({ market, showActions = true }: MarketCardProps) {
+function MarketCardComponent({ market, showActions = true }: MarketCardProps) {
   const formatRating = (rating: number) => {
     return rating.toFixed(1);
   };
@@ -33,22 +34,32 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
     return todayHours;
   };
 
+  const todayHours = getTodayHours();
+
   return (
-    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+    <article
+      aria-label={`Mercado: ${market.marketName}`}
+      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-foreground line-clamp-1 text-lg font-semibold">
+            <h3 className="text-foreground line-clamp-1 text-lg font-semibold leading-none">
               {market.marketName}
-            </CardTitle>
+            </h3>
             <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4" />
+              <MapPin aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
               <span className="line-clamp-1">{market.address}</span>
             </div>
           </div>
           <div className="ml-2 flex items-center gap-1">
-            <Star className="fill-primary text-primary h-4 w-4" />
-            <span className="text-sm font-medium">{formatRating(market.rating)}</span>
+            <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
+            <span
+              className="text-sm font-medium"
+              aria-label={`Calificación: ${formatRating(market.rating)} de 5`}
+            >
+              {formatRating(market.rating)}
+            </span>
             <span className="text-muted-foreground text-xs">({market.numReviews})</span>
           </div>
         </div>
@@ -67,11 +78,11 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
           </div>
 
           {/* Today's Hours */}
-          {getTodayHours() && (
+          {todayHours && (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Clock className="h-3 w-3" />
+              <Clock aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
               <span>
-                Today: {getTodayHours()?.open} - {getTodayHours()?.close}
+                Today: {todayHours.open} - {todayHours.close}
               </span>
             </div>
           )}
@@ -81,20 +92,20 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               {market.contact[0].phone && (
                 <div className="flex items-center gap-1">
-                  <Phone className="h-3 w-3" />
+                  <Phone aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
                   <span>{market.contact[0].phone}</span>
                 </div>
               )}
               {market.contact[0].email && (
                 <div className="flex items-center gap-1">
-                  <Mail className="h-3 w-3" />
+                  <Mail aria-hidden="true" className="h-3 w-3 flex-shrink-0" />
                   <span className="truncate">{market.contact[0].email}</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* Social Links */}
+          {/* Website Link */}
           {market.contact && market.contact.length > 0 && market.contact[0].website && (
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm" className="h-8 px-2">
@@ -104,7 +115,7 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-xs"
                 >
-                  <Globe className="h-3 w-3" />
+                  <Globe aria-hidden="true" className="h-3 w-3" />
                   Website
                 </a>
               </Button>
@@ -117,13 +128,16 @@ export function MarketCard({ market, showActions = true }: MarketCardProps) {
               <Button asChild className="flex-1">
                 <Link href={`/markets/${market._id}`}>View Details</Link>
               </Button>
-              <Button variant="outline" size="sm">
-                <Star className="h-4 w-4" />
+              <Button variant="outline" size="sm" aria-label="Guardar mercado">
+                <Star aria-hidden="true" className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
       </CardContent>
-    </Card>
+    </article>
   );
 }
+
+export const MarketCard = memo(MarketCardComponent);
+MarketCard.displayName = "MarketCard";

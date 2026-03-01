@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { SafeImage } from "@/components/ui/safe-image";
 

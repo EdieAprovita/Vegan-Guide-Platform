@@ -61,15 +61,6 @@ export function SimpleDoctorList({
     async (isLoadMore = false) => {
       if (!mounted) return;
 
-      console.log("Fetching doctors with filters:", {
-        search: search.trim(),
-        specialty: specialtyFilter,
-        rating: ratingFilter ? parseInt(ratingFilter) : undefined,
-        location: locationFilter.trim(),
-        page: isLoadMore ? page + 1 : 1,
-        limit: 12,
-      });
-
       try {
         setLoading(true);
         const filters = {
@@ -82,11 +73,9 @@ export function SimpleDoctorList({
         };
 
         const response = await getDoctors(filters);
-        console.log("getDoctors response:", response);
 
         // Extract doctors from backend response format {success: true, data: [...]}
         const doctorsData = Array.isArray(response) ? response : response?.data || [];
-        console.log("Processed doctors data:", doctorsData);
 
         if (isLoadMore) {
           setDoctors((prev) => [...(Array.isArray(prev) ? prev : []), ...doctorsData]);
@@ -149,17 +138,17 @@ export function SimpleDoctorList({
           <Card>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
-                <div className="h-10 animate-pulse rounded bg-gray-200" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
+                <div className="bg-muted h-10 animate-pulse rounded" />
               </div>
             </CardContent>
           </Card>
         )}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
+            <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
       </div>
@@ -168,7 +157,7 @@ export function SimpleDoctorList({
 
   return (
     <div className="space-y-6">
-      {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
+      {title && <h2 className="text-foreground text-2xl font-bold">{title}</h2>}
 
       {showFilters && (
         <Card>
@@ -176,7 +165,7 @@ export function SimpleDoctorList({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Search className="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   placeholder="Search doctors..."
                   value={search}
@@ -214,7 +203,7 @@ export function SimpleDoctorList({
 
               {/* Location Filter */}
               <div className="relative">
-                <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <User className="text-muted-foreground/60 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
@@ -230,13 +219,13 @@ export function SimpleDoctorList({
       {loading && doctors.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[320px] animate-pulse rounded-lg bg-gray-200" />
+            <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
       ) : !doctors || !Array.isArray(doctors) || doctors.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-lg text-gray-500">No doctors found.</p>
-          <p className="text-gray-400">Try adjusting your search criteria.</p>
+          <p className="text-muted-foreground text-lg">No doctors found.</p>
+          <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
         </div>
       ) : (
         <>

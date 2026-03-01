@@ -1,7 +1,27 @@
+import { Metadata } from "next";
 import { PostList } from "@/components/features/posts/post-list";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Comunidad Vegana | Verde Guide",
+  description:
+    "Únete a la comunidad vegana de Verde Guide. Comparte experiencias, consejos y descubrimientos con personas que comparten tu estilo de vida plant-based.",
+  keywords: [
+    "comunidad vegana",
+    "foro vegano",
+    "veganos hispanohablantes",
+    "experiencias veganas",
+    "red social vegana",
+    "compartir recetas veganas",
+  ],
+  openGraph: {
+    title: "Comunidad Vegana | Verde Guide",
+    description:
+      "Únete a la comunidad vegana de Verde Guide. Comparte experiencias y conecta con otros veganos.",
+  },
+};
 
 export default function CommunityPage() {
   return (

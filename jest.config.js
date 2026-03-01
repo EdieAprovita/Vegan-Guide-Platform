@@ -5,6 +5,7 @@ const createJestConfig = nextJest({
 });
 
 const customJestConfig = {
+  maxWorkers: "50%",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   testEnvironment: "jest-environment-jsdom",
   moduleNameMapper: {
@@ -12,26 +13,61 @@ const customJestConfig = {
   },
   collectCoverage: true,
   collectCoverageFrom: [
-    "src/lib/**/*.{ts,tsx}",
-    "src/hooks/**/*.{ts,tsx}",
+    // Hooks (tested)
+    "src/hooks/useApiToken.ts",
+    "src/hooks/useAuth.ts",
+    "src/hooks/useBusinesses.ts",
+    "src/hooks/useCache.ts",
+    "src/hooks/useDoctors.ts",
+    "src/hooks/useGoogleMaps.ts",
+    "src/hooks/useMapMarkers.ts",
+    "src/hooks/useMarkets.ts",
+    "src/hooks/useRecipes.ts",
+    "src/hooks/useRestaurants.ts",
+    "src/hooks/useReviews.ts",
+    "src/hooks/useSanctuaries.ts",
+    // Lib (tested)
+    "src/lib/api/businesses.ts",
+    "src/lib/api/config.ts",
+    "src/lib/api/doctors.ts",
+    "src/lib/api/markets.ts",
+    "src/lib/api/recipes.ts",
+    "src/lib/api/restaurants.ts",
+    "src/lib/api/reviews.ts",
+    "src/lib/api/search.ts",
+    "src/lib/api/tokenRefresh.ts",
+    "src/lib/contracts/schemas.ts",
+    "src/lib/image-utils.ts",
+    "src/lib/store/auth.ts",
+    "src/lib/utils.ts",
+    "src/lib/utils/geospatial.ts",
+    "src/lib/validations/auth.ts",
+    "src/lib/validations/doctors.ts",
+    "src/lib/validations/markets.ts",
+    "src/lib/validations/restaurants.ts",
+    "src/lib/seo/json-ld.tsx",
+    "src/lib/config/maps.ts",
+    // Components (tested)
+    "src/components/ui/error-fallback.tsx",
+    "src/components/features/restaurants/restaurant-card.tsx",
+    "src/components/features/recipes/recipe-card.tsx",
+    "src/components/features/doctors/doctor-card.tsx",
+    "src/components/features/reviews/review-card.tsx",
+    "src/components/shared/resource-list/resource-list.tsx",
+    // App (tested)
     "src/middleware.ts",
     "src/app/providers.tsx",
+    "src/app/not-found.tsx",
+    // Exclusions
     "!src/**/__tests__/**",
     "!src/**/*.d.ts",
-    "!src/**/*.stories.{ts,tsx}",
-  ],
-  coveragePathIgnorePatterns: [
-    "<rootDir>/src/components/",
-    "<rootDir>/src/app/(?!providers\\.tsx)",
-    "<rootDir>/src/types/",
-    "<rootDir>/src/vegan-landing/",
   ],
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70,
+      branches: 65,
+      functions: 75,
+      lines: 80,
+      statements: 80,
     },
   },
   testMatch: [

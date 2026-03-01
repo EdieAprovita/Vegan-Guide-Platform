@@ -31,39 +31,15 @@ export function ProfileForm() {
     resolver: zodResolver(updateProfileSchema),
   });
 
-  // Debug logs
-  useEffect(() => {
-    console.log("ProfileForm Debug:", {
-      status,
-      isAuthenticated,
-      hasSession: !!sessionUser,
-      hasToken: !!sessionUser?.token,
-      token: sessionUser?.token ? "Token exists" : "No token",
-      user: sessionUser,
-    });
-  }, [sessionUser, status, isAuthenticated]);
-
   useEffect(() => {
     const loadProfile = async () => {
-      console.log("loadProfile called:", {
-        isAuthenticated,
-        hasToken: !!sessionUser?.token,
-        token: sessionUser?.token,
-      });
-
       if (!isAuthenticated || !sessionUser?.token) {
-        console.log("Not authenticated or no token, skipping profile load");
         setIsLoadingProfile(false);
         return;
       }
 
       try {
-        console.log(
-          "Calling getUserProfile with token:",
-          sessionUser.token.substring(0, 20) + "..."
-        );
         const profile = await getUserProfile("current", sessionUser.token);
-        console.log("Profile loaded successfully:", profile);
         setUser(profile);
         setValue("username", profile.username);
         setValue("email", profile.email);
@@ -109,7 +85,13 @@ export function ProfileForm() {
     return (
       <Card className="mx-auto w-full max-w-2xl">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+          <div
+            role="status"
+            aria-label="Cargando perfil"
+            className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"
+          >
+            <span className="sr-only">Cargando perfil...</span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -143,7 +125,7 @@ export function ProfileForm() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-6" noValidate>
           {/* Profile Picture */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
@@ -163,40 +145,70 @@ export function ProfileForm() {
 
           {/* Username */}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="profile-username">
+              Username{" "}
+              <span aria-label="required" className="text-red-500">
+                *
+              </span>
+            </Label>
             <Input
-              id="username"
+              id="profile-username"
               placeholder="Enter your username"
+              aria-required="true"
+              aria-invalid={!!errors.username}
+              aria-describedby={errors.username ? "profile-username-error" : undefined}
               {...register("username")}
               className={errors.username ? "border-red-500" : ""}
             />
-            {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
+            {errors.username && (
+              <p id="profile-username-error" role="alert" className="text-sm text-red-500">
+                {errors.username.message}
+              </p>
+            )}
           </div>
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="profile-email">
+              Email{" "}
+              <span aria-label="required" className="text-red-500">
+                *
+              </span>
+            </Label>
             <Input
-              id="email"
+              id="profile-email"
               type="email"
               placeholder="Enter your email"
+              aria-required="true"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "profile-email-error" : undefined}
               {...register("email")}
               className={errors.email ? "border-red-500" : ""}
             />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+            {errors.email && (
+              <p id="profile-email-error" role="alert" className="text-sm text-red-500">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           {/* Photo URL */}
           <div className="space-y-2">
-            <Label htmlFor="photo">Profile Photo URL</Label>
+            <Label htmlFor="profile-photo">Profile Photo URL</Label>
             <Input
-              id="photo"
+              id="profile-photo"
               type="url"
               placeholder="Enter photo URL"
+              aria-invalid={!!errors.photo}
+              aria-describedby={errors.photo ? "profile-photo-error" : undefined}
               {...register("photo")}
               className={errors.photo ? "border-red-500" : ""}
             />
-            {errors.photo && <p className="text-sm text-red-500">{errors.photo.message}</p>}
+            {errors.photo && (
+              <p id="profile-photo-error" role="alert" className="text-sm text-red-500">
+                {errors.photo.message}
+              </p>
+            )}
           </div>
 
           {/* User Info Display */}

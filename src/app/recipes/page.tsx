@@ -1,7 +1,29 @@
+import { Metadata } from "next";
 import { SimpleRecipeList } from "@/components/features/recipes/simple-recipe-list";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { BreadcrumbJsonLd } from "@/lib/seo/json-ld";
+
+export const metadata: Metadata = {
+  title: "Recetas Veganas | Verde Guide",
+  description:
+    "Descubre deliciosas recetas veganas y plant-based. Desde comidas rápidas entre semana hasta platos especiales para ocasiones importantes. Cocina saludable y sostenible.",
+  keywords: [
+    "recetas veganas",
+    "cocina plant-based",
+    "recetas saludables",
+    "recetas sin carne",
+    "gastronomía vegana",
+    "platos veganos",
+    "cocina vegana",
+  ],
+  openGraph: {
+    title: "Recetas Veganas | Verde Guide",
+    description:
+      "Descubre deliciosas recetas veganas y plant-based para todos los gustos y ocasiones.",
+  },
+};
 
 interface RecipesPageProps {
   searchParams: Promise<{
@@ -18,6 +40,12 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Inicio", url: "/" },
+          { name: "Recetas", url: "/recipes" },
+        ]}
+      />
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <div className="mb-6 flex items-center gap-4">
           <Button

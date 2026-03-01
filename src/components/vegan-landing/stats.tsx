@@ -1,5 +1,3 @@
-"use client";
-
 const stats = [
   {
     number: "10,000+",

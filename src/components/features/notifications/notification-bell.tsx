@@ -109,8 +109,8 @@ export function NotificationBell() {
         </div>
         <div className="max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              <Bell className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <div className="text-muted-foreground p-4 text-center">
+              <Bell className="text-muted-foreground/60 mx-auto mb-2 h-8 w-8" />
               <p className="text-sm">No notifications</p>
             </div>
           ) : (
@@ -118,19 +118,19 @@ export function NotificationBell() {
               {notifications.slice(0, 5).map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 transition-colors hover:bg-gray-50 ${
-                    !notification.read ? "bg-blue-50" : ""
+                  className={`p-4 transition-colors hover:bg-muted ${
+                    !notification.read ? "bg-blue-50 dark:bg-blue-950/40" : ""
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <h4 className="mb-1 text-sm font-medium text-gray-900">
+                      <h4 className="text-foreground mb-1 text-sm font-medium">
                         {notification.title}
                       </h4>
-                      <p className="mb-1 line-clamp-2 text-sm text-gray-600">
+                      <p className="text-muted-foreground mb-1 line-clamp-2 text-sm">
                         {notification.message}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-muted-foreground/60 text-xs">
                         {formatTimestamp(notification.timestamp)}
                       </p>
                     </div>
@@ -147,7 +147,7 @@ export function NotificationBell() {
           <div className="border-t p-4">
             <Link
               href="/notifications"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+              className="text-primary hover:text-primary/80 text-sm font-medium"
               onClick={() => setIsOpen(false)}
             >
               View all notifications

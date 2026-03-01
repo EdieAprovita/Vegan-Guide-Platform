@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,8 @@ export function GlobalSearch() {
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const router = useRouter();
+  const searchInputId = "global-search";
+  const resultsRegionId = useId();
 
   const searchAll = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -188,8 +190,16 @@ export function GlobalSearch() {
       <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogTrigger asChild>
           <div className="relative">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            <Search
+              className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+              aria-hidden="true"
+            />
+            <label htmlFor={searchInputId} className="sr-only">
+              Search restaurants, recipes, doctors, markets
+            </label>
             <Input
+              id={searchInputId}
+              type="search"
               placeholder="Search restaurants, recipes, doctors, markets..."
               value={query}
               onChange={(e) => {
@@ -197,6 +207,10 @@ export function GlobalSearch() {
                 setShowResults(true);
               }}
               className="w-full pr-4 pl-10 md:w-96"
+              aria-label="Search restaurants, recipes, doctors, markets"
+              aria-controls={resultsRegionId}
+              aria-expanded={showResults}
+              autoComplete="off"
             />
           </div>
         </DialogTrigger>
@@ -204,72 +218,116 @@ export function GlobalSearch() {
           <DialogHeader>
             <DialogTitle>Search Results</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          {/* aria-live region: screen readers announce result count changes */}
+          <div
+            id={resultsRegionId}
+            aria-live="polite"
+            aria-atomic="false"
+            aria-relevant="additions removals"
+            className="space-y-4"
+          >
+            {/* Visually-hidden status message for screen readers */}
+            <span role="status" className="sr-only">
+              {loading
+                ? "Buscando resultados…"
+                : results.length > 0
+                  ? `${results.length} resultado${results.length === 1 ? "" : "s"} encontrado${results.length === 1 ? "" : "s"}`
+                  : query.trim()
+                    ? "No se encontraron resultados"
+                    : ""}
+            </span>
+
             {loading ? (
-              <div className="py-8 text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+              <div className="py-8 text-center" aria-busy="true">
+                <div
+                  className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"
+                  aria-hidden="true"
+                />
                 <p className="mt-2 text-gray-600">Searching...</p>
               </div>
             ) : results.length > 0 ? (
-              results.map((result) => (
-                <Card
-                  key={`${result.type}-${result.id}`}
-                  className="cursor-pointer transition-shadow hover:shadow-md"
-                  onClick={() => handleResultClick(result)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                          {getTypeIcon(result.type)}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-center gap-2">
-                          <h3 className="truncate font-medium text-gray-900">{result.title}</h3>
-                          <Badge variant="outline" className="text-xs">
-                            {getTypeLabel(result.type)}
-                          </Badge>
-                        </div>
-                        <p className="mb-2 line-clamp-2 text-sm text-gray-600">
-                          {result.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          {result.rating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span>{result.rating.toFixed(1)}</span>
+              <ul
+                aria-label={`${results.length} search result${results.length !== 1 ? "s" : ""}`}
+                className="list-none space-y-4 p-0"
+              >
+                {results.map((result) => (
+                  <li key={`${result.type}-${result.id}`}>
+                    <Card
+                      className="cursor-pointer transition-shadow hover:shadow-md focus-within:shadow-md"
+                      onClick={() => handleResultClick(result)}
+                    >
+                      <CardContent className="p-4">
+                        <button
+                          type="button"
+                          className="w-full text-left"
+                          onClick={() => handleResultClick(result)}
+                          aria-label={`${result.title} - ${getTypeLabel(result.type)}${result.rating ? `, rated ${result.rating.toFixed(1)}` : ""}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0">
+                              <div
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"
+                                aria-hidden="true"
+                              >
+                                {getTypeIcon(result.type)}
+                              </div>
                             </div>
-                          )}
-                          {result.location && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              <span className="truncate">{result.location}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1 flex items-center gap-2">
+                                <h3 className="truncate font-medium text-gray-900">
+                                  {result.title}
+                                </h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {getTypeLabel(result.type)}
+                                </Badge>
+                              </div>
+                              <p className="mb-2 line-clamp-2 text-sm text-gray-600">
+                                {result.description}
+                              </p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                {result.rating && (
+                                  <div className="flex items-center gap-1">
+                                    <Star
+                                      className="h-3 w-3 fill-yellow-400 text-yellow-400"
+                                      aria-hidden="true"
+                                    />
+                                    <span aria-label={`Rating: ${result.rating.toFixed(1)} stars`}>
+                                      {result.rating.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )}
+                                {result.location && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" aria-hidden="true" />
+                                    <span className="truncate">{result.location}</span>
+                                  </div>
+                                )}
+                              </div>
+                              {result.tags && result.tags.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  {result.tags.slice(0, 3).map((tag, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {result.tags.length > 3 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{result.tags.length - 3} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        {result.tags && result.tags.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {result.tags.slice(0, 3).map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {result.tags.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{result.tags.length - 3} more
-                              </Badge>
-                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                        </button>
+                      </CardContent>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
             ) : query.trim() ? (
               <div className="py-8 text-center">
-                <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">No results found</h3>
                 <p className="text-gray-600">
                   Try adjusting your search terms or browse our categories.
@@ -277,7 +335,7 @@ export function GlobalSearch() {
               </div>
             ) : (
               <div className="py-8 text-center">
-                <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">Start searching</h3>
                 <p className="text-gray-600">
                   Search for restaurants, recipes, doctors, and markets.

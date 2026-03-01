@@ -142,16 +142,25 @@ export const AdvancedSearch = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Main Search */}
-          <form onSubmit={handleSearch} className="space-y-4">
+          <form onSubmit={handleSearch} className="space-y-4" noValidate>
             <div className="relative">
               <div className="relative">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Search
+                  className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+                  aria-hidden="true"
+                />
+                <label htmlFor="advanced-search-input" className="sr-only">
+                  Buscar restaurantes, recetas, negocios veganos
+                </label>
                 <Input
-                  type="text"
+                  id="advanced-search-input"
+                  type="search"
                   placeholder="Buscar restaurantes, recetas, negocios..."
                   value={searchState.filters.query}
                   onChange={(e) => handleQueryChange(e.target.value)}
                   className="pr-4 pl-10"
+                  aria-label="Buscar restaurantes, recetas, negocios veganos"
+                  autoComplete="off"
                   onFocus={() => setShowSuggestions(searchState.filters.query.length >= 2)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
@@ -233,43 +242,62 @@ export const AdvancedSearch = () => {
               {searchState.filters.query && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   Búsqueda: &quot;{searchState.filters.query}&quot;
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-600"
+                  <button
+                    type="button"
                     onClick={() => setQuery("")}
-                  />
+                    aria-label={`Eliminar filtro de búsqueda: ${searchState.filters.query}`}
+                    className="inline-flex items-center"
+                  >
+                    <X className="h-3 w-3 cursor-pointer hover:text-red-600" aria-hidden="true" />
+                  </button>
                 </Badge>
               )}
 
-              {searchState.filters.resourceTypes.map((type) => (
-                <Badge key={type} variant="secondary" className="flex items-center gap-1">
-                  {RESOURCE_TYPES.find((rt) => rt.id === type)?.emoji}{" "}
-                  {RESOURCE_TYPES.find((rt) => rt.id === type)?.label}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-600"
-                    onClick={() => handleResourceTypeToggle(type, false)}
-                  />
-                </Badge>
-              ))}
+              {searchState.filters.resourceTypes.map((type) => {
+                const resourceLabel = RESOURCE_TYPES.find((rt) => rt.id === type)?.label ?? type;
+                return (
+                  <Badge key={type} variant="secondary" className="flex items-center gap-1">
+                    {RESOURCE_TYPES.find((rt) => rt.id === type)?.emoji}{" "}
+                    {resourceLabel}
+                    <button
+                      type="button"
+                      onClick={() => handleResourceTypeToggle(type, false)}
+                      aria-label={`Eliminar filtro de tipo: ${resourceLabel}`}
+                      className="inline-flex items-center"
+                    >
+                      <X className="h-3 w-3 cursor-pointer hover:text-red-600" aria-hidden="true" />
+                    </button>
+                  </Badge>
+                );
+              })}
 
               {searchState.filters.location && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
+                  <MapPin className="h-3 w-3" aria-hidden="true" />
                   {searchState.filters.location}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-600"
+                  <button
+                    type="button"
                     onClick={() => setLocation("")}
-                  />
+                    aria-label={`Eliminar filtro de ubicación: ${searchState.filters.location}`}
+                    className="inline-flex items-center"
+                  >
+                    <X className="h-3 w-3 cursor-pointer hover:text-red-600" aria-hidden="true" />
+                  </button>
                 </Badge>
               )}
 
               {searchState.filters.minRating > 0 && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  <Star className="h-3 w-3" />
+                  <Star className="h-3 w-3" aria-hidden="true" />
                   {searchState.filters.minRating}+ estrellas
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-600"
+                  <button
+                    type="button"
                     onClick={() => setMinRating(0)}
-                  />
+                    aria-label={`Eliminar filtro de calificación mínima: ${searchState.filters.minRating} estrellas`}
+                    className="inline-flex items-center"
+                  >
+                    <X className="h-3 w-3 cursor-pointer hover:text-red-600" aria-hidden="true" />
+                  </button>
                 </Badge>
               )}
 
@@ -332,21 +360,33 @@ export const AdvancedSearch = () => {
             {/* Location and Distance */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Ubicación</label>
+                <label htmlFor="advanced-location" className="text-sm font-medium text-gray-700">
+                  Ubicación
+                </label>
                 <Input
+                  id="advanced-location"
                   type="text"
                   placeholder="Ciudad, país..."
                   value={searchState.filters.location}
                   onChange={(e) => setLocation(e.target.value)}
                 />
-                {geoError && <p className="text-xs text-red-600">{geoError}</p>}
+                {geoError && (
+                  <p role="alert" className="text-xs text-red-600">
+                    {geoError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="advanced-radius"
+                  className="text-sm font-medium text-gray-700"
+                  id="advanced-radius-label"
+                >
                   Radio de búsqueda: {searchState.filters.radius}km
                 </label>
                 <Slider
+                  id="advanced-radius"
                   value={[searchState.filters.radius]}
                   onValueChange={(value) => setRadius(value[0])}
                   max={100}
@@ -354,6 +394,8 @@ export const AdvancedSearch = () => {
                   step={1}
                   className="w-full"
                   disabled={!searchState.filters.location && !coordinates}
+                  aria-labelledby="advanced-radius-label"
+                  aria-valuetext={`${searchState.filters.radius} kilómetros`}
                 />
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>1km</span>
@@ -367,27 +409,35 @@ export const AdvancedSearch = () => {
             {/* Rating and Budget */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Calificación mínima</label>
+                <label
+                  htmlFor="advanced-min-rating"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Calificación mínima
+                </label>
                 <Select
                   value={searchState.filters.minRating.toString()}
                   onValueChange={(value) => setMinRating(Number(value))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="advanced-min-rating" aria-label="Calificación mínima">
                     <SelectValue placeholder="Cualquier calificación" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Cualquier calificación</SelectItem>
-                    <SelectItem value="1">⭐ 1+ estrellas</SelectItem>
-                    <SelectItem value="2">⭐⭐ 2+ estrellas</SelectItem>
-                    <SelectItem value="3">⭐⭐⭐ 3+ estrellas</SelectItem>
-                    <SelectItem value="4">⭐⭐⭐⭐ 4+ estrellas</SelectItem>
-                    <SelectItem value="5">⭐⭐⭐⭐⭐ 5 estrellas</SelectItem>
+                    <SelectItem value="1">1+ estrellas</SelectItem>
+                    <SelectItem value="2">2+ estrellas</SelectItem>
+                    <SelectItem value="3">3+ estrellas</SelectItem>
+                    <SelectItem value="4">4+ estrellas</SelectItem>
+                    <SelectItem value="5">5 estrellas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label
+                  id="advanced-budget-label"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Rango de presupuesto: ${budgetRange[0]} - ${budgetRange[1]}
                 </label>
                 <Slider
@@ -397,6 +447,8 @@ export const AdvancedSearch = () => {
                   min={0}
                   step={10}
                   className="w-full"
+                  aria-labelledby="advanced-budget-label"
+                  aria-valuetext={`$${budgetRange[0]} a $${budgetRange[1]}`}
                 />
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>$0</span>
@@ -409,12 +461,14 @@ export const AdvancedSearch = () => {
 
             {/* Sort Options */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Ordenar por</label>
+              <label htmlFor="advanced-sort-by" className="text-sm font-medium text-gray-700">
+                Ordenar por
+              </label>
               <Select
                 value={searchState.filters.sortBy}
                 onValueChange={(value) => setSortBy(value as SortOption)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="advanced-sort-by" aria-label="Ordenar resultados por">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -434,18 +488,35 @@ export const AdvancedSearch = () => {
       )}
 
       {/* Search Results */}
-      <SearchResults
-        results={searchState.results}
-        isLoading={searchState.isSearching}
-        error={searchState.error}
-        total={searchState.total}
-        hasMore={canLoadMore}
-        onLoadMore={loadMore}
-        isEmpty={isEmpty}
-        hasResults={hasResults}
-        query={searchState.filters.query}
-        onClearFilters={clearFilters}
-      />
+      <div
+        aria-live="polite"
+        aria-atomic="false"
+        aria-relevant="additions removals"
+        aria-label="Resultados de búsqueda"
+      >
+        {/* Visually hidden status for screen readers */}
+        <span role="status" className="sr-only">
+          {searchState.isSearching
+            ? "Buscando resultados…"
+            : searchState.total > 0
+              ? `${searchState.total} resultado${searchState.total !== 1 ? "s" : ""} encontrado${searchState.total !== 1 ? "s" : ""}`
+              : searchState.filters.query
+                ? "No se encontraron resultados"
+                : ""}
+        </span>
+        <SearchResults
+          results={searchState.results}
+          isLoading={searchState.isSearching}
+          error={searchState.error}
+          total={searchState.total}
+          hasMore={canLoadMore}
+          onLoadMore={loadMore}
+          isEmpty={isEmpty}
+          hasResults={hasResults}
+          query={searchState.filters.query}
+          onClearFilters={clearFilters}
+        />
+      </div>
     </div>
   );
 };

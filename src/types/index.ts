@@ -10,6 +10,10 @@ export interface Review {
   createdAt: string;
 }
 
+/**
+ * @deprecated Use `Doctor` from `@/lib/api/doctors` instead.
+ * The API layer is the canonical source of truth for this type.
+ */
 export interface Doctor {
   _id: string;
   name: string;
@@ -43,6 +47,10 @@ export interface Doctor {
   yearsOfExperience: number;
 }
 
+/**
+ * @deprecated Use `Restaurant` from `@/lib/api/restaurants` instead.
+ * The API layer is the canonical source of truth for this type.
+ */
 export interface Restaurant {
   _id: string;
   name: string;
@@ -63,6 +71,10 @@ export interface Restaurant {
   createdAt: string;
 }
 
+/**
+ * @deprecated Use `Market` from `@/lib/api/markets` instead.
+ * The API layer is the canonical source of truth for this type.
+ */
 export interface Market {
   _id: string;
   name: string;
@@ -102,6 +114,10 @@ export interface Post {
   createdAt: string;
 }
 
+/**
+ * @deprecated Use `Recipe` from `@/lib/api/recipes` instead.
+ * The API layer is the canonical source of truth for this type.
+ */
 export interface Recipe {
   _id: string;
   title: string;
@@ -143,6 +159,10 @@ export interface User {
   updatedAt?: string;
 }
 
+/**
+ * @deprecated Use `Business` from `@/lib/api/businesses` instead.
+ * The API layer is the canonical source of truth for this type.
+ */
 export interface Business {
   _id: string;
   namePlace: string;
@@ -315,3 +335,13 @@ export interface ProfessionalProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Re-exports from API layer (canonical source of truth).
+// Import from these aliases to gradually migrate away from the deprecated types above.
+// ---------------------------------------------------------------------------
+export type { Restaurant as ApiRestaurant } from "@/lib/api/restaurants";
+export type { Doctor as ApiDoctor } from "@/lib/api/doctors";
+export type { Market as ApiMarket } from "@/lib/api/markets";
+export type { Recipe as ApiRecipe } from "@/lib/api/recipes";
+export type { Business as ApiBusiness } from "@/lib/api/businesses";

@@ -1,93 +1,273 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
-// Agrega la interfaz al inicio del archivo
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
+// urlBase64ToUint8Array is required to convert the VAPID key from the env
+// variable (base64url) into the Uint8Array format expected by the Push API.
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
+
 export function usePWA() {
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [hasNotificationPermission, setHasNotificationPermission] =
+    useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
+  // Keep a stable reference to the waiting SW so we can call skipWaiting
+  const waitingWorkerRef = useRef<ServiceWorker | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // Service Worker registration + update detection
+  // ---------------------------------------------------------------------------
   useEffect(() => {
-    // Register service worker - TEMPORARILY DISABLED FOR DEBUGGING
-    // console.log("🚫 PWA Service Worker registration DISABLED for debugging");
-    /*
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("SW registered: ", registration);
-        })
-        .catch((registrationError) => {
-          console.log("SW registration failed: ", registrationError);
-        });
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
     }
-    */
 
-    // Check if app is installed
-    const checkIfInstalled = () => {
-      if (window.matchMedia("(display-mode: standalone)").matches) {
-        setIsPWAInstalled(true);
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "[::1]";
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (!isProduction && isLocalhost) {
+      return;
+    }
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        // Detect an already-waiting SW (page was open while SW updated)
+        if (registration.waiting) {
+          waitingWorkerRef.current = registration.waiting;
+          setUpdateAvailable(true);
+        }
+
+        // Detect a newly-installed SW waiting to activate
+        registration.addEventListener("updatefound", () => {
+          const installing = registration.installing;
+          if (!installing) return;
+
+          installing.addEventListener("statechange", () => {
+            if (
+              installing.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              waitingWorkerRef.current = installing;
+              setUpdateAvailable(true);
+            }
+          });
+        });
+      })
+      .catch((err) => {
+        console.error("SW registration failed:", err);
+      });
+
+    // When the controlling SW changes (after skipWaiting), reload the page
+    // so users get the latest version.
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
       }
+    });
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Online / offline detection with toasts
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setIsOnline(navigator.onLine);
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Conexión restaurada", {
+        description: "Estás en línea de nuevo.",
+        duration: 3000,
+      });
     };
 
-    // Listen for beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning("Sin conexión", {
+        description:
+          "Estás navegando sin internet. Algunas funciones pueden no estar disponibles.",
+        duration: 5000,
+      });
     };
 
-    // Listen for appinstalled event
-    const handleAppInstalled = () => {
-      setIsPWAInstalled(true);
-      setDeferredPrompt(null);
-    };
-
-    // Listen for online/offline events
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    // Add event listeners
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Initial checks
-    checkIfInstalled();
-    setIsOnline(navigator.onLine);
-
-    // Cleanup
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
-  const installPWA = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        console.log("User accepted the install prompt");
-      } else {
-        console.log("User dismissed the install prompt");
-      }
-      setDeferredPrompt(null);
-    }
-  };
+  // ---------------------------------------------------------------------------
+  // PWA install prompt detection
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
+    // Check if already running as a standalone PWA
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsPWAInstalled(true);
+    }
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    const handleAppInstalled = () => {
+      setIsPWAInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Notification permission — sync initial state
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setHasNotificationPermission(Notification.permission === "granted");
+    }
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------------
+
+  const installPWA = useCallback(async (): Promise<void> => {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsPWAInstalled(true);
+    }
+    setDeferredPrompt(null);
+  }, [deferredPrompt]);
+
+  const requestNotificationPermission =
+    useCallback(async (): Promise<NotificationPermission> => {
+      if (typeof window === "undefined" || !("Notification" in window)) {
+        return "denied";
+      }
+      try {
+        const result = await Notification.requestPermission();
+        setHasNotificationPermission(result === "granted");
+        return result;
+      } catch {
+        return "denied";
+      }
+    }, []);
+
+  const subscribeToPush =
+    useCallback(async (): Promise<PushSubscription | null> => {
+      if (
+        typeof window === "undefined" ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window)
+      ) {
+        return null;
+      }
+
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) {
+        console.error(
+          "NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set. Cannot subscribe to push."
+        );
+        return null;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
+        });
+        return subscription;
+      } catch (err) {
+        console.error("Failed to subscribe to push notifications:", err);
+        return null;
+      }
+    }, []);
+
+  const clearCache = useCallback(async (): Promise<void> => {
+    if (typeof window === "undefined" || !("caches" in window)) return;
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+      toast.success("Caché limpiada", {
+        description: "La caché de la aplicación ha sido borrada correctamente.",
+      });
+    } catch {
+      toast.error("Error al limpiar la caché");
+    }
+  }, []);
+
+  const updateServiceWorker = useCallback((): void => {
+    const waiting = waitingWorkerRef.current;
+    if (!waiting) return;
+    // Tell the waiting SW to skip waiting and become active.
+    // The "controllerchange" listener registered above will reload the page.
+    waiting.postMessage({ type: "SKIP_WAITING" });
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // Public API
+  // ---------------------------------------------------------------------------
   return {
     isPWAInstalled,
     isOnline,
     canInstall: !!deferredPrompt,
     installPWA,
+    requestNotificationPermission,
+    subscribeToPush,
+    hasNotificationPermission,
+    clearCache,
+    updateAvailable,
+    updateServiceWorker,
   };
 }

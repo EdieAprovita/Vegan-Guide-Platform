@@ -115,17 +115,29 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
+          render={({ field, fieldState: { error } }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>
+                Title{" "}
+                <span aria-label="required" className="text-rose-500">
+                  *
+                </span>
+              </FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Enter recipe title" />
+                <Input
+                  id="recipe-title"
+                  {...field}
+                  placeholder="Enter recipe title"
+                  aria-required="true"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "recipe-title-error" : undefined}
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage id="recipe-title-error" />
             </FormItem>
           )}
         />
@@ -133,29 +145,55 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
+          render={({ field, fieldState: { error } }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>
+                Description{" "}
+                <span aria-label="required" className="text-rose-500">
+                  *
+                </span>
+              </FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="Enter recipe description" className="h-24" />
+                <Textarea
+                  id="recipe-description"
+                  {...field}
+                  placeholder="Enter recipe description"
+                  className="h-24"
+                  aria-required="true"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "recipe-description-error" : undefined}
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage id="recipe-description-error" />
             </FormItem>
           )}
         />
 
         <div className="space-y-4">
-          <FormLabel>Ingredients</FormLabel>
+          <FormLabel>
+            Ingredients{" "}
+            <span aria-label="required" className="text-rose-500">
+              *
+            </span>
+          </FormLabel>
           {form.getValues("ingredients").map((_, index) => (
             <FormField
               key={index}
               control={form.control}
               name={`ingredients.${index}`}
-              render={({ field }) => (
+              render={({ field, fieldState: { error } }) => (
                 <FormItem>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Input {...field} placeholder="Enter ingredient" />
+                      <Input
+                        {...field}
+                        placeholder="Enter ingredient"
+                        aria-label={`Ingredient ${index + 1}`}
+                        aria-invalid={!!error}
+                        aria-describedby={
+                          error ? `recipe-ingredient-${index}-error` : undefined
+                        }
+                      />
                     </FormControl>
                     <Button
                       type="button"
@@ -163,11 +201,12 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                       size="icon"
                       onClick={() => removeIngredient(index)}
                       className="shrink-0"
+                      aria-label={`Remove ingredient ${index + 1}`}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
-                  <FormMessage />
+                  <FormMessage id={`recipe-ingredient-${index}-error`} />
                 </FormItem>
               )}
             />
@@ -178,17 +217,31 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
         </div>
 
         <div className="space-y-4">
-          <FormLabel>Instructions</FormLabel>
+          <FormLabel>
+            Instructions{" "}
+            <span aria-label="required" className="text-rose-500">
+              *
+            </span>
+          </FormLabel>
           {form.getValues("instructions").map((_, index) => (
             <FormField
               key={index}
               control={form.control}
               name={`instructions.${index}`}
-              render={({ field }) => (
+              render={({ field, fieldState: { error } }) => (
                 <FormItem>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Textarea {...field} placeholder="Enter instruction step" className="h-20" />
+                      <Textarea
+                        {...field}
+                        placeholder="Enter instruction step"
+                        className="h-20"
+                        aria-label={`Instruction step ${index + 1}`}
+                        aria-invalid={!!error}
+                        aria-describedby={
+                          error ? `recipe-instruction-${index}-error` : undefined
+                        }
+                      />
                     </FormControl>
                     <Button
                       type="button"
@@ -196,11 +249,12 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                       size="icon"
                       onClick={() => removeInstruction(index)}
                       className="shrink-0"
+                      aria-label={`Remove instruction step ${index + 1}`}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
-                  <FormMessage />
+                  <FormMessage id={`recipe-instruction-${index}-error`} />
                 </FormItem>
               )}
             />
@@ -214,17 +268,26 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
           <FormField
             control={form.control}
             name="preparationTime"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel>Preparation Time (minutes)</FormLabel>
+                <FormLabel>
+                  Preparation Time (minutes){" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Input
+                    id="recipe-prep-time"
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "recipe-prep-time-error" : undefined}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage id="recipe-prep-time-error" />
               </FormItem>
             )}
           />
@@ -232,17 +295,26 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
           <FormField
             control={form.control}
             name="cookingTime"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel>Cooking Time (minutes)</FormLabel>
+                <FormLabel>
+                  Cooking Time (minutes){" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Input
+                    id="recipe-cook-time"
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "recipe-cook-time-error" : undefined}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage id="recipe-cook-time-error" />
               </FormItem>
             )}
           />
@@ -250,17 +322,26 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
           <FormField
             control={form.control}
             name="servings"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel>Servings</FormLabel>
+                <FormLabel>
+                  Servings{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <Input
+                    id="recipe-servings"
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "recipe-servings-error" : undefined}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage id="recipe-servings-error" />
               </FormItem>
             )}
           />
@@ -270,13 +351,22 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
           <FormField
             control={form.control}
             name="difficulty"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel>Difficulty</FormLabel>
+                <FormLabel htmlFor="recipe-difficulty">
+                  Difficulty{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <select
+                    id="recipe-difficulty"
                     value={field.value}
                     onChange={field.onChange}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "recipe-difficulty-error" : undefined}
                     className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Select difficulty</option>
@@ -285,7 +375,7 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                     <option value="hard">Hard</option>
                   </select>
                 </FormControl>
-                <FormMessage />
+                <FormMessage id="recipe-difficulty-error" />
               </FormItem>
             )}
           />
@@ -293,17 +383,26 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
           <FormField
             control={form.control}
             name="categories"
-            render={({ field }) => (
+            render={({ field, fieldState: { error } }) => (
               <FormItem>
-                <FormLabel>Categories</FormLabel>
+                <FormLabel htmlFor="recipe-categories">
+                  Categories{" "}
+                  <span aria-label="required" className="text-rose-500">
+                    *
+                  </span>
+                </FormLabel>
                 <FormControl>
                   <select
+                    id="recipe-categories"
                     onChange={(e) => {
                       if (e.target.value && !field.value.includes(e.target.value)) {
                         field.onChange([...field.value, e.target.value]);
                       }
                       e.target.value = ""; // Reset select
                     }}
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "recipe-categories-error" : undefined}
                     className="border-input focus:ring-ring w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
                   >
                     <option value="">Add category</option>
@@ -314,7 +413,7 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                     <option value="snack">Snack</option>
                   </select>
                 </FormControl>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-2" aria-label="Selected categories">
                   {field.value.map((category, index) => (
                     <div
                       key={index}
@@ -325,13 +424,14 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                         type="button"
                         onClick={() => field.onChange(field.value.filter((_, i) => i !== index))}
                         className="hover:text-emerald-900"
+                        aria-label={`Remove category ${category}`}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3" aria-hidden="true" />
                       </button>
                     </div>
                   ))}
                 </div>
-                <FormMessage />
+                <FormMessage id="recipe-categories-error" />
               </FormItem>
             )}
           />
@@ -340,20 +440,23 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
         <FormField
           control={form.control}
           name="image"
-          render={({ field }) => (
+          render={({ field, fieldState: { error } }) => (
             <FormItem>
-              <FormLabel>Recipe Image</FormLabel>
+              <FormLabel htmlFor="recipe-image">Recipe Image</FormLabel>
               <FormControl>
                 <Input
+                  id="recipe-image"
                   type="file"
                   accept="image/*"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "recipe-image-error" : undefined}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) field.onChange(file);
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage id="recipe-image-error" />
             </FormItem>
           )}
         />

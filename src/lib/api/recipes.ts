@@ -1,4 +1,4 @@
-import { apiRequest, getApiHeaders } from "./config";
+import { apiRequest, getApiHeaders, BackendResponse, BackendListResponse } from "./config";
 
 export interface Recipe {
   _id: string;
@@ -36,12 +36,6 @@ export interface CreateRecipeData {
   image?: File;
 }
 
-// Define backend response type
-interface BackendRecipeResponse {
-  success: boolean;
-  data: Recipe[];
-}
-
 export async function getRecipes(params?: {
   page?: number;
   limit?: number;
@@ -57,11 +51,11 @@ export async function getRecipes(params?: {
   if (params?.difficulty) searchParams.append("difficulty", params.difficulty);
 
   // Return the backend response as-is, let the hook handle the format
-  return apiRequest<BackendRecipeResponse>(`/recipes?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Recipe>>(`/recipes?${searchParams.toString()}`);
 }
 
 export async function getRecipe(id: string) {
-  return apiRequest<Recipe>(`/recipes/${id}`);
+  return apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`);
 }
 
 export async function createRecipe(data: CreateRecipeData, token?: string) {
@@ -76,7 +70,7 @@ export async function createRecipe(data: CreateRecipeData, token?: string) {
     }
   });
 
-  return apiRequest<Recipe>(`/recipes`, {
+  return apiRequest<BackendResponse<Recipe>>(`/recipes`, {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
@@ -95,7 +89,7 @@ export async function updateRecipe(id: string, data: Partial<CreateRecipeData>, 
     }
   });
 
-  return apiRequest<Recipe>(`/recipes/${id}`, {
+  return apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`, {
     method: "PUT",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
@@ -103,7 +97,7 @@ export async function updateRecipe(id: string, data: Partial<CreateRecipeData>, 
 }
 
 export async function deleteRecipe(id: string, token?: string) {
-  return apiRequest<void>(`/recipes/${id}`, {
+  return apiRequest<BackendResponse<void>>(`/recipes/${id}`, {
     method: "DELETE",
     headers: getApiHeaders(token),
   });
@@ -118,7 +112,7 @@ export interface RecipeReview {
 }
 
 export async function addRecipeReview(id: string, review: RecipeReview, token?: string) {
-  return apiRequest<Recipe>(`/recipes/add-review/${id}`, {
+  return apiRequest<BackendResponse<Recipe>>(`/recipes/add-review/${id}`, {
     method: "POST",
     headers: getApiHeaders(token),
     body: JSON.stringify(review),

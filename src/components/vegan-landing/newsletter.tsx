@@ -1,5 +1,4 @@
-"use client";
-
+// NOTE: Add "use client" here once a real submit handler (useState/useEffect) is wired up.
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -25,6 +24,9 @@ export function Newsletter() {
         className="absolute bottom-[236px] left-[-147px] z-30 hidden h-[358px] w-[444px] object-cover opacity-60 xl:block"
         width={444}
         height={358}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 444px"
       />
       <Image
         src="https://images.pexels.com/photos/1640775/pexels-photo-1640775.jpeg"
@@ -32,6 +34,9 @@ export function Newsletter() {
         className="absolute right-[-147px] bottom-[236px] z-30 hidden h-[358px] w-[444px] object-cover opacity-60 xl:block"
         width={444}
         height={358}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
+        sizes="(max-width: 1280px) 0vw, 444px"
       />
 
       {/* Content */}

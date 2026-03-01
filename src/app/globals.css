@@ -120,3 +120,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* -------------------------------------------------------------------------
+   Accessibility — Screen-reader-only utility
+   (Tailwind v4 includes sr-only by default; this is a safe redeclaration
+   that ensures the class is always available regardless of Tailwind version)
+------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Accessibility — Consistent focus-visible ring for interactive elements.
+   Uses emerald-500 to match the platform's primary colour theme.
+------------------------------------------------------------------------- */
+@layer components {
+  .focus-ring {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2;
+  }
+}
+
+/* Global focus-visible override for all keyboard-navigable elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px oklch(1 0 0), 0 0 0 4px oklch(0.508 0.199 160.53 / 0.7);
+}

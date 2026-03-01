@@ -1,11 +1,9 @@
 // Configuración centralizada de la API
-console.log('🔧 DEBUG: process.env.NEXT_PUBLIC_API_URL =', process.env.NEXT_PUBLIC_API_URL);
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1",
   TIMEOUT: 15000, // Aumentar timeout a 15 segundos
   RETRY_ATTEMPTS: 3,
 } as const;
-console.log('🔧 DEBUG: API_CONFIG.BASE_URL =', API_CONFIG.BASE_URL);
 
 // Tipos para respuestas paginadas (para mantener compatibilidad)
 export interface PaginatedResponse<T> {
@@ -39,24 +37,12 @@ export function extractBackendListData<T>(response: BackendListResponse<T>): T[]
 
 // Helper universal para procesar respuestas del backend (maneja ambos formatos)
 export function processBackendResponse<T>(response: unknown): T[] | T {
-  // Si es el formato {success: true, data: ...}
-  if (response && typeof response === "object" && "success" in response && "data" in response) {
-    return (response as { success: boolean; data: T[] | T }).data;
+  if (response && typeof response === "object" && "data" in response) {
+    return (response as { data: T[] | T }).data;
   }
-  // Si es el formato de recetas parcial {success: true, data: ...} sin message
-  if (
-    response &&
-    typeof response === "object" &&
-    "data" in response &&
-    Array.isArray((response as { data: unknown }).data)
-  ) {
-    return (response as { data: T[] }).data;
-  }
-  // Si es formato directo (para compatibilidad)
   if (Array.isArray(response)) {
     return response as T[];
   }
-  // Si es objeto directo
   return response as T;
 }
 

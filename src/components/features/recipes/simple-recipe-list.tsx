@@ -45,14 +45,6 @@ export function SimpleRecipeList({
       // Use the passed currentPage or calculate based on isLoadMore
       const targetPage = currentPage ?? (isLoadMore ? page + 1 : 1);
 
-      console.log("Fetching recipes with params:", {
-        page: targetPage,
-        limit: initialLimit,
-        search: searchValue,
-        category: categoryValue,
-        difficulty: difficultyValue,
-      });
-
       try {
         setIsLoading(true);
         setError(null);

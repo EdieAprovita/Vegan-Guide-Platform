@@ -151,7 +151,6 @@ export function RecommendationEngine() {
     );
 
     // In a real app, this would send feedback to the backend
-    console.log(`Feedback for ${recommendationId}: ${isPositive ? "positive" : "negative"}`);
   };
 
   const getTypeIcon = (type: string) => {

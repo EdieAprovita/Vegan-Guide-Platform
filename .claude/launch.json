@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "next-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "next-dev-turbo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:turbo"],
+      "port": 3000
+    },
+    {
+      "name": "next-dev-lan",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:lan"],
+      "port": 3000
+    },
+    {
+      "name": "express-api",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/EACM/Developer/api-guideTypescript && npm run dev"],
+      "port": 5001
+    }
+  ]
+}

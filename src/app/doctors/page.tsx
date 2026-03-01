@@ -1,8 +1,21 @@
+import { Metadata } from "next";
 import { SimpleDoctorList } from "@/components/features/doctors/simple-doctor-list";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getDoctors, Doctor } from "@/lib/api/doctors";
+
+export const metadata: Metadata = {
+  title: "Doctores Veganos | Verde Guide",
+  description:
+    "Encuentra doctores y profesionales de salud que apoyan y entienden el estilo de vida vegano. Especialistas en nutrición vegana cerca de ti.",
+  keywords: ["doctores veganos", "nutricionistas veganos", "salud vegana", "médicos plant-based"],
+  openGraph: {
+    title: "Doctores Veganos | Verde Guide",
+    description:
+      "Encuentra doctores y profesionales de salud que apoyan y entienden el estilo de vida vegano.",
+  },
+};
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -14,7 +27,6 @@ export default async function DoctorsPage() {
     const response = await getDoctors();
     // Ensure we always pass an array
     initialDoctors = Array.isArray(response) ? response : response?.data || [];
-    console.log("Server-side doctors fetch result:", initialDoctors);
   } catch (error) {
     console.error("Failed to fetch doctors:", error);
     // Continue with empty array, the client-side will handle the loading
