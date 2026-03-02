@@ -88,8 +88,8 @@ authedTest.describe("Recommendations: Authenticated Access", () => {
       });
       await waitForHydration(authedPage);
 
-      // Accept either the page loading its content OR a redirect to login,
-      // since server-side auth may not be fully mocked in the fixture.
+      // Assert that the authenticated page loaded content and did NOT redirect to /login.
+      // The authedTest fixture ensures the user is authenticated.
       await assertAuthedPageLoaded(authedPage);
     },
   );
@@ -107,7 +107,7 @@ authedTest.describe("Recommendations: Authenticated Access", () => {
       });
       await waitForHydration(authedPage);
 
-      // Accept either meaningful content OR a redirect to login.
+      // Assert that the authenticated page loaded content and did NOT redirect to /login.
       await assertAuthedPageLoaded(authedPage);
     },
   );
