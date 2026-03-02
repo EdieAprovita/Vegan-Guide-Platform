@@ -8,7 +8,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors, assertNoInfiniteRedirect } from "../../helpers/test-utils";
 
 /**
  * Search E2E Test Suite
@@ -73,56 +73,17 @@ test.describe("Search: Advanced Search Page", () => {
   });
 
   test("page loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "Third-party cookie",
-          "Download the React DevTools",
-          "Failed to load resource",
-          "net::ERR_",
-          "favicon",
-          "Cannot be given refs",
-          "React.forwardRef",
-          "next/image",
-          "hydrat",
-          "NEXT_",
-          "webpack-internal",
-          "ErrorBoundary",
-          "at ",
-          "Suspense",
-          "Loading",
-          "NotFound",
-          "Redirect",
-          "useSearchParams",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const searchPage = new SearchPage(page);
     await searchPage.gotoSearch();
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("no infinite redirect on search page", async ({ page }) => {
-    let navigationCount = 0;
-    page.on("framenavigated", () => {
-      navigationCount++;
-    });
-
-    const searchPage = new SearchPage(page);
-    await searchPage.gotoSearch();
-    await waitForHydration(page);
-
-    // A reasonable page load should not trigger more than 9 navigations
-    expect(navigationCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/search");
   });
 });
 
@@ -347,42 +308,13 @@ test.describe("Search: Suggestions and Autocomplete", () => {
   });
 
   test("popular searches are accessible", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "Third-party cookie",
-          "Download the React DevTools",
-          "Failed to load resource",
-          "net::ERR_",
-          "favicon",
-          "Cannot be given refs",
-          "React.forwardRef",
-          "next/image",
-          "hydrat",
-          "NEXT_",
-          "webpack-internal",
-          "ErrorBoundary",
-          "at ",
-          "Suspense",
-          "Loading",
-          "NotFound",
-          "Redirect",
-          "useSearchParams",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     // Page must load without fatal console errors
-    expect(errors).toEqual([]);
+    checker.check();
 
     // Body must render meaningful content
     await pragmaticFallback(page);

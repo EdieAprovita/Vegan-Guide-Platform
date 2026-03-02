@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { waitForHydration, mockNextImages } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  mockNextImages,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * Smoke test: 404 Not Found Page
@@ -107,28 +111,11 @@ test.describe("Smoke: 404 Not Found Page", () => {
   });
 
   test("no console errors on 404 page", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        // Ignore benign network/resource errors that are expected on 404
-        const benign = [
-          "favicon",
-          "Failed to fetch",
-          "Failed to load resource",
-          "maps.googleapis",
-          "NetworkError",
-          "404",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/nonexistent-page");
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });

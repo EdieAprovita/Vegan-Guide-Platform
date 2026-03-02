@@ -16,7 +16,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
 
 /**
  * Ratings E2E Test Suite
@@ -28,31 +28,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Helpful votes interaction — authenticated
  *  5. Cross-resource rating consistency — unauthenticated
  */
-
-/* ------------------------------------------------------------------ */
-/*  Shared benign console-error list                                   */
-/* ------------------------------------------------------------------ */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Ratings: Display on Resource Cards (unauthenticated)            */
@@ -130,22 +105,13 @@ test.describe("Ratings: Display on Resource Cards", () => {
   });
 
   test("restaurant list renders without rating errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const restaurantPage = new RestaurantPage(page);
     await restaurantPage.gotoList();
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });
 

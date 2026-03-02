@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { test as authedTest } from "../../fixtures/auth.fixture";
 import { mockNextImages } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration, assertNoInfiniteRedirect } from "../../helpers/test-utils";
 
 /**
  * Auth: Session Management Tests
@@ -57,16 +57,7 @@ test.describe("Auth: Session - Unauthenticated", () => {
   });
 
   test("no infinite redirect loop on logout", async ({ page }) => {
-    let redirectCount = 0;
-    page.on("framenavigated", () => {
-      redirectCount++;
-    });
-
-    await page.goto("/");
-    await waitForHydration(page);
-
-    // Should not have excessive redirects
-    expect(redirectCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/");
   });
 });
 

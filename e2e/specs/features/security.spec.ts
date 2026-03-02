@@ -15,7 +15,7 @@ import {
   mockUser,
   mockAdmin,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback } from "../../helpers/test-utils";
 
 /**
  * Phase 7C: Security & Authorization E2E Tests
@@ -27,27 +27,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Input Sanitization     — XSS payloads, script injection in forms
  *  5. CSRF & Auth Headers    — mock token presence, CSRF endpoint
  */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Security: Route Protection                                      */

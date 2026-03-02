@@ -17,7 +17,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
 
 /**
  * Phase 7D: Performance & Metrics E2E Tests
@@ -29,27 +29,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Resource Efficiency    — no excessive API calls, no memory leaks
  *  5. Caching Behaviour      — service worker, stale-while-revalidate
  */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Performance: Page Load Times                                    */
@@ -377,15 +356,7 @@ test.describe("Performance: Navigation Performance", () => {
   });
 
   test("rapid page switches do not cause memory issues", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const routes = [
       "/restaurants",
@@ -408,7 +379,7 @@ test.describe("Performance: Navigation Performance", () => {
       }
     }
 
-    expect(errors).toEqual([]);
+    checker.check();
 
     await pragmaticFallback(page);
   });
@@ -499,21 +470,13 @@ test.describe("Performance: Resource Efficiency", () => {
   });
 
   test("no console errors on clean page load", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await mockRestaurantList(page, 3);
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("page weight (transfer size) is reasonable", async ({ page }) => {

@@ -6,7 +6,11 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * Accessibility E2E Test Suite — Phase 6
@@ -18,28 +22,6 @@ import { waitForHydration, pragmaticFallback } from "../../helpers/test-utils";
  *  4. Screen Reader Patterns — headings hierarchy, ARIA live regions, form labels
  *  5. Focus Management   — authenticated, modal/dialog focus handling
  */
-
-/** Benign console error substrings shared across all sections */
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Accessibility: Skip Navigation (unauthenticated)                */
@@ -177,21 +159,12 @@ test.describe("Accessibility: Skip Navigation", () => {
   });
 
   test("page loads without accessibility-breaking console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });
 

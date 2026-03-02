@@ -15,7 +15,12 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+} from "../../helpers/test-utils";
 
 /**
  * Phase 7E: Advanced State Management E2E Test Suite
@@ -27,31 +32,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Session & Auth State    — cross-navigation persistence
  *  5. Data Caching & Recovery — React Query stale-while-revalidate + resilience
  */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-  "next-themes",
-  "localStorage",
-  "hydration",
-  "Hydration",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. State Management: Theme Persistence                             */
@@ -369,18 +349,10 @@ test.describe("State Management: Language Persistence", () => {
   });
 
   test("page content updates reactively after language toggle", async ({ page }) => {
+    const checker = collectConsoleErrors(page);
+
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
-
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
 
     try {
       const langToggle = page.locator(
@@ -395,9 +367,9 @@ test.describe("State Management: Language Persistence", () => {
       if (exists) {
         await langToggle.first().click();
         await waitForHydration(page);
-        expect(errors).toEqual([]);
+        checker.check();
       } else {
-        expect(errors).toEqual([]);
+        checker.check();
       }
     } catch {
       expect(true).toBe(true);
@@ -495,13 +467,7 @@ test.describe("State Management: URL State & Search Params", () => {
   });
 
   test("no redirect loop with URL params", async ({ page }) => {
-    let navCount = 0;
-    page.on("framenavigated", () => navCount++);
-
-    await page.goto("/search?q=test", { waitUntil: "domcontentloaded" });
-    await waitForHydration(page);
-
-    expect(navCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/search?q=test");
   });
 });
 
@@ -675,15 +641,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
   });
 
   test("page recovers gracefully from stale data", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
@@ -694,7 +652,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
     await pragmaticFallback(page);
   });
 
@@ -702,15 +660,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
     await mockDoctorList(page, 3);
     await mockMarketList(page, 3);
 
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const routes = ["/", "/restaurants", "/recipes", "/", "/restaurants"];
 
@@ -724,7 +674,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
     }
 
     await pragmaticFallback(page);
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("browser back button preserves page state", async ({ page }) => {

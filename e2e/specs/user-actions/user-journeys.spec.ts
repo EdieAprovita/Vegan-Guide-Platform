@@ -26,7 +26,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 import { RestaurantPage } from "../../pages/RestaurantPage";
@@ -41,27 +41,6 @@ import { RestaurantPage } from "../../pages/RestaurantPage";
  *  4. Auth Round-trip        — login → protected route → logout → redirect
  *  5. Cross-Resource Navigation — restaurants → recipes → doctors → map
  */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. User Journey: New User Onboarding                               */
@@ -277,15 +256,7 @@ test.describe("User Journey: Discovery Flow", () => {
   test("full discovery: home → search → detail flow without errors", async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
@@ -296,7 +267,7 @@ test.describe("User Journey: Discovery Flow", () => {
     await page.goto("/restaurants/rest-001", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
     await pragmaticFallback(page);
   });
 
@@ -357,15 +328,7 @@ test.describe("User Journey: Content Browsing", () => {
   test("multi-resource browsing: restaurants → recipes → doctors", async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     // Visit restaurants
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
@@ -385,7 +348,7 @@ test.describe("User Journey: Content Browsing", () => {
     const doctorBody = await page.locator("body").textContent();
     expect((doctorBody ?? "").length).toBeGreaterThan(0);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("home page to resource detail is smooth", async ({ page }) => {
@@ -527,15 +490,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
   test("full app tour: home → restaurants → recipes → doctors → markets", async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const routes = ["/", "/restaurants", "/recipes", "/doctors", "/markets"];
 
@@ -545,7 +500,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
       await pragmaticFallback(page);
     }
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("navigating to search page from any resource list works", async ({
@@ -585,15 +540,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
   });
 
   test("rapid navigation between resources does not crash", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const routes = [
       "/",
@@ -618,6 +565,6 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
     }
 
     await pragmaticFallback(page);
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });

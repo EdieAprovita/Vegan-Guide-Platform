@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { test as authedTest } from "../../fixtures/auth.fixture";
 import {
   mockAchievements,
@@ -6,7 +6,14 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+  assertPageHasContent,
+  assertAuthedPageLoaded,
+} from "../../helpers/test-utils";
 
 /**
  * Achievements E2E Test Suite
@@ -33,9 +40,7 @@ test.describe("Achievements: Page Load", () => {
     await waitForHydration(page);
 
     // Page may redirect to /login for unauthenticated users — still must render something
-    const body = page.locator("body");
-    const content = await body.textContent();
-    expect((content ?? "").length).toBeGreaterThan(0);
+    await assertPageHasContent(page);
   });
 
   test("achievements page has content", async ({ page }) => {
@@ -46,59 +51,22 @@ test.describe("Achievements: Page Load", () => {
       await pragmaticFallback(page);
     } catch {
       // Pragmatic: URL is still resolvable
+      const { expect } = await import("@playwright/test");
       expect(page.url()).toBeTruthy();
     }
   });
 
   test("page loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "favicon",
-          "Failed to fetch",
-          "maps.googleapis",
-          "NetworkError",
-          "Cannot be given refs",
-          "React.forwardRef",
-          "ERR_CONNECTION_REFUSED",
-          "Failed to load resource",
-          "Download the React DevTools",
-          "Third-party cookie",
-          "webpack-internal",
-          "ErrorBoundary",
-          "at ",
-          "Suspense",
-          "Loading",
-          "NotFound",
-          "Redirect",
-          "useSearchParams",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/achievements", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("no infinite redirect", async ({ page }) => {
-    let navigationCount = 0;
-    page.on("framenavigated", () => {
-      navigationCount++;
-    });
-
-    await page.goto("/achievements", { waitUntil: "domcontentloaded" });
-    await waitForHydration(page);
-
-    // A reasonable page load should not trigger more than 9 navigations
-    expect(navigationCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/achievements");
   });
 });
 
@@ -120,10 +88,7 @@ authedTest.describe("Achievements: Authenticated Access", () => {
 
       // Accept either the page loading its content OR a redirect to login,
       // since server-side auth may not be fully mocked in the fixture.
-      const url = authedPage.url();
-      const hasContent = ((await authedPage.locator("body").textContent())?.length ?? 0) > 0;
-      const redirectedToLogin = url.includes("/login");
-      expect(hasContent || redirectedToLogin).toBe(true);
+      await assertAuthedPageLoaded(authedPage);
     },
   );
 
@@ -139,10 +104,7 @@ authedTest.describe("Achievements: Authenticated Access", () => {
       await waitForHydration(authedPage);
 
       // Accept either meaningful content OR a redirect to login.
-      const url = authedPage.url();
-      const hasContent = ((await authedPage.locator("body").textContent())?.length ?? 0) > 0;
-      const redirectedToLogin = url.includes("/login");
-      expect(hasContent || redirectedToLogin).toBe(true);
+      await assertAuthedPageLoaded(authedPage);
     },
   );
 });

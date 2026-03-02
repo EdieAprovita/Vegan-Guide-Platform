@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { test as authedTest } from "../../fixtures/auth.fixture";
 import { mockNextImages } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration, assertNoInfiniteRedirect } from "../../helpers/test-utils";
 
 /**
  * Auth: Protected Routes Tests
@@ -143,32 +143,14 @@ test.describe("Auth: No Infinite Redirects", () => {
   test("no infinite redirect loop when accessing /login without auth", async ({
     page,
   }) => {
-    let redirectCount = 0;
-    page.on("framenavigated", () => {
-      redirectCount++;
-    });
-
-    await page.goto("/login");
-    await waitForHydration(page);
-
-    // Should reach login without excessive redirects
-    expect(redirectCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/login");
     expect(page.url()).toContain("/login");
   });
 
   test("no infinite redirect loop when accessing protected route", async ({
     page,
   }) => {
-    let redirectCount = 0;
-    page.on("framenavigated", () => {
-      redirectCount++;
-    });
-
-    await page.goto("/profile");
-    await waitForHydration(page);
-
-    // Should reach login without excessive redirects
-    expect(redirectCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/profile");
     expect(page.url()).toContain("/login");
   });
 });

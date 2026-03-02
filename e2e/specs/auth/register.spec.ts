@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { RegisterPage } from "../../pages/RegisterPage";
 import { mockRegisterSuccess, mockNextImages } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration, collectConsoleErrors } from "../../helpers/test-utils";
 
 /**
  * Auth: Registration Flow Tests
@@ -194,28 +194,12 @@ test.describe("Auth: Register", () => {
   });
 
   test("no console errors on register page", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "favicon",
-          "Failed to fetch",
-          "maps.googleapis",
-          "NetworkError",
-          "Cannot be given refs", // React ref warning
-          "React.forwardRef", // React forwardRef warning
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });

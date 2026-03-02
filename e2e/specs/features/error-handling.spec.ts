@@ -14,7 +14,11 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 
@@ -28,27 +32,6 @@ import { RegisterPage } from "../../pages/RegisterPage";
  *  4. Loading States         — skeleton/spinner presence during data load
  *  5. 404 & Not Found        — invalid routes, invalid resource IDs
  */
-
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Error Handling: Network Failures                                */
@@ -172,6 +155,7 @@ test.describe("Error Handling: API Error Responses", () => {
     await pragmaticFallback(page);
 
     // Should show some error or not-found indicator
+    const body = await page.locator("body").textContent();
     const hasErrorIndicator =
       (body ?? "").toLowerCase().includes("not found") ||
       (body ?? "").toLowerCase().includes("no encontrado") ||
@@ -490,6 +474,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
 
     await pragmaticFallback(page);
 
+    const body = await page.locator("body").textContent();
     const is404 =
       (body ?? "").includes("404") ||
       (body ?? "").toLowerCase().includes("not found") ||
@@ -549,15 +534,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
   test("multiple 404 navigations do not accumulate errors", async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/fake-1", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
@@ -568,6 +545,6 @@ test.describe("Error Handling: 404 & Not Found", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });

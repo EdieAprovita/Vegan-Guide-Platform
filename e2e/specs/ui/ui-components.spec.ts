@@ -7,7 +7,11 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * UI Components E2E Test Suite — Phase 6
@@ -19,28 +23,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Form Components   — labels, required indicators, validation messages
  *  5. Loading & Error States — role="status", role="alert", data-slot patterns
  */
-
-/** Benign console error substrings shared across all sections */
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. UI Components: Theme Toggle (unauthenticated)                   */
@@ -137,21 +119,12 @@ test.describe("UI Components: Theme Toggle", () => {
   test("page loads without console errors after theme button is visible", async ({
     page,
   }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });
 
@@ -462,21 +435,12 @@ test.describe("UI Components: Form Components", () => {
   });
 
   test("login form loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("search input has accessible attributes on search page", async ({

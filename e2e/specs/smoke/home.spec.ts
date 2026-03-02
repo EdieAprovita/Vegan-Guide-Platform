@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { waitForHydration, mockNextImages } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  mockNextImages,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * Smoke test: Landing page / Homepage
@@ -78,7 +82,6 @@ test.describe("Smoke: Home / Landing Page", () => {
 
     // Look for auth links in header/nav
     const header = page.locator("header, nav, [role='navigation']").first();
-    const headerText = await header.textContent();
 
     // Should have some navigation element
     await expect(header).toBeVisible();
@@ -113,21 +116,11 @@ test.describe("Smoke: Home / Landing Page", () => {
   });
 
   test("no console errors on landing page", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        // Ignore benign errors
-        const benign = ["favicon", "Failed to fetch", "maps.googleapis", "NetworkError"];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/");
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 });

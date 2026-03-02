@@ -11,7 +11,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors, assertNoInfiniteRedirect } from "../../helpers/test-utils";
 
 /**
  * Reviews E2E Test Suite
@@ -23,28 +23,6 @@ import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
  *  4. Review Validation — authenticated via auth.fixture
  *  5. Reviews Management Page — unauthenticated, may redirect if admin-only
  */
-
-/** Benign console error substrings shared across all sections */
-const BENIGN_ERRORS = [
-  "favicon",
-  "Failed to fetch",
-  "maps.googleapis",
-  "NetworkError",
-  "Cannot be given refs",
-  "React.forwardRef",
-  "ERR_CONNECTION_REFUSED",
-  "Failed to load resource",
-  "Download the React DevTools",
-  "Third-party cookie",
-  "webpack-internal",
-  "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
-];
 
 /* ------------------------------------------------------------------ */
 /*  1. Reviews: Display on Resource Pages (unauthenticated)            */
@@ -107,36 +85,17 @@ test.describe("Reviews: Display on Resource Pages", () => {
   });
 
   test("page loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     const restaurantPage = new RestaurantPage(page);
     await restaurantPage.gotoDetail("rest-001");
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("no infinite redirect on review-enabled page", async ({ page }) => {
-    let navigationCount = 0;
-    page.on("framenavigated", () => {
-      navigationCount++;
-    });
-
-    const restaurantPage = new RestaurantPage(page);
-    await restaurantPage.gotoDetail("rest-001");
-    await waitForHydration(page);
-
-    // A reasonable page load should not trigger more than 9 navigations
-    expect(navigationCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/restaurants/rest-001");
   });
 });
 

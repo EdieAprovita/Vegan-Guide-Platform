@@ -7,7 +7,12 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+} from "../../helpers/test-utils";
 
 /**
  * Markets E2E Test Suite
@@ -129,48 +134,15 @@ test.describe("Markets: List Page", () => {
   });
 
   test("page loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "favicon",
-          "Failed to fetch",
-          "maps.googleapis",
-          "NetworkError",
-          "Cannot be given refs",
-          "React.forwardRef",
-          "ERR_CONNECTION_REFUSED",
-          "Failed to load resource",
-          "Download the React DevTools",
-          "Third-party cookie",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
-
+    const checker = collectConsoleErrors(page);
     const marketPage = new MarketPage(page);
     await marketPage.gotoList();
     await waitForHydration(page);
-
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("no infinite redirect on market page", async ({ page }) => {
-    let navigationCount = 0;
-    page.on("framenavigated", () => {
-      navigationCount++;
-    });
-
-    const marketPage = new MarketPage(page);
-    await marketPage.gotoList();
-    await waitForHydration(page);
-
-    // A reasonable page load should not trigger more than 9 navigations
-    expect(navigationCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/markets");
   });
 });
 

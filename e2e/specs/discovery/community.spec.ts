@@ -6,7 +6,13 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+  assertPageHasContent,
+} from "../../helpers/test-utils";
 
 /**
  * Community E2E Test Suite
@@ -32,9 +38,7 @@ test.describe("Community: Page Load", () => {
     await page.goto("/community", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = page.locator("body");
-    const content = await body.textContent();
-    expect((content ?? "").length).toBeGreaterThan(0);
+    await assertPageHasContent(page);
   });
 
   test("community page has heading", async ({ page }) => {
@@ -58,51 +62,20 @@ test.describe("Community: Page Load", () => {
     await page.goto("/community", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(50);
+    await assertPageHasContent(page, 50);
   });
 
   test("page loads without console errors", async ({ page }) => {
-    const errors: string[] = [];
-
-    page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        const benign = [
-          "favicon",
-          "Failed to fetch",
-          "maps.googleapis",
-          "NetworkError",
-          "Cannot be given refs",
-          "React.forwardRef",
-          "ERR_CONNECTION_REFUSED",
-          "Failed to load resource",
-          "Download the React DevTools",
-          "Third-party cookie",
-        ];
-        if (!benign.some((b) => text.includes(b))) {
-          errors.push(text);
-        }
-      }
-    });
+    const checker = collectConsoleErrors(page);
 
     await page.goto("/community", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    expect(errors).toEqual([]);
+    checker.check();
   });
 
   test("no infinite redirect", async ({ page }) => {
-    let navigationCount = 0;
-    page.on("framenavigated", () => {
-      navigationCount++;
-    });
-
-    await page.goto("/community", { waitUntil: "domcontentloaded" });
-    await waitForHydration(page);
-
-    // A reasonable page load should not trigger more than 9 navigations
-    expect(navigationCount).toBeLessThan(10);
+    await assertNoInfiniteRedirect(page, "/community");
   });
 });
 
@@ -133,8 +106,7 @@ test.describe("Community: Content Display", () => {
         expect(articleCount + cardCount).toBeGreaterThanOrEqual(1);
       } else {
         // Fall back — the body must carry meaningful content
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(50);
+        await assertPageHasContent(page, 50);
       }
     } catch {
       // Pragmatic: page is still accessible
@@ -195,8 +167,7 @@ authedTest.describe("Community: Authenticated Access", () => {
       await waitForHydration(authedPage);
 
       try {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(50);
+        await assertPageHasContent(authedPage, 50);
       } catch {
         // Pragmatic: at minimum the page resolved
         expect(authedPage.url()).toBeTruthy();
