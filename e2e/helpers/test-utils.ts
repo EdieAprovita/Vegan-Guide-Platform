@@ -8,12 +8,14 @@ import { Page, expect } from "@playwright/test";
  * Centralized list of benign console errors that should be ignored
  * across all E2E tests. Update this single list instead of duplicating
  * per-file arrays.
+ *
+ * Each entry should be specific enough to avoid masking real regressions.
  */
 export const BENIGN_ERRORS = [
   "favicon",
   "Failed to fetch",
   "maps.googleapis",
-  "NetworkError",
+  "NetworkError when attempting",
   "Cannot be given refs",
   "React.forwardRef",
   "ERR_CONNECTION_REFUSED",
@@ -22,21 +24,19 @@ export const BENIGN_ERRORS = [
   "Third-party cookie",
   "webpack-internal",
   "ErrorBoundary",
-  "at ",
-  "Suspense",
-  "Loading",
-  "NotFound",
-  "Redirect",
-  "useSearchParams",
+  "React.Suspense",
+  "NEXT_NOT_FOUND",
+  "NEXT_REDIRECT",
+  "useSearchParams() should be wrapped",
 ];
 
 /**
  * Wait for the page to be fully loaded and ready.
- * Waits for network to idle and ensures body is rendered.
+ * Waits for network activity to settle and ensures the body element is visible.
  */
 export async function waitForHydration(page: Page) {
-  // Wait for the page to be fully loaded
   await page.waitForLoadState("networkidle");
+  await page.waitForSelector("body", { state: "visible", timeout: 5000 });
 }
 
 /**

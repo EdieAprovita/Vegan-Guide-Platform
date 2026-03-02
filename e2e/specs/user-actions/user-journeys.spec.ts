@@ -26,7 +26,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback, collectConsoleErrors, tryOpenMobileMenu } from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 import { RestaurantPage } from "../../pages/RestaurantPage";
@@ -142,12 +142,13 @@ test.describe("User Journey: New User Onboarding", () => {
     const body = await page.locator("body").textContent();
     expect((body ?? "").length).toBeGreaterThan(50);
 
-    // Should have navigation links to resources
+    // Should have navigation links to resources (may be hidden in mobile menu)
+    await tryOpenMobileMenu(page);
     const navLinks = page.locator(
-      'a[href="/restaurants"], a[href="/recipes"], a[href="/search"]'
+      'a[href="/restaurants"], a[href="/recipes"], a[href="/search"]',
     );
     const navCount = await navLinks.count();
-    expect(navCount).toBeGreaterThanOrEqual(0); // Some may be in hamburger menu
+    expect(navCount).toBeGreaterThan(0);
   });
 
   test("user can navigate from home to login page", async ({ page }) => {

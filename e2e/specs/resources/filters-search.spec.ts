@@ -12,7 +12,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback } from "../../helpers/test-utils";
 
 /**
  * Filters & Search E2E Test Suite

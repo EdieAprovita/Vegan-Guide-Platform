@@ -58,7 +58,7 @@ test.describe("Smoke: PWA & Service Worker", () => {
   });
 
   test("PWA icons are accessible", async ({ request }) => {
-    // Check common PWA icon paths
+    // Check common PWA icon paths — at least one must be accessible
     const iconPaths = [
       "/icons/icon-192x192.png",
       "/icons/icon-72x72.png",
@@ -66,14 +66,18 @@ test.describe("Smoke: PWA & Service Worker", () => {
       "/logo.svg",
     ];
 
+    let foundIcon = false;
     for (const path of iconPaths) {
       const response = await request.get(path);
-      // Some might not exist, but those that do should be 200
       if (response.status() === 200) {
-        expect(["image/png", "image/svg+xml"]).toContain(response.headers()["content-type"]);
-        break; // At least one icon exists
+        expect(["image/png", "image/svg+xml"]).toContain(
+          response.headers()["content-type"],
+        );
+        foundIcon = true;
+        break;
       }
     }
+    expect(foundIcon).toBe(true);
   });
 
   test("page loads normally (online mode)", async ({ page }) => {

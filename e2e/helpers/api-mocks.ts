@@ -291,30 +291,35 @@ export async function mockNextImages(page: Page) {
 /* ---------- Google Maps Mock ---------- */
 
 export async function mockGoogleMaps(page: Page) {
-  // Mock Google Maps API
+  // Mock all Google Maps endpoints with a complete constructor stub
+  // so that new google.maps.Map(), Marker(), etc. don't throw at runtime.
+  const googleMapsStub = `
+    window.google = {
+      maps: {
+        Map: function() { return { setCenter: function(){}, setZoom: function(){}, addListener: function(){} }; },
+        Marker: function() { return { setMap: function(){}, setPosition: function(){}, addListener: function(){} }; },
+        InfoWindow: function() { return { open: function(){}, close: function(){} }; },
+        LatLng: function(lat, lng) { return { lat: function(){ return lat; }, lng: function(){ return lng; } }; },
+        Geocoder: function() { return { geocode: function(){} }; },
+        event: { addListener: function(){}, removeListener: function(){} },
+        ControlPosition: { TOP_RIGHT: 1 },
+        MapTypeId: { ROADMAP: "roadmap" },
+      }
+    };
+  `;
+
   await page.route("https://maps.googleapis.com/**", (route) =>
     route.fulfill({
       status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({}),
+      contentType: "application/javascript",
+      body: googleMapsStub,
     })
   );
-  // Mock Google Maps JS SDK and related endpoints
   await page.route("**/maps.googleapis.com/**", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/javascript",
-      body: `
-        // Minimal Google Maps stub for tests
-        (function () {
-          if (!window.google) {
-            window.google = {};
-          }
-          if (!window.google.maps) {
-            window.google.maps = {};
-          }
-        })();
-      `,
+      body: googleMapsStub,
     })
   );
 }

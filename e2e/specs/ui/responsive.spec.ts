@@ -46,33 +46,28 @@ test.describe("Responsive: Mobile Layout", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    try {
-      // Hamburger: button[aria-controls="mobile-menu"] — visible on mobile (lg:hidden)
-      const hamburger = page.locator('button[aria-controls="mobile-menu"]');
-      const hamburgerCount = await hamburger.count();
+    // Look for hamburger/menu toggle button — must be visible on mobile
+    const menuButton = page.locator(
+      [
+        'button[aria-controls="mobile-menu"]',
+        'button[aria-haspopup="dialog"]',
+        'button[aria-haspopup="menu"]',
+        'button[aria-label*="menu" i]',
+        'button[aria-label*="menú" i]',
+        'button[aria-label*="abrir" i]',
+      ].join(", "),
+    );
 
-      if (hamburgerCount > 0) {
-        const isVisible = await hamburger.first().isVisible().catch(() => false);
-        // On mobile viewport, the hamburger should be visible
-        expect(isVisible || hamburgerCount > 0).toBe(true);
-      } else {
-        // Fallback: any button that could be a menu toggle
-        const menuToggle = page.locator(
-          [
-            'button[aria-haspopup="dialog"]',
-            'button[aria-haspopup="menu"]',
-            'button[aria-label*="menu" i]',
-            'button[aria-label*="menú" i]',
-            'button[aria-label*="navegación" i]',
-          ].join(", "),
-        );
-        const toggleCount = await menuToggle.count();
-        const body = await page.locator("body").textContent();
-        expect(toggleCount >= 0 || (body ?? "").length > 0).toBe(true);
+    let foundVisible = false;
+    const count = await menuButton.count();
+    for (let i = 0; i < Math.min(count, 5); i++) {
+      const isVisible = await menuButton.nth(i).isVisible().catch(() => false);
+      if (isVisible) {
+        foundVisible = true;
+        break;
       }
-    } catch {
-      await pragmaticFallback(page);
     }
+    expect(foundVisible).toBe(true);
   });
 
   test("desktop navigation is not visible on mobile", async ({ page }) => {

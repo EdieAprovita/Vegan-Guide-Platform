@@ -23,6 +23,11 @@ import {
 /*  Usage:                                                             */
 /*    import { test } from "../fixtures/resources.fixture";            */
 /*    test("my test", async ({ restaurantPage }) => { ... });          */
+/*                                                                     */
+/*  IMPORTANT: Each fixture reuses the same underlying authedPage.    */
+/*  Do NOT destructure multiple resource fixtures in the same test    */
+/*  (e.g. { restaurantPage, doctorPage }) — their route mocks will   */
+/*  overlap on the shared page and cause cross-contamination.         */
 /* ------------------------------------------------------------------ */
 
 type ResourceFixtures = {
