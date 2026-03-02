@@ -17,11 +17,12 @@ export class DoctorPage extends BaseResourcePage {
       extraSearchSelector: 'input[placeholder*="octor"]',
     });
 
+    // Use data-testid for reliable selection; fallback to id-based selection
     this.specialtyFilter = page.locator(
-      '[id*="specialty"], select:has(option[value*="specialty"]), select:has(option[value*="cardio"])',
+      '[data-testid="specialty-filter"], [id*="specialty"], select[aria-label*="specialty" i]',
     );
     this.ratingFilter = page.locator(
-      '[id*="rating"], select:has(option[value*="rating"]), select:has(option[value*="4"])',
+      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]',
     );
     this.addDoctorButton = page.getByRole("button", {
       name: /add doctor|agregar doctor/i,

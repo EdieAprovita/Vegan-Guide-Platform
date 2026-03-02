@@ -17,11 +17,12 @@ export class MarketPage extends BaseResourcePage {
       extraSearchSelector: 'input[placeholder*="ercado"]',
     });
 
+    // Use data-testid for reliable selection; fallback to id-based selection
     this.productsFilter = page.locator(
-      '[id*="product"], select:has(option[value*="product"]), select:has(option[value*="organic"])',
+      '[data-testid="products-filter"], [id*="product"], select[aria-label*="product" i]',
     );
     this.ratingFilter = page.locator(
-      '[id*="rating"], select:has(option[value*="rating"]), select:has(option[value*="4"])',
+      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]',
     );
     this.addMarketButton = page.getByRole("button", {
       name: /add market|agregar mercado/i,

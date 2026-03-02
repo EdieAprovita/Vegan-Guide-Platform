@@ -47,9 +47,10 @@ export class BaseResourcePage {
     this.loadMoreButton = page.getByRole("button", {
       name: /load more|cargar más|ver más/i,
     });
-    this.searchButton = page.getByRole("button", {
-      name: /search|buscar/i,
-    });
+    // Scope search button to form context to avoid matching unrelated buttons
+    this.searchButton = page.locator(
+      'form, [role="search"], .search-form',
+    ).locator('button:has-text(/search|buscar/i)').first();
 
     // Detail page
     this.backButton = page.locator(

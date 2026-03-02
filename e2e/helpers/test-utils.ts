@@ -40,26 +40,6 @@ export async function waitForHydration(page: Page) {
 }
 
 /**
- * Assert page has no console errors (ignoring known benign ones).
- */
-export async function assertNoConsoleErrors(page: Page) {
-  const errors: string[] = [];
-
-  page.on("console", (msg) => {
-    if (msg.type() === "error") {
-      const text = msg.text();
-      if (!BENIGN_ERRORS.some((b) => text.includes(b))) {
-        errors.push(text);
-      }
-    }
-  });
-
-  return {
-    check: () => expect(errors).toEqual([]),
-  };
-}
-
-/**
  * Navigate and wait for the page to be ready.
  */
 export async function navigateTo(page: Page, path: string) {
@@ -149,12 +129,15 @@ export function collectConsoleErrors(page: Page) {
 
 /**
  * Assert a page does not trigger an infinite redirect loop.
- * Navigates to the given path and verifies < 10 frame navigations occur.
+ * Navigates to the given path and verifies < 10 main frame navigations occur.
  */
 export async function assertNoInfiniteRedirect(page: Page, path: string) {
   let navigationCount = 0;
-  page.on("framenavigated", () => {
-    navigationCount++;
+  page.on("framenavigated", (frame) => {
+    // Only count main frame navigations, not iframes
+    if (frame === page.mainFrame()) {
+      navigationCount++;
+    }
   });
 
   await page.goto(path, { waitUntil: "domcontentloaded" });
@@ -179,11 +162,13 @@ export async function assertAuthedPageLoaded(page: Page) {
   const hasContent =
     ((await page.locator("body").textContent())?.length ?? 0) > 0;
   const redirectedToLogin = url.includes("/login");
-  expect(hasContent || redirectedToLogin).toBe(true);
+  // Assert that we have content AND we're not on the login page
+  expect(hasContent && !redirectedToLogin).toBe(true);
 }
 
 /**
  * Try to open the mobile hamburger menu if present.
+ * Waits for menu animation to complete before returning.
  */
 export async function tryOpenMobileMenu(page: Page) {
   const hamburger = page.locator(
@@ -196,7 +181,8 @@ export async function tryOpenMobileMenu(page: Page) {
       .catch(() => false);
     if (visible) {
       await hamburger.first().click();
-      await page.waitForTimeout(500);
+      // Wait for menu to appear (dialog or nav)
+      await page.locator('[role="dialog"], nav[id*="menu"]').first().isVisible({ timeout: 1000 }).catch(() => false);
     }
   } catch {
     // No mobile menu — ignore

@@ -1,4 +1,6 @@
 import { Page } from "@playwright/test";
+// Re-export mockNextImages from test-utils to maintain backward compatibility
+export { mockNextImages } from "./test-utils";
 
 /* ------------------------------------------------------------------ */
 /*  Shared API mock helpers for Verde Guide E2E tests                 */
@@ -269,22 +271,6 @@ export async function mockReviewCreate(page: Page) {
   // Also handle the add-review pattern
   await page.route(`${API}/restaurants/add-review/*`, (route) =>
     route.fulfill(jsonResponse(mockReview, 201))
-  );
-}
-
-/* ---------- Next.js Image Optimization ---------- */
-
-export async function mockNextImages(page: Page) {
-  // Mock Next.js image optimization endpoints
-  await page.route("/_next/image**", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "image/png",
-      body: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "base64"
-      ),
-    })
   );
 }
 

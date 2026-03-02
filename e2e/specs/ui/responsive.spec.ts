@@ -82,8 +82,7 @@ test.describe("Responsive: Mobile Layout", () => {
       if (navCount > 0) {
         const isVisible = await desktopNav.first().isVisible().catch(() => false);
         // On 375px viewport, the desktop nav should be hidden
-        // Accept: not visible OR element not present at mobile breakpoint
-        expect(!isVisible || navCount >= 0).toBe(true);
+        expect(!isVisible).toBe(true);
       } else {
         // No element with that aria-label — pragmatic pass
         await pragmaticFallback(page);
@@ -199,8 +198,8 @@ test.describe("Responsive: Mobile Navigation", () => {
           // Accept any dialog/nav that appeared
           const anyDialog = page.locator('[role="dialog"]');
           const anyDialogCount = await anyDialog.count();
-          const body = await page.locator("body").textContent();
-          expect(anyDialogCount >= 0 || (body ?? "").length > 0).toBe(true);
+          // Pragmatic: either a dialog exists OR the page has content
+          expect(anyDialogCount > 0).toBe(true);
         }
       } else {
         await pragmaticFallback(page);
@@ -268,14 +267,13 @@ test.describe("Responsive: Mobile Navigation", () => {
           // Accept: any links appeared after opening
           const anyLinks = page.locator("nav a");
           const anyLinkCount = await anyLinks.count();
-          const body = await page.locator("body").textContent();
-          expect(anyLinkCount >= 0 || (body ?? "").length > 0).toBe(true);
+          expect(anyLinkCount > 0).toBe(true);
         }
       } else {
-        // Hamburger not accessible — check page has content
+        // Hamburger not accessible — check page has links
         const allLinks = page.locator("a");
         const linkCount = await allLinks.count();
-        expect(linkCount >= 0).toBe(true);
+        expect(linkCount).toBeGreaterThan(0);
       }
     } catch {
       await pragmaticFallback(page);
@@ -400,7 +398,7 @@ test.describe("Responsive: Desktop Layout", () => {
           .isVisible()
           .catch(() => false);
         // At 1280px, hamburger should be hidden (lg:hidden)
-        expect(!isVisible || hamburgerCount >= 0).toBe(true);
+        expect(!isVisible).toBe(true);
       } else {
         // No hamburger at all — correct for desktop
         await pragmaticFallback(page);
@@ -435,8 +433,7 @@ test.describe("Responsive: Desktop Layout", () => {
         // Fallback: any nav links present
         const anyNavLinks = page.locator("nav a, header a");
         const anyLinkCount = await anyNavLinks.count();
-        const body = await page.locator("body").textContent();
-        expect(anyLinkCount >= 0 || (body ?? "").length > 0).toBe(true);
+        expect(anyLinkCount > 0).toBe(true);
       }
     } catch {
       await pragmaticFallback(page);
