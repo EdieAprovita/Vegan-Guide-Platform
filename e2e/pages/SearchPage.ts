@@ -80,8 +80,7 @@ export class SearchPage {
 
   /** Check if the page has loaded with content */
   async hasContent(): Promise<boolean> {
-    const body = await this.page.locator("body").textContent();
-    return (body?.length ?? 0) > 50;
+    return ((await this.page.locator("body").textContent())?.length ?? 0) > 50;
   }
 
   /** Get the page title/heading text */

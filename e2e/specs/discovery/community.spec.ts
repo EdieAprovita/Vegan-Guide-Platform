@@ -6,7 +6,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Community E2E Test Suite
@@ -138,8 +138,7 @@ test.describe("Community: Content Display", () => {
       }
     } catch {
       // Pragmatic: page is still accessible
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -176,8 +175,7 @@ authedTest.describe("Community: Authenticated Access", () => {
       await waitForHydration(authedPage);
 
       // Page should be accessible and render content
-      const body = await authedPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(authedPage);
 
       // Must NOT be on the login page (redirect guard)
       const currentUrl = authedPage.url();

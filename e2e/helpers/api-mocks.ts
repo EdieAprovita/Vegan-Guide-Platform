@@ -47,21 +47,17 @@ export const mockAdmin = {
 };
 
 export async function mockLoginSuccess(page: Page) {
-  await page.route(`${API}/users/login`, (route) =>
-    route.fulfill(jsonResponse(mockUser)),
-  );
+  await page.route(`${API}/users/login`, (route) => route.fulfill(jsonResponse(mockUser)));
 }
 
 export async function mockLoginFailure(page: Page) {
   await page.route(`${API}/users/login`, (route) =>
-    route.fulfill(errorResponse("Credenciales inválidas", 401)),
+    route.fulfill(errorResponse("Credenciales inválidas", 401))
   );
 }
 
 export async function mockRegisterSuccess(page: Page) {
-  await page.route(`${API}/users/register`, (route) =>
-    route.fulfill(jsonResponse(mockUser, 201)),
-  );
+  await page.route(`${API}/users/register`, (route) => route.fulfill(jsonResponse(mockUser, 201)));
 }
 
 /* ---------- Resource list mocks ---------- */
@@ -206,7 +202,7 @@ export async function mockDoctorList(page: Page, count = 3) {
     fullName: `Doctor ${i + 1}`,
   }));
 
-  await page.route(`${API}/professions*`, (route) => {
+  await page.route(`${API}/doctors*`, (route) => {
     if (route.request().method() === "GET") {
       return route.fulfill(jsonResponse(doctors));
     }
@@ -239,20 +235,16 @@ export async function mockSearchResults(page: Page) {
         total: 3,
         page: 1,
         limit: 10,
-      }),
-    ),
+      })
+    )
   );
 
   await page.route(`${API}/search/suggestions*`, (route) =>
-    route.fulfill(
-      jsonResponse(["restaurante vegano", "recetas sin gluten", "nutrición"]),
-    ),
+    route.fulfill(jsonResponse(["restaurante vegano", "recetas sin gluten", "nutrición"]))
   );
 
   await page.route(`${API}/search/popular*`, (route) =>
-    route.fulfill(
-      jsonResponse(["vegano", "recetas", "restaurantes", "mercados"]),
-    ),
+    route.fulfill(jsonResponse(["vegano", "recetas", "restaurantes", "mercados"]))
   );
 }
 
@@ -276,7 +268,7 @@ export async function mockReviewCreate(page: Page) {
 
   // Also handle the add-review pattern
   await page.route(`${API}/restaurants/add-review/*`, (route) =>
-    route.fulfill(jsonResponse(mockReview, 201)),
+    route.fulfill(jsonResponse(mockReview, 201))
   );
 }
 
@@ -307,6 +299,24 @@ export async function mockGoogleMaps(page: Page) {
       body: JSON.stringify({}),
     })
   );
+  // Mock Google Maps JS SDK and related endpoints
+  await page.route("**/maps.googleapis.com/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: `
+        // Minimal Google Maps stub for tests
+        (function () {
+          if (!window.google) {
+            window.google = {};
+          }
+          if (!window.google.maps) {
+            window.google.maps = {};
+          }
+        })();
+      `,
+    })
+  );
 }
 
 /* ---------- Resource detail mocks ---------- */
@@ -317,7 +327,7 @@ export async function mockGoogleMaps(page: Page) {
  */
 export async function mockRestaurantDetail(
   page: Page,
-  restaurant: Partial<typeof mockRestaurant> = {},
+  restaurant: Partial<typeof mockRestaurant> = {}
 ) {
   const data = { ...mockRestaurant, ...restaurant };
   await page.route(`${API}/restaurants/*`, (route) => {
@@ -332,10 +342,7 @@ export async function mockRestaurantDetail(
  * Mocks GET /api/v1/recipes/{id} for any recipe ID.
  * Optionally accepts a partial recipe override.
  */
-export async function mockRecipeDetail(
-  page: Page,
-  recipe: Partial<typeof mockRecipe> = {},
-) {
+export async function mockRecipeDetail(page: Page, recipe: Partial<typeof mockRecipe> = {}) {
   const data = { ...mockRecipe, ...recipe };
   await page.route(`${API}/recipes/*`, (route) => {
     if (route.request().method() === "GET") {
@@ -349,10 +356,7 @@ export async function mockRecipeDetail(
  * Mocks GET /api/v1/doctors/{id} for any doctor ID.
  * Optionally accepts a partial doctor override.
  */
-export async function mockDoctorDetail(
-  page: Page,
-  doctor: Partial<typeof mockDoctor> = {},
-) {
+export async function mockDoctorDetail(page: Page, doctor: Partial<typeof mockDoctor> = {}) {
   const data = { ...mockDoctor, ...doctor };
   await page.route(`${API}/doctors/*`, (route) => {
     if (route.request().method() === "GET") {
@@ -366,10 +370,7 @@ export async function mockDoctorDetail(
  * Mocks GET /api/v1/markets/{id} for any market ID.
  * Optionally accepts a partial market override.
  */
-export async function mockMarketDetail(
-  page: Page,
-  market: Partial<typeof mockMarket> = {},
-) {
+export async function mockMarketDetail(page: Page, market: Partial<typeof mockMarket> = {}) {
   const data = { ...mockMarket, ...market };
   await page.route(`${API}/markets/*`, (route) => {
     if (route.request().method() === "GET") {
@@ -437,7 +438,7 @@ export async function mockMarketCreate(page: Page) {
  */
 export async function mockResourceDelete(
   page: Page,
-  resource: "restaurants" | "recipes" | "doctors" | "markets",
+  resource: "restaurants" | "recipes" | "doctors" | "markets"
 ) {
   await page.route(`${API}/${resource}/*`, (route) => {
     if (route.request().method() === "DELETE") {
@@ -501,7 +502,11 @@ export async function mockAdvancedSearch(page: Page) {
       return route.fulfill(
         jsonResponse({
           results: [
-            { ...mockRestaurant, resourceType: "restaurants", title: mockRestaurant.restaurantName },
+            {
+              ...mockRestaurant,
+              resourceType: "restaurants",
+              title: mockRestaurant.restaurantName,
+            },
             { ...mockRecipe, resourceType: "recipes", title: mockRecipe.title },
             { ...mockDoctor, resourceType: "doctors", title: mockDoctor.name },
           ],
@@ -511,7 +516,7 @@ export async function mockAdvancedSearch(page: Page) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }),
+        })
       );
     }
     return route.continue();
@@ -531,7 +536,7 @@ export async function mockSearchByType(page: Page) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }),
+        })
       );
     }
     return route.continue();
@@ -547,8 +552,8 @@ export async function mockSearchAggregations(page: Page) {
         locations: [{ name: "CDMX", count: 10 }],
         priceRanges: [{ range: "$", count: 5 }],
         ratings: { 5: 3, 4: 5, 3: 2 },
-      }),
-    ),
+      })
+    )
   );
 }
 
@@ -589,7 +594,7 @@ export async function mockRecommendations(page: Page) {
   }));
 
   await page.route(`${API}/recommendations*`, (route) =>
-    route.fulfill(jsonResponse(recommendations)),
+    route.fulfill(jsonResponse(recommendations))
   );
 }
 
@@ -603,8 +608,8 @@ export async function mockUserPreferences(page: Page) {
         priceRange: "moderate",
         location: "CDMX",
         healthGoals: ["nutrition"],
-      }),
-    ),
+      })
+    )
   );
 }
 
@@ -617,14 +622,21 @@ export async function mockAchievements(page: Page) {
     isUnlocked: i < 3,
     progress: i < 3 ? 1 : 0,
     category: (
-      ["community", "restaurants", "recipes", "health", "exploration", "community", "restaurants", "recipes"] as const
+      [
+        "community",
+        "restaurants",
+        "recipes",
+        "health",
+        "exploration",
+        "community",
+        "restaurants",
+        "recipes",
+      ] as const
     )[i],
     points: (i + 1) * 10,
   }));
 
-  await page.route(`${API}/achievements*`, (route) =>
-    route.fulfill(jsonResponse(achievements)),
-  );
+  await page.route(`${API}/achievements*`, (route) => route.fulfill(jsonResponse(achievements)));
 
   await page.route(`${API}/users/*/achievements*`, (route) =>
     route.fulfill(
@@ -638,8 +650,8 @@ export async function mockAchievements(page: Page) {
           unlocked: 3,
           total: 8,
         },
-      }),
-    ),
+      })
+    )
   );
 }
 
@@ -653,8 +665,8 @@ export async function mockGamificationStats(page: Page) {
         rank: "Vegan Beginner",
         streak: 3,
         achievements: { unlocked: 3, total: 8 },
-      }),
-    ),
+      })
+    )
   );
 }
 
@@ -690,13 +702,9 @@ export async function mockMapLocations(page: Page) {
     },
   ];
 
-  await page.route(`${API}/locations*`, (route) =>
-    route.fulfill(jsonResponse(locations)),
-  );
+  await page.route(`${API}/locations*`, (route) => route.fulfill(jsonResponse(locations)));
 
-  await page.route(`${API}/nearby*`, (route) =>
-    route.fulfill(jsonResponse(locations)),
-  );
+  await page.route(`${API}/nearby*`, (route) => route.fulfill(jsonResponse(locations)));
 }
 
 /* ---------- Phase 5: Reviews & Ratings mocks ---------- */
@@ -726,7 +734,9 @@ export async function mockRestaurantReviews(page: Page, count = 3) {
 
   await page.route(`${API}/restaurants/*/reviews*`, (route) => {
     if (route.request().method() === "GET") {
-      return route.fulfill(jsonResponse({ reviews, total: count, page: 1, limit: 10, hasMore: false }));
+      return route.fulfill(
+        jsonResponse({ reviews, total: count, page: 1, limit: 10, hasMore: false })
+      );
     }
     return route.continue();
   });
@@ -735,30 +745,48 @@ export async function mockRestaurantReviews(page: Page, count = 3) {
 /** Mock GET /api/v1/restaurants/{id}/reviews/stats - review statistics */
 export async function mockReviewStats(page: Page) {
   await page.route(`${API}/restaurants/*/reviews/stats*`, (route) =>
-    route.fulfill(jsonResponse({
-      averageRating: 4.5,
-      totalReviews: 12,
-      helpfulVotes: 24,
-      distribution: { 5: 6, 4: 3, 3: 2, 2: 1, 1: 0 },
-    }))
+    route.fulfill(
+      jsonResponse({
+        averageRating: 4.5,
+        totalReviews: 12,
+        helpfulVotes: 24,
+        distribution: { 5: 6, 4: 3, 3: 2, 2: 1, 1: 0 },
+      })
+    )
   );
 
   // Also mock for other resource types
   await page.route(`${API}/recipes/*/reviews/stats*`, (route) =>
-    route.fulfill(jsonResponse({
-      averageRating: 4.8,
-      totalReviews: 10,
-      helpfulVotes: 18,
-      distribution: { 5: 7, 4: 2, 3: 1, 2: 0, 1: 0 },
-    }))
+    route.fulfill(
+      jsonResponse({
+        averageRating: 4.8,
+        totalReviews: 10,
+        helpfulVotes: 18,
+        distribution: { 5: 7, 4: 2, 3: 1, 2: 0, 1: 0 },
+      })
+    )
   );
 
   await page.route(`${API}/markets/*/reviews/stats*`, (route) =>
-    route.fulfill(jsonResponse({ averageRating: 4.3, totalReviews: 6, helpfulVotes: 8, distribution: { 5: 3, 4: 2, 3: 1, 2: 0, 1: 0 } }))
+    route.fulfill(
+      jsonResponse({
+        averageRating: 4.3,
+        totalReviews: 6,
+        helpfulVotes: 8,
+        distribution: { 5: 3, 4: 2, 3: 1, 2: 0, 1: 0 },
+      })
+    )
   );
 
   await page.route(`${API}/doctors/*/reviews/stats*`, (route) =>
-    route.fulfill(jsonResponse({ averageRating: 4.9, totalReviews: 8, helpfulVotes: 15, distribution: { 5: 7, 4: 1, 3: 0, 2: 0, 1: 0 } }))
+    route.fulfill(
+      jsonResponse({
+        averageRating: 4.9,
+        totalReviews: 8,
+        helpfulVotes: 15,
+        distribution: { 5: 7, 4: 1, 3: 0, 2: 0, 1: 0 },
+      })
+    )
   );
 }
 
@@ -776,7 +804,13 @@ export async function mockRestaurantReviewCreate(page: Page) {
 export async function mockReviewUpdate(page: Page) {
   await page.route(`${API}/reviews/*`, (route) => {
     if (route.request().method() === "PUT") {
-      return route.fulfill(jsonResponse({ ...mockReviewFull, comment: "Updated review comment", updatedAt: new Date().toISOString() }));
+      return route.fulfill(
+        jsonResponse({
+          ...mockReviewFull,
+          comment: "Updated review comment",
+          updatedAt: new Date().toISOString(),
+        })
+      );
     }
     return route.continue();
   });
@@ -829,8 +863,6 @@ export async function blockUnmockedApis(page: Page) {
   await page.route(`${API}/**`, (route) => {
     const url = new URL(route.request().url());
     console.warn(`[E2E] Unmocked API call: ${route.request().method()} ${url.pathname}`);
-    return route.fulfill(
-      errorResponse("E2E: endpoint not mocked", 503),
-    );
+    return route.fulfill(errorResponse("E2E: endpoint not mocked", 503));
   });
 }

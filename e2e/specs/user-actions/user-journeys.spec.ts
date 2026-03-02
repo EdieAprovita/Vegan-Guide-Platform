@@ -26,7 +26,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 import { RestaurantPage } from "../../pages/RestaurantPage";
@@ -98,8 +98,7 @@ test.describe("User Journey: New User Onboarding", () => {
     } catch {
       await page.goto("/register");
       await waitForHydration(page);
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -121,8 +120,7 @@ test.describe("User Journey: New User Onboarding", () => {
 
       expect(usernameVisible || emailVisible || passwordVisible).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -217,14 +215,12 @@ test.describe("User Journey: Discovery Flow", () => {
         await searchInput.press("Enter");
         await waitForHydration(page);
 
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       } else {
         expect(page.url()).toContain("/search");
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -248,12 +244,10 @@ test.describe("User Journey: Discovery Flow", () => {
           waitUntil: "domcontentloaded",
         });
         await waitForHydration(page);
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -303,16 +297,14 @@ test.describe("User Journey: Discovery Flow", () => {
     await waitForHydration(page);
 
     expect(errors).toEqual([]);
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("search results page renders content", async ({ page }) => {
     await page.goto("/search?q=vegano", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
     expect(page.url()).toContain("/search");
   });
 });
@@ -403,8 +395,7 @@ test.describe("User Journey: Content Browsing", () => {
     await page.goto("/restaurants/rest-001", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("navigate between four resource types without crashes", async ({
@@ -415,8 +406,7 @@ test.describe("User Journey: Content Browsing", () => {
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await waitForHydration(page);
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -552,8 +542,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await waitForHydration(page);
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
 
     expect(errors).toEqual([]);
@@ -569,16 +558,14 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
     await waitForHydration(page);
 
     expect(page.url()).toContain("/search");
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("map page loads with location data", async ({ page }) => {
     await page.goto("/map", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("back/forward navigation preserves route history", async ({ page }) => {
@@ -630,8 +617,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
       }
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
     expect(errors).toEqual([]);
   });
 });

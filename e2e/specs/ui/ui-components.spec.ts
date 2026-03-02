@@ -7,7 +7,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * UI Components E2E Test Suite — Phase 6
@@ -74,12 +74,10 @@ test.describe("UI Components: Theme Toggle", () => {
         expect(count).toBeGreaterThan(0);
       } else {
         // Theme may be set via a different mechanism
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -104,8 +102,7 @@ test.describe("UI Components: Theme Toggle", () => {
         expect(anyCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -130,12 +127,10 @@ test.describe("UI Components: Theme Toggle", () => {
           .catch(() => false);
         expect(isFocused || exists).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -193,12 +188,10 @@ test.describe("UI Components: Language Toggle", () => {
         expect(count).toBeGreaterThan(0);
       } else {
         // Language may be in a dropdown or different pattern
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -221,12 +214,10 @@ test.describe("UI Components: Language Toggle", () => {
         // Accept: label present with any text
         expect(hasLocale || (text ?? "").trim().length >= 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -253,8 +244,7 @@ test.describe("UI Components: Language Toggle", () => {
         expect(anyCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -280,12 +270,10 @@ test.describe("UI Components: Header & Navigation", () => {
       if (count > 0) {
         expect(count).toBeGreaterThan(0);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -308,8 +296,7 @@ test.describe("UI Components: Header & Navigation", () => {
         expect(headerLinkCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -342,8 +329,7 @@ test.describe("UI Components: Header & Navigation", () => {
         expect(hasLoginText || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -367,8 +353,7 @@ test.describe("UI Components: Header & Navigation", () => {
         expect(navCount >= 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -419,12 +404,10 @@ test.describe("UI Components: Form Components", () => {
         expect(hasAccessibleName || inputCount > 0).toBe(true);
       } else {
         // Login page may redirect or use different layout
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -447,8 +430,7 @@ test.describe("UI Components: Form Components", () => {
         expect(anyCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -472,12 +454,10 @@ test.describe("UI Components: Form Components", () => {
       if (count > 0) {
         expect(count).toBeGreaterThan(0);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -533,12 +513,10 @@ test.describe("UI Components: Form Components", () => {
         // At least one accessible name pattern
         expect(!!ariaLabel || !!placeholder || hasLabel || count > 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -575,8 +553,7 @@ test.describe("UI Components: Loading & Error States", () => {
         expect(count).toBe(0);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -599,8 +576,7 @@ test.describe("UI Components: Loading & Error States", () => {
         expect(count).toBe(0);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -620,8 +596,7 @@ test.describe("UI Components: Loading & Error States", () => {
       // Pragmatic: either it shows 404 content or at least renders something
       expect(has404 || (body ?? "").length > 0).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -649,8 +624,7 @@ test.describe("UI Components: Loading & Error States", () => {
         expect(regularCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -707,12 +681,10 @@ authedTest.describe("UI Components: Authenticated Header", () => {
             .catch(() => false);
           expect(isFocused || count > 0).toBe(true);
         } else {
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(authedPage);
         }
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -753,8 +725,7 @@ authedTest.describe("UI Components: Authenticated Header", () => {
         // A page should have exactly one main landmark (or zero if 404/redirect)
         expect(count).toBeLessThanOrEqual(1);
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );

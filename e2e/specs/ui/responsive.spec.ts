@@ -6,7 +6,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Responsive Design E2E Test Suite — Phase 6
@@ -89,8 +89,7 @@ test.describe("Responsive: Mobile Layout", () => {
         expect(toggleCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -110,12 +109,10 @@ test.describe("Responsive: Mobile Layout", () => {
         expect(!isVisible || navCount >= 0).toBe(true);
       } else {
         // No element with that aria-label — pragmatic pass
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -135,8 +132,7 @@ test.describe("Responsive: Mobile Layout", () => {
       // Allow 5px tolerance for border/scrollbar
       expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 5);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -203,12 +199,10 @@ test.describe("Responsive: Mobile Navigation", () => {
         ).toBe(true);
       } else {
         // Hamburger not visible — may be desktop project or different pattern
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -241,12 +235,10 @@ test.describe("Responsive: Mobile Navigation", () => {
           expect(anyDialogCount >= 0 || (body ?? "").length > 0).toBe(true);
         }
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -277,12 +269,10 @@ test.describe("Responsive: Mobile Navigation", () => {
           true,
         );
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -320,8 +310,7 @@ test.describe("Responsive: Mobile Navigation", () => {
         expect(linkCount >= 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -385,8 +374,7 @@ test.describe("Responsive: Tablet Layout", () => {
       const viewportWidth = 768;
       expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 5);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -434,8 +422,7 @@ test.describe("Responsive: Desktop Layout", () => {
         expect(anyNavCount > 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -457,12 +444,10 @@ test.describe("Responsive: Desktop Layout", () => {
         expect(!isVisible || hamburgerCount >= 0).toBe(true);
       } else {
         // No hamburger at all — correct for desktop
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -504,8 +489,7 @@ test.describe("Responsive: Desktop Layout", () => {
         expect(anyLinkCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -526,8 +510,7 @@ test.describe("Responsive: Content Layout", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("restaurant cards render at desktop viewport", async ({ page }) => {
@@ -536,8 +519,7 @@ test.describe("Responsive: Content Layout", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("recipe list renders at mobile viewport", async ({ page }) => {
@@ -546,8 +528,7 @@ test.describe("Responsive: Content Layout", () => {
     await page.goto("/recipes", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("auth page renders at mobile viewport", async ({ page }) => {
@@ -555,8 +536,7 @@ test.describe("Responsive: Content Layout", () => {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("auth page is not horizontally overflowing on mobile", async ({
@@ -573,8 +553,7 @@ test.describe("Responsive: Content Layout", () => {
       const viewportWidth = 375;
       expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 5);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });

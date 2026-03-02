@@ -86,8 +86,7 @@ export class DoctorPage {
 
   /** Check if the list page has loaded with content */
   async hasContent(): Promise<boolean> {
-    const body = await this.page.locator("body").textContent();
-    return (body?.length ?? 0) > 50;
+    return ((await this.page.locator("body").textContent())?.length ?? 0) > 50;
   }
 
   /** Check if any cards have a specialty badge displayed */

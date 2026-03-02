@@ -42,9 +42,11 @@ test.describe("Smoke: 404 Not Found Page", () => {
     await waitForHydration(page);
 
     // Should have a button or link to go home
-    const homeLink = page.locator(
-      'a[href="/"], button:has-text("Home"), button:has-text("Inicio"), a:has-text("Volver")'
-    ).first();
+    const homeLink = page
+      .locator(
+        'a[href="/"], button:has-text("Home"), button:has-text("Inicio"), a:has-text("Volver")'
+      )
+      .first();
 
     await expect(homeLink).toBeVisible();
   });
@@ -78,7 +80,7 @@ test.describe("Smoke: 404 Not Found Page", () => {
     expect(page.url()).toBe("http://localhost:3000/");
   });
 
-  test("404 page is responsive", async ({ page, viewport }) => {
+  test("404 page is responsive", async ({ page }) => {
     await page.goto("/not-found");
     await waitForHydration(page);
 
@@ -87,15 +89,12 @@ test.describe("Smoke: 404 Not Found Page", () => {
     await expect(main).toBeVisible();
 
     // Viewport info should exist
-    expect(viewport).toBeTruthy();
+    const viewportSize = page.viewportSize();
+    expect(viewportSize).toBeTruthy();
   });
 
   test("multiple invalid routes all show 404", async ({ page }) => {
-    const invalidRoutes = [
-      "/random-page-123",
-      "/admin/fake-page",
-      "/restaurants/invalid-id-xyz",
-    ];
+    const invalidRoutes = ["/random-page-123", "/admin/fake-page", "/restaurants/invalid-id-xyz"];
 
     for (const route of invalidRoutes) {
       await page.goto(route);

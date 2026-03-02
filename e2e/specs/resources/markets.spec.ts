@@ -7,7 +7,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Markets E2E Test Suite
@@ -75,14 +75,12 @@ test.describe("Markets: List Page", () => {
           expect((firstH3 ?? "").trim().length).toBeGreaterThan(0);
         } else {
           // Pragmatic pass: page loaded without crashing
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       }
     } catch {
       // If card structure differs, ensure page is at minimum non-empty
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 

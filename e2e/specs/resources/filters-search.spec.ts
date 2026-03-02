@@ -12,7 +12,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Filters & Search E2E Test Suite
@@ -86,8 +86,7 @@ test.describe("Resource Filters: Restaurants", () => {
     }
 
     // After empty search the page must still have content
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     // Must not have crashed to an error page
     expect(page.url()).not.toContain("/error");
@@ -151,8 +150,7 @@ test.describe("Resource Filters: Recipes", () => {
       // Search interaction failed — continue to content check
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     expect(page.url()).not.toContain("/error");
     expect(page.url()).not.toContain("/500");
@@ -215,8 +213,7 @@ test.describe("Resource Filters: Doctors", () => {
       // Search interaction failed — continue to content check
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     expect(page.url()).not.toContain("/error");
     expect(page.url()).not.toContain("/500");
@@ -279,8 +276,7 @@ test.describe("Resource Filters: Markets", () => {
       // Search interaction failed — continue to content check
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     expect(page.url()).not.toContain("/error");
     expect(page.url()).not.toContain("/500");
@@ -309,8 +305,7 @@ test.describe("Cross-Resource Search", () => {
 
     // The page must render body content regardless of whether /search is a
     // dedicated route or redirects to a resource page
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     // Must not land on a hard error page
     expect(page.url()).not.toContain("/500");

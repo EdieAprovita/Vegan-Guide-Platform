@@ -15,7 +15,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Phase 7E: Advanced State Management E2E Test Suite
@@ -85,12 +85,10 @@ test.describe("State Management: Theme Persistence", () => {
         const isVisible = await themeToggle.first().isVisible().catch(() => false);
         expect(isVisible || count > 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -188,8 +186,7 @@ test.describe("State Management: Theme Persistence", () => {
       const persisted = storedTheme === "dark" || isDark || dataTheme === "dark";
       expect(persisted).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -207,11 +204,9 @@ test.describe("State Management: Theme Persistence", () => {
         expect(["dark", "light", "system"]).toContain(storedTheme);
       }
 
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -249,12 +244,10 @@ test.describe("State Management: Language Persistence", () => {
       if (count > 0) {
         expect(count).toBeGreaterThan(0);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -467,8 +460,7 @@ test.describe("State Management: URL State & Search Params", () => {
         url.includes("restaurante") || url.includes("q=") || url.includes("/search");
       expect(retained).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -488,8 +480,7 @@ test.describe("State Management: URL State & Search Params", () => {
         url.includes("vegano") || url.includes("q=") || url.includes("/search");
       expect(restored).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -500,8 +491,7 @@ test.describe("State Management: URL State & Search Params", () => {
     await waitForHydration(page);
 
     expect(page.url()).toContain("/search");
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("no redirect loop with URL params", async ({ page }) => {
@@ -539,8 +529,7 @@ authedTest.describe("State Management: Session & Auth State", () => {
       await authedPage.goto("/search", { waitUntil: "domcontentloaded" });
       await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(authedPage);
     },
   );
 
@@ -553,8 +542,7 @@ authedTest.describe("State Management: Session & Auth State", () => {
       await authedPage.goto("/", { waitUntil: "domcontentloaded" });
       await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(authedPage);
     },
   );
 
@@ -584,12 +572,10 @@ authedTest.describe("State Management: Session & Auth State", () => {
         if (count > 0) {
           expect(count).toBeGreaterThan(0);
         } else {
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(authedPage);
         }
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -636,8 +622,7 @@ authedTest.describe("State Management: Session & Auth State", () => {
         );
         expect([200, 401, 404]).toContain(response.status());
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -671,8 +656,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
         expect((body ?? "").length).toBeGreaterThan(10);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -687,8 +671,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
     await waitForHydration(page);
 
     expect(page.url()).toContain("/restaurants");
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("page recovers gracefully from stale data", async ({ page }) => {
@@ -712,8 +695,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
     await waitForHydration(page);
 
     expect(errors).toEqual([]);
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("multiple rapid navigations do not crash", async ({ page }) => {
@@ -741,8 +723,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
       }
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
     expect(errors).toEqual([]);
   });
 
@@ -766,8 +747,7 @@ test.describe("State Management: Data Caching & Recovery", () => {
       const bodyAfterBack = await page.locator("body").textContent();
       expect((bodyAfterBack ?? "").length).toBeGreaterThan(0);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });

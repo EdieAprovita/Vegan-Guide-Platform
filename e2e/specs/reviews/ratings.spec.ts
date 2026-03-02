@@ -16,7 +16,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Ratings E2E Test Suite
@@ -125,8 +125,7 @@ test.describe("Ratings: Display on Resource Cards", () => {
         expect(h3Count >= 0 || hasContent).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -274,8 +273,7 @@ test.describe("Ratings: Helpful Votes", () => {
       // Accept vote UI, auth prompt, or just meaningful page content
       expect(hasVoteUI || hasAuthPrompt || hasContent).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 

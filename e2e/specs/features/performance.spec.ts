@@ -17,7 +17,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Phase 7D: Performance & Metrics E2E Tests
@@ -75,8 +75,7 @@ test.describe("Performance: Page Load Times", () => {
 
     expect(elapsed).toBeLessThan(10000);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("restaurants list loads within 10 seconds", async ({ page }) => {
@@ -114,8 +113,7 @@ test.describe("Performance: Page Load Times", () => {
 
     expect(elapsed).toBeLessThan(15000);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("login page loads within 5 seconds", async ({ page }) => {
@@ -177,12 +175,10 @@ test.describe("Performance: Core Web Vitals", () => {
         expect(lcp).toBeLessThan(8000);
       } else {
         // LCP API not available — just verify page loaded
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -222,8 +218,7 @@ test.describe("Performance: Core Web Vitals", () => {
         expect(cls).toBeLessThan(0.25);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -288,8 +283,7 @@ test.describe("Performance: Core Web Vitals", () => {
 
       expect(cls).toBeLessThan(0.25);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -416,8 +410,7 @@ test.describe("Performance: Navigation Performance", () => {
 
     expect(errors).toEqual([]);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 });
 

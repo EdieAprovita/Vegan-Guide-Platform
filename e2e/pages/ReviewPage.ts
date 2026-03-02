@@ -120,8 +120,7 @@ export class ReviewPage {
 
   /** Return true when the page body contains meaningful content (> 50 chars) */
   async hasContent(): Promise<boolean> {
-    const body = await this.page.locator("body").textContent();
-    return (body?.length ?? 0) > 50;
+    return ((await this.page.locator("body").textContent())?.length ?? 0) > 50;
   }
 
   /** Return the text of the page's h1 heading */

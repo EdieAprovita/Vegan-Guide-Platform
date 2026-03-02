@@ -11,7 +11,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Reviews E2E Test Suite
@@ -99,12 +99,10 @@ test.describe("Reviews: Display on Resource Pages", () => {
         expect(ratingCount + starCount).toBeGreaterThan(0);
       } else {
         // Pragmatic: page loaded with content even if stat elements use different selectors
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -177,8 +175,7 @@ test.describe("Reviews: Review Form Accessibility", () => {
       }
     } catch {
       // If element structure differs entirely, ensure the page at least rendered
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -212,8 +209,7 @@ test.describe("Reviews: Review Form Accessibility", () => {
         expect(formExists || authPromptCount > 0 || hasContent).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -262,12 +258,10 @@ authedTest.describe("Reviews: Review Form Submission", () => {
           expect(formExists).toBe(true);
         } else {
           // Pragmatic fallback: verify the restaurant page itself rendered content
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(authedPage);
         }
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -322,8 +316,7 @@ authedTest.describe("Reviews: Review Validation", () => {
           expect(textareaCount >= 0 || (body ?? "").length > 0).toBe(true);
         }
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -349,17 +342,14 @@ authedTest.describe("Reviews: Review Validation", () => {
             expect(counterVisible).toBe(true);
           } else {
             // Counter may use a different format — page still has content
-            const body = await authedPage.locator("body").textContent();
-            expect((body ?? "").length).toBeGreaterThan(0);
+            await pragmaticFallback(authedPage);
           }
         } else {
           // Form not present (auth-gated) — pragmatic pass
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(authedPage);
         }
       } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );
@@ -382,8 +372,7 @@ test.describe("Reviews: Management Page", () => {
     await waitForHydration(page);
 
     // May redirect to login if admin-only — either outcome is valid
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("reviews page has content", async ({ page }) => {
@@ -396,8 +385,7 @@ test.describe("Reviews: Management Page", () => {
       expect(hasContent).toBe(true);
     } catch {
       // Pragmatic fallback
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });

@@ -70,9 +70,7 @@ test.describe("Smoke: PWA & Service Worker", () => {
       const response = await request.get(path);
       // Some might not exist, but those that do should be 200
       if (response.status() === 200) {
-        expect(["image/png", "image/svg+xml"]).toContain(
-          response.headers()["content-type"]
-        );
+        expect(["image/png", "image/svg+xml"]).toContain(response.headers()["content-type"]);
         break; // At least one icon exists
       }
     }
@@ -124,7 +122,7 @@ test.describe("Smoke: PWA & Service Worker", () => {
       scriptContent.includes("/sw.js");
 
     // At minimum, the app should load without errors
-    expect(true).toBe(true);
+    expect(hasSwRegistration).toBe(true);
   });
 
   test("page has theme and color meta tags for PWA", async ({ page }) => {
@@ -132,7 +130,6 @@ test.describe("Smoke: PWA & Service Worker", () => {
     await waitForHydration(page);
 
     // Check for PWA-related meta tags
-    const htmlElement = page.locator("html, head");
     const headText = await page.locator("head").innerHTML();
 
     // Should have viewport meta tag (required for PWA)
@@ -143,7 +140,7 @@ test.describe("Smoke: PWA & Service Worker", () => {
       headText.includes("theme-color") || headText.includes("apple-mobile-web-app");
 
     // At least viewport should exist
-    expect(headText).toContain("viewport");
+    expect(hasThemeColor).toBe(true);
   });
 
   test("offline.html is properly formatted HTML", async ({ request }) => {

@@ -7,7 +7,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Recipes E2E Test Suite
@@ -76,14 +76,12 @@ test.describe("Recipes: List Page", () => {
           expect((firstH3 ?? "").trim().length).toBeGreaterThan(0);
         } else {
           // Pragmatic pass: page loaded without crashing
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       }
     } catch {
       // If card structure differs, ensure page is at minimum non-empty
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -263,8 +261,7 @@ test.describe("Recipes: Creation Form", () => {
     await waitForHydration(page);
 
     // May redirect to login — that is acceptable; page must render something
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("form has title input when accessible", async ({ page }) => {

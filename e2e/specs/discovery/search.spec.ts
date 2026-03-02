@@ -8,7 +8,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Search E2E Test Suite
@@ -162,14 +162,12 @@ test.describe("Search: Search Input Functionality", () => {
           expect(value).toBe("vegano");
         } else {
           // Pragmatic: page at minimum rendered without crashing
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       }
     } catch {
       // If the input structure differs, verify the page is still operational
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -197,12 +195,10 @@ test.describe("Search: Search Input Functionality", () => {
       await waitForHydration(page);
 
       // Page must remain operational after submitting an empty query
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     } catch {
       // If interaction fails, verify page is still rendered
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -229,14 +225,12 @@ test.describe("Search: Search Input Functionality", () => {
           expect(value.length).toBeGreaterThan(0);
         } else {
           // No input found — verify the page is still non-empty
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       }
     } catch {
       // Crash guard: page must still be rendered
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -279,8 +273,7 @@ test.describe("Search: Search Results", () => {
       }
     } catch {
       // Any unexpected shape — ensure the page body is non-empty
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -344,14 +337,12 @@ test.describe("Search: Suggestions and Autocomplete", () => {
           expect(hasAutocompleteSupport || inputVisible).toBe(true);
         } else {
           // No dedicated search input found — page still rendered
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       }
     } catch {
       // Crash guard
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -394,8 +385,7 @@ test.describe("Search: Suggestions and Autocomplete", () => {
     expect(errors).toEqual([]);
 
     // Body must render meaningful content
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 });
 
@@ -420,8 +410,7 @@ authedTest.describe("Search: Authenticated Search", () => {
       await waitForHydration(authedPage);
 
       // Page must render content
-      const body = await authedPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(authedPage);
 
       // Must NOT be redirected to login
       const currentUrl = authedPage.url();
@@ -459,12 +448,10 @@ authedTest.describe("Search: Authenticated Search", () => {
         await waitForHydration(authedPage);
 
         // Page must remain operational after the search
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       } catch {
         // Interaction guard: page must still be rendered
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(authedPage);
       }
     },
   );

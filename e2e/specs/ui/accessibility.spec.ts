@@ -6,7 +6,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration, pragmaticFallback } from "../../helpers/test-utils";
 
 /**
  * Accessibility E2E Test Suite — Phase 6
@@ -70,7 +70,7 @@ test.describe("Accessibility: Skip Navigation", () => {
             'a[href*="#content"]',
             'a:has-text("Saltar")',
             'a:has-text("Skip")',
-          ].join(", "),
+          ].join(", ")
         );
         const altCount = await altSkipLink.count();
         // Pragmatic: accept any skip-link pattern or page loaded fine
@@ -78,8 +78,7 @@ test.describe("Accessibility: Skip Navigation", () => {
         expect(altCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -102,17 +101,14 @@ test.describe("Accessibility: Skip Navigation", () => {
           expect(mainCount).toBeGreaterThan(0);
         } else {
           // Accept: page rendered with content
-          const body = await page.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
+          await pragmaticFallback(page);
         }
       } else {
         // Pragmatic: page loaded correctly even without named skip link
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -130,7 +126,10 @@ test.describe("Accessibility: Skip Navigation", () => {
         await page.waitForTimeout(150);
 
         // After Tab, the skip link should be focused and visible
-        const isVisible = await skipLink.first().isVisible().catch(() => false);
+        const isVisible = await skipLink
+          .first()
+          .isVisible()
+          .catch(() => false);
         const isFocused = await page
           .evaluate(() => {
             const el = document.activeElement;
@@ -142,18 +141,14 @@ test.describe("Accessibility: Skip Navigation", () => {
         expect(isVisible || isFocused || exists).toBe(true);
       } else {
         // No skip link present; at minimum the page loaded
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
-  test("main content landmark has tabIndex for skip link target", async ({
-    page,
-  }) => {
+  test("main content landmark has tabIndex for skip link target", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -177,14 +172,11 @@ test.describe("Accessibility: Skip Navigation", () => {
         expect(mainCount > 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
-  test("page loads without accessibility-breaking console errors", async ({
-    page,
-  }) => {
+  test("page loads without accessibility-breaking console errors", async ({ page }) => {
     const errors: string[] = [];
 
     page.on("console", (msg) => {
@@ -225,12 +217,10 @@ test.describe("Accessibility: ARIA Landmarks", () => {
         expect(count).toBeGreaterThan(0);
       } else {
         // Pragmatic: page loaded with body content
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -244,12 +234,10 @@ test.describe("Accessibility: ARIA Landmarks", () => {
       if (count > 0) {
         expect(count).toBeGreaterThan(0);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -273,8 +261,7 @@ test.describe("Accessibility: ARIA Landmarks", () => {
         expect(navCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -297,8 +284,7 @@ test.describe("Accessibility: ARIA Landmarks", () => {
         expect(roleCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -314,12 +300,10 @@ test.describe("Accessibility: ARIA Landmarks", () => {
       if (exists) {
         expect(exists).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -342,26 +326,19 @@ test.describe("Accessibility: Keyboard Navigation", () => {
     try {
       // Press Tab multiple times and check that focus moves
       await page.keyboard.press("Tab");
-      const firstFocusEl = await page.evaluate(() =>
-        document.activeElement?.tagName,
-      );
+      const firstFocusEl = await page.evaluate(() => document.activeElement?.tagName);
 
       await page.keyboard.press("Tab");
-      const secondFocusEl = await page.evaluate(() =>
-        document.activeElement?.tagName,
-      );
+      const secondFocusEl = await page.evaluate(() => document.activeElement?.tagName);
 
       // Focus must have moved to a focusable element (A, BUTTON, INPUT, etc.)
       const focusable = ["A", "BUTTON", "INPUT", "SELECT", "TEXTAREA"];
-      const firstFocused =
-        firstFocusEl === null || focusable.includes(firstFocusEl ?? "BODY");
-      const secondFocused =
-        secondFocusEl === null || focusable.includes(secondFocusEl ?? "BODY");
+      const firstFocused = firstFocusEl === null || focusable.includes(firstFocusEl ?? "BODY");
+      const secondFocused = secondFocusEl === null || focusable.includes(secondFocusEl ?? "BODY");
 
       expect(firstFocused || secondFocused).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -383,18 +360,14 @@ test.describe("Accessibility: Keyboard Navigation", () => {
         // Button is focusable (either directly or via keyboard)
         expect(isFocused || buttonCount > 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
-  test("interactive elements have visible focus indicators", async ({
-    page,
-  }) => {
+  test("interactive elements have visible focus indicators", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -426,12 +399,10 @@ test.describe("Accessibility: Keyboard Navigation", () => {
         // focus moved to an interactive element (WCAG 2.4.7 non-blocking for e2e)
         expect(hasOutline || focusedEl.tag !== "BODY").toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -452,12 +423,10 @@ test.describe("Accessibility: Keyboard Navigation", () => {
           .catch(() => false);
         expect(isFocused || linkCount > 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -482,8 +451,7 @@ test.describe("Accessibility: Keyboard Navigation", () => {
       // Pragmatic: if all elements are BODY, that's unusual but not a trap
       expect(uniqueElements.size >= 1).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -509,19 +477,13 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
 
       if (h1Count > 0) {
         // If h2 exists, h1 must also exist (good heading hierarchy)
-        if (h2Count > 0) {
-          expect(h1Count).toBeGreaterThan(0);
-        } else {
-          expect(h1Count).toBeGreaterThan(0);
-        }
+        expect(h1Count).toBeGreaterThan(0);
       } else {
         // Pragmatic: heading structure may differ by page
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -546,8 +508,7 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
         expect(ariaLive !== null || (content ?? "").length >= 0).toBe(true);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -563,8 +524,7 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
       // It's valid to have zero status elements when the page fully loaded
       expect(count >= 0).toBe(true);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -587,18 +547,14 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
         // All checked images must have an alt attribute (even if empty = decorative)
         expect(missingAlt.length).toBe(0);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
-  test("form inputs have associated labels on search page", async ({
-    page,
-  }) => {
+  test("form inputs have associated labels on search page", async ({ page }) => {
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -616,18 +572,10 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
 
           // Check for label association methods
           const id = await inputEl.getAttribute("id").catch(() => null);
-          const ariaLabel = await inputEl
-            .getAttribute("aria-label")
-            .catch(() => null);
-          const ariaLabelledBy = await inputEl
-            .getAttribute("aria-labelledby")
-            .catch(() => null);
-          const ariaDescribedBy = await inputEl
-            .getAttribute("aria-describedby")
-            .catch(() => null);
-          const placeholder = await inputEl
-            .getAttribute("placeholder")
-            .catch(() => null);
+          const ariaLabel = await inputEl.getAttribute("aria-label").catch(() => null);
+          const ariaLabelledBy = await inputEl.getAttribute("aria-labelledby").catch(() => null);
+          const ariaDescribedBy = await inputEl.getAttribute("aria-describedby").catch(() => null);
+          const placeholder = await inputEl.getAttribute("placeholder").catch(() => null);
 
           // Check for a <label for="..."> pointing to this input
           let hasLabelFor = false;
@@ -639,13 +587,7 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
             hasLabelFor = labelCount > 0;
           }
 
-          if (
-            hasLabelFor ||
-            ariaLabel ||
-            ariaLabelledBy ||
-            ariaDescribedBy ||
-            placeholder
-          ) {
+          if (hasLabelFor || ariaLabel || ariaLabelledBy || ariaDescribedBy || placeholder) {
             labeled++;
           }
         }
@@ -654,12 +596,10 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
         expect(labeled >= 0 || checked > 0).toBe(true);
       } else {
         // No inputs on the page (may redirect or show different state)
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -678,17 +618,10 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
           const btn = buttons.nth(i);
           const text = await btn.textContent().catch(() => "");
           const ariaLabel = await btn.getAttribute("aria-label").catch(() => null);
-          const ariaLabelledBy = await btn
-            .getAttribute("aria-labelledby")
-            .catch(() => null);
+          const ariaLabelledBy = await btn.getAttribute("aria-labelledby").catch(() => null);
           const title = await btn.getAttribute("title").catch(() => null);
 
-          if (
-            (text ?? "").trim().length > 0 ||
-            ariaLabel ||
-            ariaLabelledBy ||
-            title
-          ) {
+          if ((text ?? "").trim().length > 0 || ariaLabel || ariaLabelledBy || title) {
             namedButtons++;
           }
         }
@@ -696,12 +629,10 @@ test.describe("Accessibility: Screen Reader Patterns", () => {
         // Most buttons should have accessible names
         expect(namedButtons >= 0).toBe(true);
       } else {
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -719,100 +650,76 @@ authedTest.describe("Accessibility: Focus Management", () => {
     await mockRestaurantDetail(authedPage);
   });
 
-  authedTest(
-    "authenticated page renders with accessible content",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("authenticated page renders with accessible content", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      const currentUrl = authedPage.url();
-      const redirectedToLogin = currentUrl.includes("/login");
+    const body = await authedPage.locator("body").textContent();
+    const currentUrl = authedPage.url();
+    const redirectedToLogin = currentUrl.includes("/login");
 
-      expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
-    },
-  );
+    expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
+  });
 
-  authedTest(
-    "mobile menu button has correct ARIA attributes",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("mobile menu button has correct ARIA attributes", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        // Hamburger: button[aria-controls="mobile-menu"][aria-expanded][aria-haspopup="dialog"]
-        const hamburger = authedPage.locator(
-          'button[aria-controls="mobile-menu"]',
-        );
-        const exists = (await hamburger.count()) > 0;
+    try {
+      // Hamburger: button[aria-controls="mobile-menu"][aria-expanded][aria-haspopup="dialog"]
+      const hamburger = authedPage.locator('button[aria-controls="mobile-menu"]');
+      const exists = (await hamburger.count()) > 0;
 
-        if (exists) {
-          const ariaControls = await hamburger
-            .first()
-            .getAttribute("aria-controls");
-          const ariaExpanded = await hamburger
-            .first()
-            .getAttribute("aria-expanded");
+      if (exists) {
+        const ariaControls = await hamburger.first().getAttribute("aria-controls");
+        const ariaExpanded = await hamburger.first().getAttribute("aria-expanded");
 
-          expect(ariaControls).toBe("mobile-menu");
-          // aria-expanded must be "true" or "false"
-          expect(ariaExpanded === "true" || ariaExpanded === "false").toBe(true);
-        } else {
-          // Hamburger not present (could be desktop viewport or different pattern)
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
-        }
-      } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        expect(ariaControls).toBe("mobile-menu");
+        // aria-expanded must be "true" or "false"
+        expect(ariaExpanded === "true" || ariaExpanded === "false").toBe(true);
+      } else {
+        // Hamburger not present (could be desktop viewport or different pattern)
+        await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 
-  authedTest(
-    "skip link is present on authenticated home page",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("skip link is present on authenticated home page", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        const skipLink = authedPage.locator('a[href="#main-content"]');
-        const count = await skipLink.count();
+    try {
+      const skipLink = authedPage.locator('a[href="#main-content"]');
+      const count = await skipLink.count();
 
-        if (count > 0) {
-          expect(count).toBeGreaterThan(0);
-        } else {
-          // Pragmatic: authenticated page may have different structure
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
-        }
-      } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+      if (count > 0) {
+        expect(count).toBeGreaterThan(0);
+      } else {
+        // Pragmatic: authenticated page may have different structure
+        await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 
-  authedTest(
-    "navigation links are accessible on authenticated pages",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("navigation links are accessible on authenticated pages", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        const navLinks = authedPage.locator('nav a, nav button, header a');
-        const navLinkCount = await navLinks.count();
+    try {
+      const navLinks = authedPage.locator("nav a, nav button, header a");
+      const navLinkCount = await navLinks.count();
 
-        if (navLinkCount > 0) {
-          expect(navLinkCount).toBeGreaterThan(0);
-        } else {
-          const body = await authedPage.locator("body").textContent();
-          expect((body ?? "").length).toBeGreaterThan(0);
-        }
-      } catch {
-        const body = await authedPage.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+      if (navLinkCount > 0) {
+        expect(navLinkCount).toBeGreaterThan(0);
+      } else {
+        await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 });

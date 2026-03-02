@@ -6,7 +6,7 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Recommendations E2E Test Suite
@@ -43,8 +43,7 @@ test.describe("Recommendations: Page Load", () => {
     await waitForHydration(page);
 
     try {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     } catch {
       // Pragmatic: URL is still resolvable
       expect(page.url()).toBeTruthy();

@@ -14,7 +14,7 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 
@@ -74,8 +74,7 @@ test.describe("Error Handling: Network Failures", () => {
     await waitForHydration(page);
 
     // Page should render something (error message, fallback, or empty state)
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("page handles API returning 503 gracefully", async ({ page }) => {
@@ -89,8 +88,7 @@ test.describe("Error Handling: Network Failures", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("page handles network abort gracefully", async ({ page }) => {
@@ -105,8 +103,7 @@ test.describe("Error Handling: Network Failures", () => {
     await waitForHydration(page);
 
     // Should still render a valid page
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("page handles slow API response", async ({ page }) => {
@@ -129,8 +126,7 @@ test.describe("Error Handling: Network Failures", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
 
     // Page should show loading or content eventually
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("search page handles API failure", async ({ page }) => {
@@ -144,8 +140,7 @@ test.describe("Error Handling: Network Failures", () => {
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 });
 
@@ -174,8 +169,7 @@ test.describe("Error Handling: API Error Responses", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     // Should show some error or not-found indicator
     const hasErrorIndicator =
@@ -199,8 +193,7 @@ test.describe("Error Handling: API Error Responses", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("empty list response renders empty state or fallback", async ({
@@ -216,8 +209,7 @@ test.describe("Error Handling: API Error Responses", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("API returning malformed JSON does not crash", async ({ page }) => {
@@ -236,8 +228,7 @@ test.describe("Error Handling: API Error Responses", () => {
     await waitForHydration(page);
 
     // Page should not be blank
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("login handles 401 unauthorized", async ({ page }) => {
@@ -392,11 +383,9 @@ test.describe("Error Handling: Form Validation", () => {
         await waitForHydration(page);
       }
 
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -426,8 +415,7 @@ test.describe("Error Handling: Loading States", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
 
     // Should show loading or content
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     await waitForHydration(page);
 
@@ -469,8 +457,7 @@ test.describe("Error Handling: Loading States", () => {
 
     await page.goto("/search?q=vegano", { waitUntil: "domcontentloaded" });
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("detail page shows content after API response", async ({ page }) => {
@@ -481,8 +468,7 @@ test.describe("Error Handling: Loading States", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 });
 
@@ -502,8 +488,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
 
     const is404 =
       (body ?? "").includes("404") ||
@@ -519,8 +504,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("404 page has navigation back to home", async ({ page }) => {
@@ -537,12 +521,10 @@ test.describe("Error Handling: 404 & Not Found", () => {
         expect(linkCount).toBeGreaterThan(0);
       } else {
         // Page at least renders content
-        const body = await page.locator("body").textContent();
-        expect((body ?? "").length).toBeGreaterThan(0);
+        await pragmaticFallback(page);
       }
     } catch {
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 
@@ -561,8 +543,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
     });
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("multiple 404 navigations do not accumulate errors", async ({

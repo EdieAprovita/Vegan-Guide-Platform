@@ -9,7 +9,7 @@ import {
   mockDoctorList,
   mockMarketList,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Map & Discovery E2E Test Suite
@@ -60,7 +60,7 @@ test.describe("Map: Page Load", () => {
     } catch {
       // Pragmatic: page is at minimum reachable
       const pageTitle = await page.title();
-      expect(pageTitle.length).toBeGreaterThanOrEqual(0);
+      expect(pageTitle.length).toBeGreaterThan(0);
     }
   });
 
@@ -162,9 +162,7 @@ test.describe("Map: Interactive Elements", () => {
       expect(searchVisible).toBe(true);
     } else {
       // Broaden search: look for any text-style input
-      const anyInput = page.locator(
-        'input[type="text"], input[type="search"], input[placeholder]',
-      );
+      const anyInput = page.locator('input[type="text"], input[type="search"], input[placeholder]');
       const inputCount = await anyInput.count();
       // Pragmatic: either a search input is present or the page rendered cleanly
       if (inputCount === 0) {
@@ -194,7 +192,7 @@ test.describe("Map: Interactive Elements", () => {
           'button:has-text("Filtrar")',
           'button:has-text("Filter")',
           '[role="combobox"]',
-        ].join(", "),
+        ].join(", ")
       );
       const controlCount = await filterControls.count();
       // Pragmatic: accept zero if the layout is different — page must at least render
@@ -213,9 +211,11 @@ test.describe("Map: Interactive Elements", () => {
     await waitForHydration(page);
 
     try {
-      const body = await page.locator("body").textContent() ?? "";
+      const body = (await page.locator("body").textContent()) ?? "";
       // Check for location-related terms in either language
-      const hasLocationText = /restauran|mercado|market|doctor|ubicaci|location|mapa|map/i.test(body);
+      const hasLocationText = /restauran|mercado|market|doctor|ubicaci|location|mapa|map/i.test(
+        body
+      );
       if (hasLocationText) {
         expect(hasLocationText).toBe(true);
       } else {
@@ -253,8 +253,7 @@ authedTest.describe("Map: Authenticated Map Access", () => {
     await waitForHydration(authedPage);
 
     // Page should be accessible and render content
-    const body = await authedPage.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(authedPage);
 
     // Must NOT be redirected to the login page
     const currentUrl = authedPage.url();

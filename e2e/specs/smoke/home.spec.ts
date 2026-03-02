@@ -43,7 +43,10 @@ test.describe("Smoke: Home / Landing Page", () => {
     // Find at least one visible button (some may be hidden on mobile)
     let foundVisible = false;
     for (let i = 0; i < Math.min(count, 10); i++) {
-      const isVisible = await buttons.nth(i).isVisible().catch(() => false);
+      const isVisible = await buttons
+        .nth(i)
+        .isVisible()
+        .catch(() => false);
       if (isVisible) {
         foundVisible = true;
         break;
@@ -96,7 +99,7 @@ test.describe("Smoke: Home / Landing Page", () => {
     expect(lang).toBeTruthy();
   });
 
-  test("page layout is responsive", async ({ page, viewport }) => {
+  test("page layout is responsive", async ({ page }) => {
     await page.goto("/");
     await waitForHydration(page);
 
@@ -105,7 +108,8 @@ test.describe("Smoke: Home / Landing Page", () => {
     await expect(main).toBeVisible();
 
     // Viewport info should exist
-    expect(viewport).toBeTruthy();
+    const viewportSize = page.viewportSize();
+    expect(viewportSize).toBeTruthy();
   });
 
   test("no console errors on landing page", async ({ page }) => {

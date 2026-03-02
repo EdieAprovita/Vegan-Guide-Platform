@@ -15,7 +15,7 @@ import {
   mockUser,
   mockAdmin,
 } from "../../helpers/api-mocks";
-import { waitForHydration } from "../../helpers/test-utils";
+import { waitForHydration , pragmaticFallback} from "../../helpers/test-utils";
 
 /**
  * Phase 7C: Security & Authorization E2E Tests
@@ -61,36 +61,28 @@ test.describe("Security: Route Protection", () => {
     await mockGoogleMaps(page);
   });
 
-  test("unauthenticated user is redirected from /profile to /login", async ({
-    page,
-  }) => {
+  test("unauthenticated user is redirected from /profile to /login", async ({ page }) => {
     await page.goto("/profile", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     expect(page.url()).toContain("/login");
   });
 
-  test("unauthenticated user is redirected from /settings to /login", async ({
-    page,
-  }) => {
+  test("unauthenticated user is redirected from /settings to /login", async ({ page }) => {
     await page.goto("/settings/pwa", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     expect(page.url()).toContain("/login");
   });
 
-  test("unauthenticated user is redirected from /admin to /login", async ({
-    page,
-  }) => {
+  test("unauthenticated user is redirected from /admin to /login", async ({ page }) => {
     await page.goto("/admin", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     expect(page.url()).toContain("/login");
   });
 
-  test("unauthenticated user is redirected from /recommendations to /login", async ({
-    page,
-  }) => {
+  test("unauthenticated user is redirected from /recommendations to /login", async ({ page }) => {
     await page.goto("/recommendations", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -104,8 +96,7 @@ test.describe("Security: Route Protection", () => {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await waitForHydration(page);
 
-      const body = await page.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+      await pragmaticFallback(page);
     }
   });
 });
@@ -117,149 +108,121 @@ test.describe("Security: Route Protection", () => {
 authedTest.describe("Security: RBAC - Regular User", () => {
   authedTest.slow();
 
-  authedTest(
-    "regular user accessing /admin is redirected away",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("regular user accessing /admin is redirected away", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/admin", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/admin", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      // Regular user should NOT be on /admin — redirected to / or /login
-      const url = authedPage.url();
-      const notOnAdmin = !url.endsWith("/admin") && !url.endsWith("/admin/");
+    // Regular user should NOT be on /admin — redirected to / or /login
+    const url = authedPage.url();
+    const notOnAdmin = !url.endsWith("/admin") && !url.endsWith("/admin/");
 
-      // Middleware redirects non-admin users to /
-      expect(notOnAdmin || url.includes("/login") || url === "/").toBe(true);
-    },
-  );
+    // Middleware redirects non-admin users to /
+    expect(notOnAdmin || url.includes("/login") || new URL(url).pathname === "/").toBe(true);
+  });
 
-  authedTest(
-    "regular user accessing /analytics is redirected",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("regular user accessing /analytics is redirected", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/analytics", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/analytics", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const url = authedPage.url();
-      // Analytics requires auth; regular user may or may not have access
-      const validOutcome =
-        url.includes("/analytics") ||
-        url.includes("/login") ||
-        url === new URL(authedPage.url()).origin + "/";
-      expect(validOutcome).toBe(true);
-    },
-  );
+    const url = authedPage.url();
+    // Analytics requires auth; regular user may or may not have access
+    const validOutcome =
+      url.includes("/analytics") ||
+      url.includes("/login") ||
+      url === new URL(authedPage.url()).origin + "/";
+    expect(validOutcome).toBe(true);
+  });
 
-  authedTest(
-    "regular user can access own profile",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("regular user can access own profile", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const url = authedPage.url();
-      expect(url.includes("/profile") || url.includes("/login")).toBe(true);
-    },
-  );
+    const url = authedPage.url();
+    expect(url.includes("/profile") || url.includes("/login")).toBe(true);
+  });
 
-  authedTest(
-    "regular user can access /restaurants (public resource)",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
-      await mockRestaurantList(authedPage, 3);
+  authedTest("regular user can access /restaurants (public resource)", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
+    await mockRestaurantList(authedPage, 3);
 
-      await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      expect(authedPage.url()).toContain("/restaurants");
-    },
-  );
+    expect(authedPage.url()).toContain("/restaurants");
+  });
 
-  authedTest(
-    "regular user session has role 'user' not 'admin'",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
+  authedTest("regular user session has role 'user' not 'admin'", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
 
-      const response = await authedPage.request.get(
-        "http://localhost:3000/api/auth/session",
-      );
+    const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
 
-      if (response.status() === 200) {
-        const body = await response.json().catch(() => null);
-        if (body?.user?.role) {
-          expect(body.user.role).toBe("user");
-          expect(body.user.role).not.toBe("admin");
-        }
+    if (response.status() === 200) {
+      const body = await response.json().catch(() => null);
+      if (body?.user?.role) {
+        expect(body.user.role).toBe("user");
+        expect(body.user.role).not.toBe("admin");
       }
+    }
 
-      // Either way, session endpoint responded
-      expect([200, 401, 404]).toContain(response.status());
-    },
-  );
+    // Either way, session endpoint responded
+    expect([200, 401, 404]).toContain(response.status());
+  });
 });
 
 authedTest.describe("Security: RBAC - Admin User", () => {
   authedTest.slow();
 
-  authedTest(
-    "admin user can access /admin routes",
-    async ({ adminPage }) => {
-      await mockNextImages(adminPage);
-      await mockGoogleMaps(adminPage);
+  authedTest("admin user can access /admin routes", async ({ adminPage }) => {
+    await mockNextImages(adminPage);
+    await mockGoogleMaps(adminPage);
 
-      await adminPage.goto("/admin", { waitUntil: "domcontentloaded" });
-      await waitForHydration(adminPage);
+    await adminPage.goto("/admin", { waitUntil: "domcontentloaded" });
+    await waitForHydration(adminPage);
 
-      const url = adminPage.url();
-      // Admin should stay on /admin or be served admin content
-      const validOutcome =
-        url.includes("/admin") ||
-        url.includes("/login") ||
-        url === new URL(adminPage.url()).origin + "/";
-      expect(validOutcome).toBe(true);
-    },
-  );
+    const url = adminPage.url();
+    // Admin should stay on /admin or be served admin content
+    const validOutcome =
+      url.includes("/admin") ||
+      url.includes("/login") ||
+      url === new URL(adminPage.url()).origin + "/";
+    expect(validOutcome).toBe(true);
+  });
 
-  authedTest(
-    "admin session has role 'admin'",
-    async ({ adminPage }) => {
-      await mockNextImages(adminPage);
+  authedTest("admin session has role 'admin'", async ({ adminPage }) => {
+    await mockNextImages(adminPage);
 
-      const response = await adminPage.request.get(
-        "http://localhost:3000/api/auth/session",
-      );
+    const response = await adminPage.request.get("http://localhost:3000/api/auth/session");
 
-      if (response.status() === 200) {
-        const body = await response.json().catch(() => null);
-        if (body?.user?.role) {
-          expect(body.user.role).toBe("admin");
-        }
+    if (response.status() === 200) {
+      const body = await response.json().catch(() => null);
+      if (body?.user?.role) {
+        expect(body.user.role).toBe("admin");
       }
+    }
 
-      expect([200, 401, 404]).toContain(response.status());
-    },
-  );
+    expect([200, 401, 404]).toContain(response.status());
+  });
 
-  authedTest(
-    "admin can access protected routes like regular user",
-    async ({ adminPage }) => {
-      await mockNextImages(adminPage);
-      await mockGoogleMaps(adminPage);
+  authedTest("admin can access protected routes like regular user", async ({ adminPage }) => {
+    await mockNextImages(adminPage);
+    await mockGoogleMaps(adminPage);
 
-      await adminPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(adminPage);
+    await adminPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(adminPage);
 
-      const url = adminPage.url();
-      expect(url.includes("/profile") || url.includes("/login")).toBe(true);
-    },
-  );
+    const url = adminPage.url();
+    expect(url.includes("/profile") || url.includes("/login")).toBe(true);
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -267,94 +230,75 @@ authedTest.describe("Security: RBAC - Admin User", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Security: Token & Session Safety", () => {
-  authedTest(
-    "JWT token is not exposed in visible page text",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
+  authedTest("JWT token is not exposed in visible page text", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
 
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+
+    // Check visible text content (not raw HTML which may contain serialized __NEXT_DATA__)
+    const visibleText = await authedPage.locator("body").textContent();
+    expect(visibleText).not.toContain("mock-jwt-token-e2e");
+    expect(visibleText).not.toContain("mock-refresh-token-e2e");
+  });
+
+  authedTest("refresh token is not in page HTML", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+
+    const html = await authedPage.content();
+    expect(html).not.toContain("mock-refresh-token");
+  });
+
+  authedTest("tokens are not leaked in URL params", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
+
+    const routes = ["/", "/profile", "/restaurants"];
+
+    for (const route of routes) {
+      await authedPage.goto(route, { waitUntil: "domcontentloaded" });
       await waitForHydration(authedPage);
 
-      // Check visible text content (not raw HTML which may contain serialized __NEXT_DATA__)
-      const visibleText = await authedPage.locator("body").textContent();
-      expect(visibleText).not.toContain("mock-jwt-token-e2e");
-      expect(visibleText).not.toContain("mock-refresh-token-e2e");
-    },
-  );
+      const url = authedPage.url();
+      expect(url).not.toContain("token=");
+      expect(url).not.toContain("jwt=");
+      expect(url).not.toContain("session=");
+    }
+  });
 
-  authedTest(
-    "refresh token is not in page HTML",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
+  authedTest("session endpoint returns data, not raw tokens", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
 
-      await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
 
-      const html = await authedPage.content();
-      expect(html).not.toContain("mock-refresh-token");
-    },
-  );
+    expect([200, 401, 404]).toContain(response.status());
 
-  authedTest(
-    "tokens are not leaked in URL params",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
-
-      const routes = ["/", "/profile", "/restaurants"];
-
-      for (const route of routes) {
-        await authedPage.goto(route, { waitUntil: "domcontentloaded" });
-        await waitForHydration(authedPage);
-
-        const url = authedPage.url();
-        expect(url).not.toContain("token=");
-        expect(url).not.toContain("jwt=");
-        expect(url).not.toContain("session=");
+    if (response.status() === 200) {
+      const body = await response.json().catch(() => null);
+      if (body?.user) {
+        // User object should have safe fields
+        expect(body.user.id || body.user._id || body.user.email).toBeTruthy();
       }
-    },
-  );
+    }
+  });
 
-  authedTest(
-    "session endpoint returns data, not raw tokens",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
+  authedTest("CSRF endpoint returns token when requested", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
 
-      const response = await authedPage.request.get(
-        "http://localhost:3000/api/auth/session",
-      );
+    const response = await authedPage.request.get("http://localhost:3000/api/auth/csrf");
 
-      expect([200, 401, 404]).toContain(response.status());
+    expect([200, 401, 404]).toContain(response.status());
 
-      if (response.status() === 200) {
-        const body = await response.json().catch(() => null);
-        if (body?.user) {
-          // User object should have safe fields
-          expect(body.user.id || body.user._id || body.user.email).toBeTruthy();
-        }
+    if (response.status() === 200) {
+      const body = await response.json().catch(() => null);
+      if (body?.csrfToken) {
+        expect(typeof body.csrfToken).toBe("string");
       }
-    },
-  );
-
-  authedTest(
-    "CSRF endpoint returns token when requested",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-
-      const response = await authedPage.request.get(
-        "http://localhost:3000/api/auth/csrf",
-      );
-
-      expect([200, 401, 404]).toContain(response.status());
-
-      if (response.status() === 200) {
-        const body = await response.json().catch(() => null);
-        if (body?.csrfToken) {
-          expect(typeof body.csrfToken).toBe("string");
-        }
-      }
-    },
-  );
+    }
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -399,8 +343,7 @@ test.describe("Security: Input Sanitization", () => {
       // XSS was blocked — test passes
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("XSS payload in search input is not executed", async ({ page }) => {
@@ -410,13 +353,11 @@ test.describe("Security: Input Sanitization", () => {
     await waitForHydration(page);
 
     try {
-      const searchInput = page
-        .locator('input[type="search"], input[type="text"]')
-        .first();
+      const searchInput = page.locator('input[type="search"], input[type="text"]').first();
       const visible = await searchInput.isVisible().catch(() => false);
 
       if (visible) {
-        await searchInput.fill('<img src=x onerror=alert(1)>');
+        await searchInput.fill("<img src=x onerror=alert(1)>");
         await searchInput.press("Enter");
         await page.waitForTimeout(500);
 
@@ -427,22 +368,17 @@ test.describe("Security: Input Sanitization", () => {
       // Sanitization blocked it
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
-  test("SQL injection pattern in search does not crash page", async ({
-    page,
-  }) => {
+  test("SQL injection pattern in search does not crash page", async ({ page }) => {
     await mockSearchResults(page);
 
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     try {
-      const searchInput = page
-        .locator('input[type="search"], input[type="text"]')
-        .first();
+      const searchInput = page.locator('input[type="search"], input[type="text"]').first();
       const visible = await searchInput.isVisible().catch(() => false);
 
       if (visible) {
@@ -454,28 +390,23 @@ test.describe("Security: Input Sanitization", () => {
       // Expected
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
   test("URL with XSS payload does not execute script", async ({ page }) => {
-    await page.goto(
-      '/search?q=<script>document.cookie</script>',
-      { waitUntil: "domcontentloaded" },
-    );
+    await page.goto("/search?q=<script>document.cookie</script>", {
+      waitUntil: "domcontentloaded",
+    });
     await waitForHydration(page);
 
     const html = await page.content();
     // Script tags should be sanitized/escaped
     expect(html).not.toContain("<script>document.cookie</script>");
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 
-  test("register form handles XSS in username gracefully", async ({
-    page,
-  }) => {
+  test("register form handles XSS in username gracefully", async ({ page }) => {
     await page.goto("/register", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -496,8 +427,7 @@ test.describe("Security: Input Sanitization", () => {
       // Expected
     }
 
-    const body = await page.locator("body").textContent();
-    expect((body ?? "").length).toBeGreaterThan(0);
+    await pragmaticFallback(page);
   });
 });
 
@@ -514,9 +444,7 @@ test.describe("Security: CSRF & Auth Headers", () => {
   test("CSRF endpoint is accessible", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const response = await page.request.get(
-      "http://localhost:3000/api/auth/csrf",
-    );
+    const response = await page.request.get("http://localhost:3000/api/auth/csrf");
 
     // Should return a CSRF token or valid response
     expect([200, 401, 404, 500]).toContain(response.status());
@@ -525,9 +453,7 @@ test.describe("Security: CSRF & Auth Headers", () => {
   test("session endpoint returns proper structure", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const response = await page.request.get(
-      "http://localhost:3000/api/auth/session",
-    );
+    const response = await page.request.get("http://localhost:3000/api/auth/session");
 
     if (response.status() === 200) {
       try {
@@ -547,9 +473,7 @@ test.describe("Security: CSRF & Auth Headers", () => {
   test("providers endpoint returns auth providers", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    const response = await page.request.get(
-      "http://localhost:3000/api/auth/providers",
-    );
+    const response = await page.request.get("http://localhost:3000/api/auth/providers");
 
     expect([200, 401, 404, 500]).toContain(response.status());
   });
@@ -570,9 +494,7 @@ test.describe("Security: CSRF & Auth Headers", () => {
     }
   });
 
-  test("redirect after auth does not include token in URL", async ({
-    page,
-  }) => {
+  test("redirect after auth does not include token in URL", async ({ page }) => {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -582,4 +504,3 @@ test.describe("Security: CSRF & Auth Headers", () => {
     expect(url).not.toContain("access_token=");
   });
 });
-
