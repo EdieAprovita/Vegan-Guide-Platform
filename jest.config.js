@@ -78,6 +78,7 @@ const customJestConfig = {
   // Shared test helpers — not test suites themselves
   testPathIgnorePatterns: [
     "/node_modules/",
+    "<rootDir>/e2e/",
     "<rootDir>/src/__tests__/lib/fetch-mocks\\.ts$",
     "<rootDir>/src/__tests__/hooks/store-test-utils\\.ts$",
     // Phase-1 refactoring: centralised mock setup and data factories
