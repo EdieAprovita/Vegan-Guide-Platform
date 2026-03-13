@@ -2,12 +2,31 @@
 import { auth } from "@/lib/auth";
 
 /**
- * Get the authenticated user's token for server-side API calls
- * This should only be used on the server side to prevent token exposure
+ * Get the authenticated user's backend token for server-side API calls.
+ * Reads the token from the NextAuth JWT (server-side only, never exposed to the browser).
  */
 export async function getServerAuthToken(): Promise<string | null> {
-  const session = await auth();
-  return session?.user?.token || null;
+  try {
+    const { cookies } = await import("next/headers");
+    const { decode } = await import("next-auth/jwt");
+
+    const cookieStore = await cookies();
+    const cookieName =
+      process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token";
+
+    const sessionToken = cookieStore.get(cookieName)?.value;
+    if (!sessionToken) return null;
+
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) return null;
+
+    const decoded = await decode({ token: sessionToken, secret, salt: cookieName });
+    return (decoded?.backendToken as string) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -20,7 +20,6 @@ declare module "next-auth" {
       email: string;
       image?: string;
       role: UserRole;
-      token?: string;
     };
   }
 }
@@ -123,9 +122,8 @@ export const config = {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
-        // Only expose token for server-side usage, not client-side
-        // This prevents XSS token exposure
-        session.user.token = token.backendToken as string;
+        // Backend token stays in the JWT only (server-side).
+        // Use API route handlers to proxy authenticated requests.
       }
       return session;
     },
