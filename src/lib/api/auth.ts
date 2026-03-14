@@ -74,13 +74,7 @@ export async function resetPassword(data: NewPasswordFormData, token: string): P
 }
 
 export async function getUserProfile(token: string): Promise<User> {
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  return apiRequest<User>("/users/profile", {
-    headers: getApiHeaders(token),
-  });
+  return getProfile(token);
 }
 
 export async function updateUserProfile(
