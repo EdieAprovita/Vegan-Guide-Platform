@@ -6,6 +6,12 @@ import { refreshAccessToken } from "./api/tokenRefresh";
 
 export type UserRole = "user" | "professional" | "admin";
 
+/** Single source of truth for the NextAuth session cookie name. */
+export const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production"
+    ? "__Secure-next-auth.session-token"
+    : "next-auth.session-token";
+
 declare module "next-auth" {
   interface User {
     id: string;
@@ -32,10 +38,7 @@ export const config = {
   useSecureCookies: process.env.NODE_ENV === "production",
   cookies: {
     sessionToken: {
-      name:
-        process.env.NODE_ENV === "production"
-          ? "__Secure-next-auth.session-token"
-          : "next-auth.session-token",
+      name: SESSION_COOKIE_NAME,
       options: {
         httpOnly: true,
         sameSite: "lax",

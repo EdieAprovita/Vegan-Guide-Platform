@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/server-auth";
 import { getServerAuthToken } from "@/lib/server-auth";
 import { generalApiRateLimit, applyRateLimit } from "@/lib/rate-limit";
-import { updateUserProfile } from "@/lib/api/auth";
+import { getUserProfile, updateUserProfile } from "@/lib/api/auth";
 import { z } from "zod";
 
 // Validation schema for profile updates
@@ -95,25 +95,27 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    // Get current user profile from session
+    // Get token and session server-side — token is never exposed to the browser
+    const token = await getServerAuthToken();
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "No valid authentication token" },
+        { status: 401 }
+      );
+    }
+
     const { auth } = await import("@/lib/auth");
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Invalid session" },
         { status: 401 }
       );
     }
 
-    // Return user profile data (without sensitive info)
-    const userProfile = {
-      id: session.user.id,
-      name: session.user.name,
-      email: session.user.email,
-      image: session.user.image,
-      role: session.user.role,
-    };
+    // Proxy to backend — token stays server-side
+    const userProfile = await getUserProfile(session.user.id, token);
 
     return NextResponse.json(userProfile);
   } catch (error) {
