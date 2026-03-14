@@ -24,7 +24,6 @@ export async function register(data: RegisterFormData): Promise<User> {
 }
 
 export async function logout(token?: string) {
-  // Blacklist the current token via the auth endpoint
   if (token) {
     await apiRequest<void>("/auth/logout", {
       method: "POST",
@@ -33,11 +32,6 @@ export async function logout(token?: string) {
       // Non-blocking: proceed with logout even if blacklist fails
     });
   }
-
-  return apiRequest<void>("/users/logout", {
-    method: "POST",
-    headers: getApiHeaders(),
-  });
 }
 
 export async function revokeAllSessions(token: string) {
