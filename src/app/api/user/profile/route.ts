@@ -53,22 +53,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Both GET and PUT currently depend on session.user.id because the backend
-    // user endpoints are id-path-based (GET /users/:id, PUT /users/profile/:id).
-    // Once token-only endpoints exist on the backend, this route can drop the
-    // session dependency and rely solely on the JWT.
-    const { auth } = await import("@/lib/auth");
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Invalid session" },
-        { status: 401 }
-      );
-    }
-
-    // Update profile via backend API
-    const updatedUser = await updateUserProfile(validationResult.data, token, session.user.id);
+    // Update profile via backend API — the backend identifies the user from the JWT,
+    // so we don't need to pass a userId (avoids hitting the admin-only /:id endpoint).
+    const updatedUser = await updateUserProfile(validationResult.data, token);
 
     return NextResponse.json(updatedUser);
   } catch (error) {

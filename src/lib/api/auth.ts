@@ -79,14 +79,13 @@ export async function getUserProfile(token: string): Promise<User> {
 
 export async function updateUserProfile(
   data: Partial<RegisterFormData>,
-  token: string,
-  userId: string
+  token: string
 ): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>(`/users/profile/${userId}`, {
+  return apiRequest<User>("/users/profile", {
     method: "PUT",
     headers: getApiHeaders(token),
     body: JSON.stringify(data),
