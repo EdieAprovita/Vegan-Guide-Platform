@@ -53,7 +53,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Get user ID from session (we need to get it from the session)
+    // GET uses only the JWT (backend identifies the user from the token).
+    // PUT still requires session.user.id because updateUserProfile needs it
+    // to build the backend URL (/users/profile/:id) — the backend does not
+    // yet expose a token-only PUT /users/profile endpoint.
     const { auth } = await import("@/lib/auth");
     const session = await auth();
 
