@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getAnalytics, type AnalyticsData } from "@/lib/api/analytics";
-import { useApiToken } from "@/hooks/useApiToken";
+import { useSession } from "next-auth/react";
+import type { AnalyticsData } from "@/lib/api/analytics";
 
 interface UseAnalyticsState {
   data: AnalyticsData | null;
@@ -15,18 +15,16 @@ interface UseAnalyticsResult extends UseAnalyticsState {
 }
 
 /**
- * Hook that fetches platform analytics data.
+ * Hook that fetches platform analytics data via the server-side proxy.
  *
- * - Reads the backend JWT from the NextAuth session via `useApiToken`.
- * - Supports an optional `timeRange` parameter (e.g. "7d", "30d", "90d", "1y").
- * - Falls back to aggregated endpoint data when the dedicated analytics
- *   endpoint is unavailable (see `getAnalytics` in `src/lib/api/analytics.ts`).
+ * The backend JWT is never exposed to the browser — the `/api/analytics`
+ * route handler attaches it server-side from the NextAuth JWT.
  *
  * @example
  * const { data, isLoading, error, refetch } = useAnalytics("30d");
  */
 export function useAnalytics(timeRange: string = "30d"): UseAnalyticsResult {
-  const { token, isLoading: isTokenLoading } = useApiToken();
+  const { status } = useSession();
 
   const [state, setState] = useState<UseAnalyticsState>({
     data: null,
@@ -37,19 +35,27 @@ export function useAnalytics(timeRange: string = "30d"): UseAnalyticsResult {
   const fetchAnalytics = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      const data = await getAnalytics(timeRange, token ?? undefined);
+      const response = await fetch(`/api/analytics?timeRange=${encodeURIComponent(timeRange)}`);
+      if (!response.ok) {
+        throw new Error(`Analytics error: ${response.status}`);
+      }
+      const json = (await response.json()) as { data?: AnalyticsData } & AnalyticsData;
+      const data = json.data ?? json;
       setState({ data, isLoading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load analytics";
       setState({ data: null, isLoading: false, error: message });
     }
-  }, [timeRange, token]);
+  }, [timeRange]);
 
-  // Wait until the session token has been resolved before fetching
   useEffect(() => {
-    if (isTokenLoading) return;
+    if (status === "loading") return;
+    if (status !== "authenticated") {
+      setState({ data: null, isLoading: false, error: "Not authenticated" });
+      return;
+    }
     fetchAnalytics();
-  }, [fetchAnalytics, isTokenLoading]);
+  }, [fetchAnalytics, status]);
 
   return { ...state, refetch: fetchAnalytics };
 }

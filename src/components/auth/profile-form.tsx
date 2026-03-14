@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updateProfileSchema, UpdateProfileFormData } from "@/lib/validations/auth";
-import { getUserProfile } from "@/lib/api/auth";
 import { toast } from "sonner";
 import { User as UserIcon, Camera } from "lucide-react";
 import { User } from "@/types";
@@ -33,13 +32,15 @@ export function ProfileForm() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!isAuthenticated || !sessionUser?.token) {
+      if (!isAuthenticated) {
         setIsLoadingProfile(false);
         return;
       }
 
       try {
-        const profile = await getUserProfile("current", sessionUser.token);
+        const response = await fetch("/api/user/profile");
+        if (!response.ok) throw new Error("Failed to load profile");
+        const profile = await response.json();
         setUser(profile);
         setValue("username", profile.username);
         setValue("email", profile.email);
@@ -53,10 +54,10 @@ export function ProfileForm() {
     };
 
     loadProfile();
-  }, [setValue, isAuthenticated, sessionUser?.token]);
+  }, [setValue, isAuthenticated]);
 
   const handleUpdateProfile = async (data: UpdateProfileFormData) => {
-    if (!user || !isAuthenticated || !sessionUser?.token) return;
+    if (!user || !isAuthenticated) return;
 
     setIsLoading(true);
     try {
@@ -118,7 +119,7 @@ export function ProfileForm() {
             <strong>Authenticated:</strong> {isAuthenticated ? "Yes" : "No"}
           </p>
           <p>
-            <strong>Has Token:</strong> {sessionUser?.token ? "Yes" : "No"}
+            <strong>Has Session:</strong> {isAuthenticated ? "Yes" : "No"}
           </p>
           <p>
             <strong>User ID:</strong> {sessionUser?.id || "None"}

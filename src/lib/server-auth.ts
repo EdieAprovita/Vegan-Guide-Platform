@@ -1,13 +1,47 @@
 // Server-side authentication utilities
-import { auth } from "@/lib/auth";
+import { auth, SESSION_COOKIE_NAME } from "@/lib/auth";
 
 /**
- * Get the authenticated user's token for server-side API calls
- * This should only be used on the server side to prevent token exposure
+ * Get the authenticated user's backend token for server-side API calls.
+ * Reads the token from the NextAuth JWT (server-side only, never exposed to the browser).
+ *
+ * Callers should invoke auth() before this function so the jwt callback has had
+ * a chance to refresh the backend token if it is near expiry.
  */
 export async function getServerAuthToken(): Promise<string | null> {
-  const session = await auth();
-  return session?.user?.token || null;
+  try {
+    const { cookies } = await import("next/headers");
+    const { decode } = await import("next-auth/jwt");
+
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionToken) return null;
+
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) return null;
+
+    const decoded = await decode({
+      token: sessionToken,
+      secret,
+      salt: SESSION_COOKIE_NAME,
+    });
+
+    const backendToken = decoded?.backendToken as string | undefined;
+    if (!backendToken) return null;
+
+    // Guard: don't return a token we already know is expired.
+    // The jwt callback in auth.ts refreshes the token proactively, but if the
+    // refresh failed the expiry will be in the past — better to return null
+    // and let the caller surface a 401 than forward a known-invalid token.
+    const expiry = decoded?.backendTokenExpiry as number | undefined;
+    if (typeof expiry === "number" && expiry <= Date.now()) {
+      return null;
+    }
+
+    return backendToken;
+  } catch {
+    return null;
+  }
 }
 
 /**
