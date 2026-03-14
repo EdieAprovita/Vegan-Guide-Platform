@@ -53,10 +53,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // GET uses only the JWT (backend identifies the user from the token).
-    // PUT still requires session.user.id because updateUserProfile needs it
-    // to build the backend URL (/users/profile/:id) — the backend does not
-    // yet expose a token-only PUT /users/profile endpoint.
+    // Both GET and PUT currently depend on session.user.id because the backend
+    // user endpoints are id-path-based (GET /users/:id, PUT /users/profile/:id).
+    // Once token-only endpoints exist on the backend, this route can drop the
+    // session dependency and rely solely on the JWT.
     const { auth } = await import("@/lib/auth");
     const session = await auth();
 
