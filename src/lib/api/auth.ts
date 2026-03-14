@@ -47,12 +47,12 @@ export async function revokeAllSessions(token: string) {
   });
 }
 
-export async function getProfile(userId: string, token: string): Promise<User> {
+export async function getProfile(token: string): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>(`/users/${userId}`, {
+  return apiRequest<User>("/users/profile", {
     headers: getApiHeaders(token),
   });
 }
@@ -73,12 +73,12 @@ export async function resetPassword(data: NewPasswordFormData, token: string): P
   });
 }
 
-export async function getUserProfile(userId: string, token: string): Promise<User> {
+export async function getUserProfile(token: string): Promise<User> {
   if (!token) {
     throw new Error("Not authenticated");
   }
 
-  return apiRequest<User>(`/users/${userId}`, {
+  return apiRequest<User>("/users/profile", {
     headers: getApiHeaders(token),
   });
 }

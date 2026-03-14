@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    // Get token and session server-side — token is never exposed to the browser
+    // Get server-side token — never exposed to the browser
     const token = await getServerAuthToken();
     if (!token) {
       return NextResponse.json(
@@ -104,18 +104,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { auth } = await import("@/lib/auth");
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Invalid session" },
-        { status: 401 }
-      );
-    }
-
-    // Proxy to backend — token stays server-side
-    const userProfile = await getUserProfile(session.user.id, token);
+    // Proxy to backend /users/profile — the backend identifies the user from the JWT,
+    // so we don't need to pass a userId (avoids hitting the admin-only /:id endpoint).
+    const userProfile = await getUserProfile(token);
 
     return NextResponse.json(userProfile);
   } catch (error) {
