@@ -64,9 +64,7 @@ export default function MapClient() {
     libraries: ["places" as const],
   });
 
-  // Geolocation is required to center the map on the user's position and fetch
-  // nearby restaurants relevant to their location. No coordinates are stored or
-  // transmitted beyond the duration of the map session. // NOSONAR
+  // Request geolocation on mount to center the map and fetch nearby restaurants.
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
