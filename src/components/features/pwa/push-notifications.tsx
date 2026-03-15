@@ -55,6 +55,24 @@ export function PushNotifications() {
     }
   };
 
+  /**
+   * Wraps subscribeToPush/unsubscribeFromPush for use in the synchronous
+   * onCheckedChange handler. Errors are already surfaced via toast inside each
+   * function, so we only need to swallow the rejection here to prevent an
+   * unhandled-promise-rejection warning from the event loop.
+   */
+  const handleToggleSubscription = (checked: boolean) => {
+    if (checked) {
+      subscribeToPush().catch(() => {
+        // toast already shown inside subscribeToPush
+      });
+    } else {
+      unsubscribeFromPush().catch(() => {
+        // toast already shown inside unsubscribeFromPush
+      });
+    }
+  };
+
   const requestPermission = async () => {
     setLoading(true);
     try {
@@ -84,16 +102,16 @@ export function PushNotifications() {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
+      const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey,
       });
 
-      setSubscription(subscription);
+      setSubscription(sub);
       setSettings((prev) => ({ ...prev, enabled: true }));
 
       // Send subscription to backend — propagate errors so the caller can react
-      await sendSubscriptionToServer(subscription);
+      await sendSubscriptionToServer(sub);
     } catch (err) {
       console.error("Failed to subscribe to push notifications", err);
       toast.error("Failed to subscribe to push notifications");
@@ -114,14 +132,14 @@ export function PushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (subscription: PushSubscription) => {
+  const sendSubscriptionToServer = async (sub: PushSubscription) => {
     const response = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        subscription: subscription.toJSON(),
+        subscription: sub.toJSON(),
         settings,
       }),
     });
@@ -134,6 +152,7 @@ export function PushNotifications() {
   };
 
   const updateSettings = async (key: keyof NotificationSettings, value: boolean) => {
+    const previousSettings = settings;
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
 
@@ -156,13 +175,13 @@ export function PushNotifications() {
         toast.success("Notification settings updated");
       } catch {
         toast.error("Failed to update settings");
-        // Revert optimistic update on error
-        setSettings(settings);
+        // Revert optimistic update using the snapshot captured before the write
+        setSettings(previousSettings);
       }
     }
   };
 
-  const sendTestNotification = async () => {
+  const sendTestNotification = () => {
     if (permission === "granted") {
       new Notification("Vegan Guide", {
         body: "This is a test notification from Vegan Guide!",
@@ -289,13 +308,7 @@ export function PushNotifications() {
               <Switch
                 id="enabled"
                 checked={settings.enabled}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    subscribeToPush();
-                  } else {
-                    unsubscribeFromPush();
-                  }
-                }}
+                onCheckedChange={handleToggleSubscription}
               />
             </div>
 
