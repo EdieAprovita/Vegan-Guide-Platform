@@ -55,6 +55,24 @@ export function PushNotifications() {
     }
   };
 
+  /**
+   * Wraps subscribeToPush/unsubscribeFromPush for use in the synchronous
+   * onCheckedChange handler. Errors are already surfaced via toast inside each
+   * function, so we only need to swallow the rejection here to prevent an
+   * unhandled-promise-rejection warning from the event loop.
+   */
+  const handleToggleSubscription = (checked: boolean) => {
+    if (checked) {
+      subscribeToPush().catch(() => {
+        // toast already shown inside subscribeToPush
+      });
+    } else {
+      unsubscribeFromPush().catch(() => {
+        // toast already shown inside unsubscribeFromPush
+      });
+    }
+  };
+
   const requestPermission = async () => {
     setLoading(true);
     try {
@@ -63,7 +81,7 @@ export function PushNotifications() {
 
       if (result === "granted") {
         await subscribeToPush();
-        toast.success("Push notifications enabled!");
+        toast.success("Push notifications enabled and saved!");
       } else {
         toast.error("Permission denied for push notifications");
       }
@@ -75,21 +93,29 @@ export function PushNotifications() {
   };
 
   const subscribeToPush = async () => {
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
+      toast.error("Push notifications are not configured. Contact support.");
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
+      const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        applicationServerKey: vapidKey,
       });
 
-      setSubscription(subscription);
+      setSubscription(sub);
       setSettings((prev) => ({ ...prev, enabled: true }));
 
-      // Send subscription to backend
-      await sendSubscriptionToServer(subscription);
-    } catch {
-      console.error("Failed to subscribe to push notifications");
+      // Send subscription to backend — propagate errors so the caller can react
+      await sendSubscriptionToServer(sub);
+    } catch (err) {
+      console.error("Failed to subscribe to push notifications", err);
       toast.error("Failed to subscribe to push notifications");
+      throw err;
     }
   };
 
@@ -106,48 +132,56 @@ export function PushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (subscription: PushSubscription) => {
-    try {
-      const response = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          settings,
-        }),
-      });
+  const sendSubscriptionToServer = async (sub: PushSubscription) => {
+    const response = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        settings,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to save subscription");
-      }
-    } catch {
-      console.error("Failed to send subscription to server");
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const message = (data as { message?: string }).message ?? "Failed to save subscription";
+      throw new Error(message);
     }
   };
 
   const updateSettings = async (key: keyof NotificationSettings, value: boolean) => {
+    const previousSettings = settings;
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
 
     if (subscription) {
       try {
-        await fetch("/api/push/settings", {
+        const response = await fetch("/api/push/settings", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newSettings),
         });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const message = (data as { message?: string }).message ?? "Failed to update settings";
+          throw new Error(message);
+        }
+
         toast.success("Notification settings updated");
       } catch {
         toast.error("Failed to update settings");
+        // Revert optimistic update using the snapshot captured before the write
+        setSettings(previousSettings);
       }
     }
   };
 
-  const sendTestNotification = async () => {
+  const sendTestNotification = () => {
     if (permission === "granted") {
       new Notification("Vegan Guide", {
         body: "This is a test notification from Vegan Guide!",
@@ -274,13 +308,7 @@ export function PushNotifications() {
               <Switch
                 id="enabled"
                 checked={settings.enabled}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    subscribeToPush();
-                  } else {
-                    unsubscribeFromPush();
-                  }
-                }}
+                onCheckedChange={handleToggleSubscription}
               />
             </div>
 
