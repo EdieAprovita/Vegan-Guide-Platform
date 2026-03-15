@@ -142,7 +142,7 @@ export default function RootLayout({
             {children}
           </main>
           <InstallPrompt />
-          {process.env.NODE_ENV === 'development' && <DebugInfo />}
+          {process.env.NODE_ENV === "development" && <DebugInfo />}
         </Providers>
       </body>
     </html>
