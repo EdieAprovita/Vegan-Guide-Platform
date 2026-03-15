@@ -76,7 +76,7 @@ test.describe("Auth: Profile Update", () => {
     await page.route("**/api/user/profile", async (route) => {
       if (route.request().method() === "PUT") {
         putCalled = true;
-        const bodyText = route.request().postDataText() || "";
+        const bodyText = route.request().postData() || "";
         const body = JSON.parse(bodyText);
 
         // Verify request contains updated data

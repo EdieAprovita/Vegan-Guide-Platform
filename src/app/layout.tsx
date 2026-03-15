@@ -96,8 +96,6 @@ export const viewport: Viewport = {
   themeColor: "#16a34a",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({
@@ -144,7 +142,7 @@ export default function RootLayout({
             {children}
           </main>
           <InstallPrompt />
-          <DebugInfo />
+          {process.env.NODE_ENV === 'development' && <DebugInfo />}
         </Providers>
       </body>
     </html>

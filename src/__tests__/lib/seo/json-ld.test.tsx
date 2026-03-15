@@ -50,6 +50,58 @@ describe("JsonLd", () => {
 });
 
 // ---------------------------------------------------------------------------
+// XSS hardening — safeJsonStringify regression tests
+// ---------------------------------------------------------------------------
+
+describe("JsonLd — XSS hardening (safeJsonStringify)", () => {
+  function getRawScriptContent(): string {
+    const script = document.querySelector('script[type="application/ld+json"]');
+    expect(script).not.toBeNull();
+    return script!.innerHTML;
+  }
+
+  afterEach(() => {
+    document.head.innerHTML = "";
+    document.body.innerHTML = "";
+  });
+
+  it("does not emit a raw </script> sequence that could break out of the script block", () => {
+    render(<JsonLd data={{ name: "</script><script>alert('XSS')</script>" }} />);
+    expect(getRawScriptContent()).not.toContain("</script>");
+  });
+
+  it("escapes < to \\u003c in the raw innerHTML", () => {
+    render(<JsonLd data={{ tag: "<b>bold</b>" }} />);
+    const raw = getRawScriptContent();
+    expect(raw).toContain("\\u003c");
+    expect(raw).not.toContain("<b>");
+  });
+
+  it("escapes > to \\u003e in the raw innerHTML", () => {
+    render(<JsonLd data={{ tag: "<b>bold</b>" }} />);
+    const raw = getRawScriptContent();
+    expect(raw).toContain("\\u003e");
+  });
+
+  it("escapes & to \\u0026 in the raw innerHTML", () => {
+    render(<JsonLd data={{ query: "salt & pepper" }} />);
+    const raw = getRawScriptContent();
+    expect(raw).toContain("\\u0026");
+    expect(raw).not.toContain(" & ");
+  });
+
+  it("round-trips correctly: JSON.parse of escaped output returns the original value", () => {
+    const original = {
+      name: "Salt & Pepper <Organic>",
+      tags: ["<vegan>", "& fresh"],
+    };
+    render(<JsonLd data={original} />);
+    const parsed = JSON.parse(getRawScriptContent());
+    expect(parsed).toEqual(original);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // WebsiteJsonLd
 // ---------------------------------------------------------------------------
 

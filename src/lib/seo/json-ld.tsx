@@ -18,13 +18,25 @@ interface JsonLdProps {
 }
 
 /**
+ * Escapes characters that can terminate a <script> block, preventing stored
+ * XSS when backend-controlled strings are embedded in JSON-LD output.
+ * See: https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html
+ */
+function safeJsonStringify(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
+/**
  * Renders a raw JSON-LD <script> block. Prefer the typed helpers below.
  */
 export function JsonLd({ data }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonStringify(data) }}
     />
   );
 }
