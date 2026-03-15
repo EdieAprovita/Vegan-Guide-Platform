@@ -1,4 +1,16 @@
 const CACHE_NAME = 'verde-guide-v2';
+
+// API paths excluded from cache: auth tokens, user-specific data, and push
+// subscriptions must always hit the network.
+// Coverage:
+//   /api/auth/*  — session/token endpoints
+//   /api/user/*  — includes /api/user/profile (auth-protected, per-user data)
+//   /api/push/*  — push subscription management (always requires fresh state)
+const EXCLUDED_API_PATHS = ['/api/auth/', '/api/user/', '/api/push/'];
+
+// Maximum number of API responses kept in cache to bound storage growth.
+// Oldest entries are evicted when the limit is exceeded.
+const API_CACHE_MAX_ENTRIES = 30;
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -42,18 +54,42 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Check if it's safe to cache
+          // Check if it's safe to cache.
+          // EXCLUDED_API_PATHS covers /api/auth/, /api/user/ (incl. /api/user/profile),
+          // and /api/push/ — these must never be served from cache.
+          const isExcluded = EXCLUDED_API_PATHS.some((path) =>
+            url.pathname.startsWith(path)
+          );
           const isCacheable =
             response.ok &&
+            !isExcluded &&
             !request.headers.has('Authorization') &&
             !response.headers.get('cache-control')?.includes('no-store') &&
-            !response.headers.get('cache-control')?.includes('private') &&
-            !url.pathname.includes('/auth/') &&
-            !url.pathname.includes('/user/');
+            !response.headers.get('cache-control')?.includes('private');
 
           if (isCacheable) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            // Enforce a max-entries cap to prevent unbounded cache growth.
+            // Wrapped in event.waitUntil so the SW is not killed before the
+            // async cache write + eviction completes.
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(async (cache) => {
+                await cache.put(request, clone);
+                const keys = await cache.keys();
+                // Only count API entries to avoid evicting static assets.
+                const apiKeys = keys.filter((req) =>
+                  new URL(req.url).pathname.startsWith('/api/')
+                );
+                if (apiKeys.length > API_CACHE_MAX_ENTRIES) {
+                  // Evict the oldest entries (FIFO — keys() preserves insertion order).
+                  const toDelete = apiKeys.slice(
+                    0,
+                    apiKeys.length - API_CACHE_MAX_ENTRIES
+                  );
+                  await Promise.all(toDelete.map((req) => cache.delete(req)));
+                }
+              }).catch(() => {})
+            );
           }
           return response;
         })
@@ -129,7 +165,14 @@ self.addEventListener('fetch', (event) => {
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    // Payload is not valid JSON — fall back to raw text so the notification
+    // still shows rather than being silently dropped.
+    data = { title: 'Notificación', body: event.data ? event.data.text() : '' };
+  }
   const title = data.title || 'Verde Guide';
   const options = {
     body: data.body || 'Tienes una nueva notificación',
@@ -149,6 +192,13 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'view' || !event.action) {
-    event.waitUntil(clients.openWindow(event.notification.data.url));
+    // Guard: only open a window when a URL is explicitly provided in the
+    // notification data. Avoids opening a blank tab for system notifications
+    // that carry no data payload.
+    if (event.notification.data?.url) {
+      const url = event.notification.data.url;
+      if (!url.startsWith('/') && !url.startsWith(self.location.origin)) return;
+      event.waitUntil(clients.openWindow(url));
+    }
   }
 });

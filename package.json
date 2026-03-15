@@ -24,7 +24,8 @@
     "format:staged": "prettier --write --cache",
     "debug:api": "node scripts/debug-api.js",
     "analyze": "ANALYZE=true next build",
-    "analyze:win": "set ANALYZE=true && next build"
+    "analyze:win": "set ANALYZE=true && next build",
+    "generate-vapid": "npx web-push generate-vapid-keys"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
@@ -93,6 +94,7 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.0",
     "tw-animate-css": "^1.3.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "web-push": "^3.6.7"
   }
 }
