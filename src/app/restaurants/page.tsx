@@ -31,7 +31,8 @@ async function RestaurantResults({ searchParams }: RestaurantsPageProps) {
   const search = params.search?.trim() ?? "";
   const cuisine = params.cuisine?.trim() ?? "";
   const minRatingRaw = params.minRating?.trim() ?? "";
-  const minRating = minRatingRaw ? parseInt(minRatingRaw, 10) : undefined;
+  const minRatingParsed = minRatingRaw ? parseInt(minRatingRaw, 10) : undefined;
+  const minRating = minRatingParsed !== undefined && !isNaN(minRatingParsed) ? minRatingParsed : undefined;
 
   const filters: RestaurantFilterValues = {
     search,

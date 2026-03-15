@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useCallback, useTransition } from "react";
 import { Restaurant } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { RestaurantFilters, RestaurantFilterValues } from "./restaurant-filters";
@@ -27,17 +27,20 @@ export function RestaurantListPaginated({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const navigateToPage = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (page <= 1) {
-      params.delete("page");
-    } else {
-      params.set("page", String(page));
-    }
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  };
+  const navigateToPage = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (page <= 1) {
+        params.delete("page");
+      } else {
+        params.set("page", String(page));
+      }
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    },
+    [searchParams, router, pathname, startTransition]
+  );
 
   const hasActiveFilters = filters.search || filters.cuisine || filters.minRating;
 

@@ -68,34 +68,43 @@ export function RestaurantFilters({ values }: RestaurantFiltersProps) {
     [searchParams]
   );
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = form.elements.namedItem("search") as HTMLInputElement;
-    startTransition(() => {
-      router.push(`${pathname}?${createQueryString({ search: input.value })}`);
-    });
-  };
+  const handleSearch = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const input = form.elements.namedItem("search") as HTMLInputElement;
+      startTransition(() => {
+        router.push(`${pathname}?${createQueryString({ search: input.value })}`);
+      });
+    },
+    [router, pathname, createQueryString, startTransition]
+  );
 
-  const handleCuisineChange = (value: string) => {
-    startTransition(() => {
-      router.push(`${pathname}?${createQueryString({ cuisine: value })}`);
-    });
-  };
+  const handleCuisineChange = useCallback(
+    (value: string) => {
+      startTransition(() => {
+        router.push(`${pathname}?${createQueryString({ cuisine: value })}`);
+      });
+    },
+    [router, pathname, createQueryString, startTransition]
+  );
 
-  const handleRatingChange = (value: string) => {
-    startTransition(() => {
-      router.push(`${pathname}?${createQueryString({ minRating: value })}`);
-    });
-  };
+  const handleRatingChange = useCallback(
+    (value: string) => {
+      startTransition(() => {
+        router.push(`${pathname}?${createQueryString({ minRating: value })}`);
+      });
+    },
+    [router, pathname, createQueryString, startTransition]
+  );
 
   const hasActiveFilters = values.search || values.cuisine || values.minRating;
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     startTransition(() => {
       router.push(pathname);
     });
-  };
+  }, [router, pathname, startTransition]);
 
   return (
     <Card>
