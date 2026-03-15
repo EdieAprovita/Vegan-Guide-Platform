@@ -24,7 +24,8 @@
     "format:staged": "prettier --write --cache",
     "debug:api": "node scripts/debug-api.js",
     "analyze": "ANALYZE=true next build",
-    "analyze:win": "set ANALYZE=true && next build"
+    "analyze:win": "set ANALYZE=true && next build",
+    "generate-vapid": "npx web-push generate-vapid-keys"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",
