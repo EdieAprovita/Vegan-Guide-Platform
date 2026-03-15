@@ -63,7 +63,7 @@ export function PushNotifications() {
 
       if (result === "granted") {
         await subscribeToPush();
-        toast.success("Push notifications enabled!");
+        toast.success("Push notifications enabled and saved!");
       } else {
         toast.error("Permission denied for push notifications");
       }
@@ -75,21 +75,29 @@ export function PushNotifications() {
   };
 
   const subscribeToPush = async () => {
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
+      toast.error("Push notifications are not configured. Contact support.");
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        applicationServerKey: vapidKey,
       });
 
       setSubscription(subscription);
       setSettings((prev) => ({ ...prev, enabled: true }));
 
-      // Send subscription to backend
+      // Send subscription to backend — propagate errors so the caller can react
       await sendSubscriptionToServer(subscription);
-    } catch {
-      console.error("Failed to subscribe to push notifications");
+    } catch (err) {
+      console.error("Failed to subscribe to push notifications", err);
       toast.error("Failed to subscribe to push notifications");
+      throw err;
     }
   };
 
@@ -107,23 +115,21 @@ export function PushNotifications() {
   };
 
   const sendSubscriptionToServer = async (subscription: PushSubscription) => {
-    try {
-      const response = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          settings,
-        }),
-      });
+    const response = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subscription: subscription.toJSON(),
+        settings,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to save subscription");
-      }
-    } catch {
-      console.error("Failed to send subscription to server");
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const message = (data as { message?: string }).message ?? "Failed to save subscription";
+      throw new Error(message);
     }
   };
 
@@ -133,16 +139,25 @@ export function PushNotifications() {
 
     if (subscription) {
       try {
-        await fetch("/api/push/settings", {
+        const response = await fetch("/api/push/settings", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newSettings),
         });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const message = (data as { message?: string }).message ?? "Failed to update settings";
+          throw new Error(message);
+        }
+
         toast.success("Notification settings updated");
       } catch {
         toast.error("Failed to update settings");
+        // Revert optimistic update on error
+        setSettings(settings);
       }
     }
   };
