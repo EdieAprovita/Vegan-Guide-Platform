@@ -72,7 +72,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@eslint/eslintrc": "^3",
-    "@next/bundle-analyzer": "14.2.5",
+    "@next/bundle-analyzer": "^14.2.5",
     "@playwright/test": "^1.58.2",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
