@@ -19,6 +19,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Converts a base64url VAPID public key to the ArrayBuffer that pushManager.subscribe() requires.
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray.buffer as ArrayBuffer;
+}
+
 interface NotificationSettings {
   enabled: boolean;
   newRestaurants: boolean;
@@ -82,8 +94,11 @@ export function PushNotifications() {
       if (result === "granted") {
         await subscribeToPush();
         toast.success("Push notifications enabled and saved!");
-      } else {
+      } else if (result === "denied") {
         toast.error("Permission denied for push notifications");
+      } else {
+        // User dismissed the prompt ("default") — keep UI unchanged
+        toast("You can enable notifications later from your browser settings.");
       }
     } catch {
       toast.error("Failed to enable push notifications");
@@ -97,21 +112,25 @@ export function PushNotifications() {
     if (!vapidKey) {
       console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
       toast.error("Push notifications are not configured. Contact support.");
-      return;
+      throw new Error("VAPID public key is not configured");
     }
 
     try {
       const registration = await navigator.serviceWorker.ready;
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: vapidKey,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
       setSubscription(sub);
-      setSettings((prev) => ({ ...prev, enabled: true }));
+      // Build snapshot before setSettings so sendSubscriptionToServer gets the
+      // updated value — React state updates are async and the closure would otherwise
+      // capture the stale pre-update settings object.
+      const updatedSettings = { ...settings, enabled: true };
+      setSettings(updatedSettings);
 
       // Send subscription to backend — propagate errors so the caller can react
-      await sendSubscriptionToServer(sub);
+      await sendSubscriptionToServer(sub, updatedSettings);
     } catch (err) {
       console.error("Failed to subscribe to push notifications", err);
       toast.error("Failed to subscribe to push notifications");
@@ -132,7 +151,7 @@ export function PushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (sub: PushSubscription) => {
+  const sendSubscriptionToServer = async (sub: PushSubscription, settingsSnapshot: NotificationSettings) => {
     const response = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: {
@@ -140,7 +159,7 @@ export function PushNotifications() {
       },
       body: JSON.stringify({
         subscription: sub.toJSON(),
-        settings,
+        settings: settingsSnapshot,
       }),
     });
 
@@ -173,8 +192,9 @@ export function PushNotifications() {
         }
 
         toast.success("Notification settings updated");
-      } catch {
-        toast.error("Failed to update settings");
+      } catch (err) {
+        const errorMessage = err instanceof Error && err.message ? err.message : "Failed to update settings";
+        toast.error(errorMessage);
         // Revert optimistic update using the snapshot captured before the write
         setSettings(previousSettings);
       }

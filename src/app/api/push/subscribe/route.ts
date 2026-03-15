@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       method: "PUT",
       body: validationResult.data,
       label: "push/subscribe",
-      todoNote: "Backend PUT /users/push-subscription is live (PR #123)",
+      todoNote: "TODO: Remove 202 fallback once PUT /users/push-subscription (PR #123) is confirmed reachable from this proxy",
       successMessage: "Push subscription saved",
     });
   } catch (error) {
