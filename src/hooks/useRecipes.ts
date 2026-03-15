@@ -20,7 +20,7 @@ interface RecipesState {
     difficulty?: string;
   }) => Promise<void>;
   getRecipe: (id: string) => Promise<void>;
-  createRecipe: (data: CreateRecipeData) => Promise<void>;
+  createRecipe: (data: CreateRecipeData) => Promise<string>;
   updateRecipe: (id: string, data: Partial<CreateRecipeData>) => Promise<void>;
   deleteRecipe: (id: string) => Promise<void>;
   addRecipeReview: (id: string, review: RecipeReview, token?: string) => Promise<void>;
@@ -82,6 +82,7 @@ export const useRecipes = create<RecipesState>((set) => ({
         recipes: [recipe, ...state.recipes],
         isLoading: false,
       }));
+      return recipe._id;
     } catch (err) {
       const error = err as Error;
       set({ error: error.message, isLoading: false });

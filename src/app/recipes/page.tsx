@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { SimpleRecipeList } from "@/components/features/recipes/simple-recipe-list";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/lib/seo/json-ld";
 
@@ -47,7 +47,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
         ]}
       />
       <div className="mx-auto max-w-screen-2xl space-y-6">
-        <div className="mb-6 flex items-center gap-4">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <Button
             asChild
             variant="outline"
@@ -57,6 +57,16 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Home
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="sm"
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            <Link href="/recipes/new" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Recipe
             </Link>
           </Button>
         </div>
