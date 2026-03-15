@@ -19,6 +19,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Converts a base64url VAPID public key to the ArrayBuffer that pushManager.subscribe() requires.
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray.buffer as ArrayBuffer;
+}
+
 interface NotificationSettings {
   enabled: boolean;
   newRestaurants: boolean;
@@ -55,6 +67,24 @@ export function PushNotifications() {
     }
   };
 
+  /**
+   * Wraps subscribeToPush/unsubscribeFromPush for use in the synchronous
+   * onCheckedChange handler. Errors are already surfaced via toast inside each
+   * function, so we only need to swallow the rejection here to prevent an
+   * unhandled-promise-rejection warning from the event loop.
+   */
+  const handleToggleSubscription = (checked: boolean) => {
+    if (checked) {
+      subscribeToPush().catch(() => {
+        // toast already shown inside subscribeToPush
+      });
+    } else {
+      unsubscribeFromPush().catch(() => {
+        // toast already shown inside unsubscribeFromPush
+      });
+    }
+  };
+
   const requestPermission = async () => {
     setLoading(true);
     try {
@@ -63,9 +93,12 @@ export function PushNotifications() {
 
       if (result === "granted") {
         await subscribeToPush();
-        toast.success("Push notifications enabled!");
-      } else {
+        toast.success("Push notifications enabled and saved!");
+      } else if (result === "denied") {
         toast.error("Permission denied for push notifications");
+      } else {
+        // User dismissed the prompt ("default") — keep UI unchanged
+        toast("You can enable notifications later from your browser settings.");
       }
     } catch {
       toast.error("Failed to enable push notifications");
@@ -75,21 +108,33 @@ export function PushNotifications() {
   };
 
   const subscribeToPush = async () => {
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
+      toast.error("Push notifications are not configured. Contact support.");
+      throw new Error("VAPID public key is not configured");
+    }
+
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
+      const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
-      setSubscription(subscription);
-      setSettings((prev) => ({ ...prev, enabled: true }));
+      setSubscription(sub);
+      // Build snapshot before setSettings so sendSubscriptionToServer gets the
+      // updated value — React state updates are async and the closure would otherwise
+      // capture the stale pre-update settings object.
+      const updatedSettings = { ...settings, enabled: true };
+      setSettings(updatedSettings);
 
-      // Send subscription to backend
-      await sendSubscriptionToServer(subscription);
-    } catch {
-      console.error("Failed to subscribe to push notifications");
+      // Send subscription to backend — propagate errors so the caller can react
+      await sendSubscriptionToServer(sub, updatedSettings);
+    } catch (err) {
+      console.error("Failed to subscribe to push notifications", err);
       toast.error("Failed to subscribe to push notifications");
+      throw err;
     }
   };
 
@@ -106,48 +151,57 @@ export function PushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (subscription: PushSubscription) => {
-    try {
-      const response = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          settings,
-        }),
-      });
+  const sendSubscriptionToServer = async (sub: PushSubscription, settingsSnapshot: NotificationSettings) => {
+    const response = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        settings: settingsSnapshot,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error("Failed to save subscription");
-      }
-    } catch {
-      console.error("Failed to send subscription to server");
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const message = (data as { message?: string }).message ?? "Failed to save subscription";
+      throw new Error(message);
     }
   };
 
   const updateSettings = async (key: keyof NotificationSettings, value: boolean) => {
+    const previousSettings = settings;
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
 
     if (subscription) {
       try {
-        await fetch("/api/push/settings", {
+        const response = await fetch("/api/push/settings", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(newSettings),
         });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const message = (data as { message?: string }).message ?? "Failed to update settings";
+          throw new Error(message);
+        }
+
         toast.success("Notification settings updated");
-      } catch {
-        toast.error("Failed to update settings");
+      } catch (err) {
+        const errorMessage = err instanceof Error && err.message ? err.message : "Failed to update settings";
+        toast.error(errorMessage);
+        // Revert optimistic update using the snapshot captured before the write
+        setSettings(previousSettings);
       }
     }
   };
 
-  const sendTestNotification = async () => {
+  const sendTestNotification = () => {
     if (permission === "granted") {
       new Notification("Vegan Guide", {
         body: "This is a test notification from Vegan Guide!",
@@ -274,13 +328,7 @@ export function PushNotifications() {
               <Switch
                 id="enabled"
                 checked={settings.enabled}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    subscribeToPush();
-                  } else {
-                    unsubscribeFromPush();
-                  }
-                }}
+                onCheckedChange={handleToggleSubscription}
               />
             </div>
 

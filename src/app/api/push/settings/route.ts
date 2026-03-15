@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { notificationSettingsSchema } from "@/lib/schemas/push";
 import { handlePushProxy } from "../_lib/handlePushProxy";
 
-// TODO(backend): Implement PUT /api/users/push-settings on the Express API.
-// Expected request body: NotificationSettings (fields above)
-// Expected response: 200 { success: true, message: 'Settings updated' }
-// Until that endpoint exists this route returns 202 Accepted so the client
-// can proceed without error.
-
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -29,7 +23,7 @@ export async function PUT(request: NextRequest) {
       method: "PUT",
       body: validationResult.data,
       label: "push/settings",
-      todoNote: "Implement PUT /api/users/push-settings on backend",
+      todoNote: "TODO: Remove 202 fallback once PUT /users/push-settings (PR #123) is confirmed reachable from this proxy",
       successMessage: "Notification settings updated",
     });
   } catch (error) {
