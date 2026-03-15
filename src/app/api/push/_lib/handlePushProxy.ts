@@ -34,7 +34,7 @@ export interface PushProxyOptions {
 export async function handlePushProxy(
   request: NextRequest,
   opts: PushProxyOptions
-): Promise<NextResponse> {
+): Promise<NextResponse | Response> {
   const { backendPath, method, body, label, todoNote, successMessage } = opts;
 
   // Rate limiting
