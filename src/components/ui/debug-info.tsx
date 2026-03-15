@@ -80,7 +80,6 @@ export function DebugInfo() {
     setDebugInfo(info);
   }, []);
 
-  if (process.env.NODE_ENV !== "development") return null;
   if (!debugInfo) return null;
 
   return (
