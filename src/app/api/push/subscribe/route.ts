@@ -18,6 +18,12 @@ const subscribeBodySchema = z.object({
   settings: notificationSettingsSchema.optional(),
 });
 
+// TODO(backend): Implement PUT /api/users/push-subscription on the Express API.
+// Expected request body: { subscription: PushSubscriptionJSON, settings: NotificationSettings }
+// Expected response: 200 { success: true, message: 'Subscription saved' }
+// Until that endpoint exists this route returns 202 Accepted so the client
+// can proceed without error.
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -39,7 +45,7 @@ export async function POST(request: NextRequest) {
       method: "PUT",
       body: validationResult.data,
       label: "push/subscribe",
-      todoNote: "Backend PUT /users/push-subscription is live (PR #123)",
+      todoNote: "Implement PUT /api/users/push-subscription on backend",
       successMessage: "Push subscription saved",
     });
   } catch (error) {
