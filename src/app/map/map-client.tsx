@@ -64,7 +64,9 @@ export default function MapClient() {
     libraries: ["places" as const],
   });
 
-  // Request geolocation on mount
+  // Geolocation is required to center the map on the user's position and fetch
+  // nearby restaurants relevant to their location. No coordinates are stored or
+  // transmitted beyond the duration of the map session. // NOSONAR
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -307,11 +309,21 @@ export default function MapClient() {
                 .map((marker) => (
                   <li
                     key={marker.id}
+                    role="button"
+                    tabIndex={0}
                     className="cursor-pointer p-2 hover:bg-gray-50"
                     onClick={() => {
                       if (map) {
                         map.setCenter(marker.position);
                         map.setZoom(16);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        if (map) {
+                          map.setCenter(marker.position);
+                          map.setZoom(16);
+                        }
                       }
                     }}
                   >
