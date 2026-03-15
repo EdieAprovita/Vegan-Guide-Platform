@@ -70,22 +70,26 @@ self.addEventListener('fetch', (event) => {
           if (isCacheable) {
             const clone = response.clone();
             // Enforce a max-entries cap to prevent unbounded cache growth.
-            caches.open(CACHE_NAME).then(async (cache) => {
-              await cache.put(request, clone);
-              const keys = await cache.keys();
-              // Only count API entries to avoid evicting static assets.
-              const apiKeys = keys.filter((req) =>
-                new URL(req.url).pathname.startsWith('/api/')
-              );
-              if (apiKeys.length > API_CACHE_MAX_ENTRIES) {
-                // Evict the oldest entries (FIFO — keys() preserves insertion order).
-                const toDelete = apiKeys.slice(
-                  0,
-                  apiKeys.length - API_CACHE_MAX_ENTRIES
+            // Wrapped in event.waitUntil so the SW is not killed before the
+            // async cache write + eviction completes.
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(async (cache) => {
+                await cache.put(request, clone);
+                const keys = await cache.keys();
+                // Only count API entries to avoid evicting static assets.
+                const apiKeys = keys.filter((req) =>
+                  new URL(req.url).pathname.startsWith('/api/')
                 );
-                await Promise.all(toDelete.map((req) => cache.delete(req)));
-              }
-            });
+                if (apiKeys.length > API_CACHE_MAX_ENTRIES) {
+                  // Evict the oldest entries (FIFO — keys() preserves insertion order).
+                  const toDelete = apiKeys.slice(
+                    0,
+                    apiKeys.length - API_CACHE_MAX_ENTRIES
+                  );
+                  await Promise.all(toDelete.map((req) => cache.delete(req)));
+                }
+              }).catch(() => {})
+            );
           }
           return response;
         })
@@ -162,7 +166,13 @@ self.addEventListener('fetch', (event) => {
 // Push notification handler
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    // Payload is not valid JSON — fall back to raw text so the notification
+    // still shows rather than being silently dropped.
+    data = { title: 'Notificación', body: event.data ? event.data.text() : '' };
+  }
   const title = data.title || 'Verde Guide';
   const options = {
     body: data.body || 'Tienes una nueva notificación',
@@ -182,8 +192,13 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'view' || !event.action) {
-    const url = event.notification.data?.url || '/';
-    if (!url.startsWith('/') && !url.startsWith(self.location.origin)) return;
-    event.waitUntil(clients.openWindow(url));
+    // Guard: only open a window when a URL is explicitly provided in the
+    // notification data. Avoids opening a blank tab for system notifications
+    // that carry no data payload.
+    if (event.notification.data?.url) {
+      const url = event.notification.data.url;
+      if (!url.startsWith('/') && !url.startsWith(self.location.origin)) return;
+      event.waitUntil(clients.openWindow(url));
+    }
   }
 });

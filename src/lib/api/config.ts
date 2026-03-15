@@ -53,11 +53,27 @@ interface ApiErrorResponse {
   details?: string;
 }
 
-interface ApiError extends Error {
+interface ApiErrorLegacy extends Error {
   response?: {
     data?: ApiErrorResponse;
     status?: number;
   };
+}
+
+/**
+ * Error tipado que expone el status HTTP devuelto por el backend.
+ * Reemplaza el `throw new Error(message)` genérico en apiRequest para que
+ * los callers puedan distinguir entre un 404/501 (endpoint no implementado)
+ * y cualquier otro error real del servidor.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
 }
 
 // Headers comunes para las requests
@@ -77,7 +93,7 @@ export const getApiHeaders = (token?: string): Record<string, string> => {
 export const handleApiError = (error: unknown): string => {
   // Verificar si es un error de API con response
   if (error && typeof error === "object" && "response" in error) {
-    const apiError = error as ApiError;
+    const apiError = error as ApiErrorLegacy;
     if (apiError.response?.data?.message) {
       return apiError.response.data.message;
     }
@@ -126,7 +142,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
 
       const errorMessage =
         errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(errorMessage);
+      throw new ApiError(response.status, errorMessage);
     }
 
     const contentType = response.headers.get("content-type");
