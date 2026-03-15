@@ -48,6 +48,29 @@ export const mockAdmin = {
   role: "admin" as const,
 };
 
+/**
+ * Mocks the NextAuth session endpoint to simulate an authenticated user.
+ * Call this in beforeEach to avoid redirect-to-login in protected routes.
+ */
+export async function mockSessionWithAuth(page: Page) {
+  await page.route("**/api/auth/session", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: {
+          id: mockUser._id,
+          name: mockUser.username,
+          email: mockUser.email,
+          role: mockUser.role,
+          image: mockUser.photo || null,
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    })
+  );
+}
+
 export async function mockLoginSuccess(page: Page) {
   await page.route(`${API}/users/login`, (route) => route.fulfill(jsonResponse(mockUser)));
 }
