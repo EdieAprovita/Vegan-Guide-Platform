@@ -10,6 +10,22 @@ import { getNearbyRestaurants, Restaurant } from "@/lib/api/restaurants";
 const DEFAULT_CENTER = { lat: 19.4326, lng: -99.1332 };
 const DEFAULT_RADIUS = 5000; // 5 km
 
+/** Escapes HTML special characters to prevent XSS in InfoWindow content. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+/** Clamps rating to [0, 5] to prevent RangeError in String.repeat(). */
+function safeStarCount(rating: number): number {
+  if (!isFinite(rating) || isNaN(rating)) return 0;
+  return Math.min(5, Math.max(0, Math.round(rating)));
+}
+
 interface MarkerData {
   id: string;
   type: "restaurants" | "markets" | "doctors";
@@ -142,17 +158,21 @@ export default function MapClient() {
 
   // Build InfoWindow HTML content for a restaurant marker
   function buildInfoWindowContent(marker: MarkerData): string {
-    const stars = "★".repeat(Math.round(marker.rating)) + "☆".repeat(5 - Math.round(marker.rating));
+    const count = safeStarCount(marker.rating);
+    const stars = "★".repeat(count) + "☆".repeat(5 - count);
+    const safeName = escapeHtml(marker.name);
+    const safeAddress = escapeHtml(marker.address);
+    const safeId = encodeURIComponent(marker.id);
     return `
       <div style="font-family: sans-serif; padding: 8px; max-width: 260px;">
-        <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 700;">${marker.name}</h3>
-        <p style="margin: 0 0 6px; color: #555; font-size: 13px;">${marker.address}</p>
+        <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 700;">${safeName}</h3>
+        <p style="margin: 0 0 6px; color: #555; font-size: 13px;">${safeAddress}</p>
         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
           <span style="color: #f59e0b; font-size: 14px;">${stars}</span>
           <span style="font-size: 13px; color: #374151;">${marker.rating.toFixed(1)}</span>
         </div>
         <a
-          href="/restaurants/${marker.id}"
+          href="/restaurants/${safeId}"
           style="display: inline-block; background: #16a34a; color: #fff; font-size: 13px;
                  padding: 4px 10px; border-radius: 4px; text-decoration: none;"
         >Ver detalle</a>
@@ -290,7 +310,7 @@ export default function MapClient() {
                     <p className="text-xs text-gray-500">{marker.address}</p>
                     <div className="mt-1 flex items-center justify-between">
                       <span className="text-xs text-yellow-500">
-                        {"★".repeat(Math.round(marker.rating))}
+                        {"★".repeat(safeStarCount(marker.rating))}
                         <span className="ml-1 text-gray-500">
                           {marker.rating.toFixed(1)}
                         </span>
