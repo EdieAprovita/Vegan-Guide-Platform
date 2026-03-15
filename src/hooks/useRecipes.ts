@@ -49,14 +49,10 @@ export const useRecipes = create<RecipesState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      console.error("getRecipes error:", error);
-      set({
-        error: error.message,
-        isLoading: false,
-        recipes: [],
-      });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load recipes";
+      console.error("getRecipes error:", err);
+      set({ error: message, isLoading: false, recipes: [] });
+      throw err;
     }
   },
 
@@ -67,9 +63,9 @@ export const useRecipes = create<RecipesState>((set) => ({
       const recipe = processBackendResponse<Recipe>(response) as Recipe;
       set({ currentRecipe: recipe, isLoading: false });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load recipe";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -84,9 +80,9 @@ export const useRecipes = create<RecipesState>((set) => ({
       }));
       return recipe._id;
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to create recipe";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -101,9 +97,9 @@ export const useRecipes = create<RecipesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to update recipe";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -117,9 +113,9 @@ export const useRecipes = create<RecipesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to delete recipe";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -134,9 +130,9 @@ export const useRecipes = create<RecipesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to add review";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 }));

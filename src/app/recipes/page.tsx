@@ -55,7 +55,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
             className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
           >
             <Link href="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
           </Button>

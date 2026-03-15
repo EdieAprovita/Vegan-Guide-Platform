@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Recipe, getRecipes } from "@/lib/api/recipes";
 import { RecipeCard } from "./recipe-card";
@@ -43,6 +43,10 @@ export function SimpleRecipeList({
 
   useEffect(() => {
     setMounted(true);
+    return () => {
+      // Clear any pending debounce timer on unmount to prevent state updates on an unmounted component
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    };
   }, []);
 
   // Sync active filters to URL so the page is bookmark-/share-friendly
@@ -146,9 +150,12 @@ export function SimpleRecipeList({
     pushFilterParams({ search: searchValue, category: categoryValue, difficulty: difficultyValue, page: nextPage });
   };
 
-  const handleViewRecipe = (id: string) => {
-    router.push(`/recipes/${id}`);
-  };
+  const handleViewRecipe = useCallback(
+    (id: string) => {
+      router.push(`/recipes/${id}`);
+    },
+    [router]
+  );
 
   return (
     <div className="space-y-8">
