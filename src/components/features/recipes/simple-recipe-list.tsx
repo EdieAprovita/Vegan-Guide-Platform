@@ -57,7 +57,8 @@ export function SimpleRecipeList({
     page: number;
   }) => {
     const qs = new URLSearchParams();
-    if (params.search) qs.set("search", params.search);
+    const normalizedSearch = params.search.trim();
+    if (normalizedSearch) qs.set("search", normalizedSearch);
     if (params.category) qs.set("category", params.category);
     if (params.difficulty) qs.set("difficulty", params.difficulty);
     if (params.page > 1) qs.set("page", String(params.page));
@@ -71,7 +72,7 @@ export function SimpleRecipeList({
     difficulty: string;
     targetPage: number;
     append: boolean;
-  }) => {
+  }): Promise<boolean> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -94,6 +95,7 @@ export function SimpleRecipeList({
       }
 
       setHasMore(recipesArray.length === initialLimit);
+      return true;
     } catch (err) {
       console.error("Error fetching recipes:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to load recipes";
@@ -102,6 +104,7 @@ export function SimpleRecipeList({
       if (!opts.append) {
         setRecipes([]);
       }
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -137,17 +140,19 @@ export function SimpleRecipeList({
     setDifficultyValue(difficulty);
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     const nextPage = page + 1;
-    setPage(nextPage);
-    fetchRecipes({
+    const success = await fetchRecipes({
       search: searchValue,
       category: categoryValue,
       difficulty: difficultyValue,
       targetPage: nextPage,
       append: true,
     });
-    pushFilterParams({ search: searchValue, category: categoryValue, difficulty: difficultyValue, page: nextPage });
+    if (success) {
+      setPage(nextPage);
+      pushFilterParams({ search: searchValue, category: categoryValue, difficulty: difficultyValue, page: nextPage });
+    }
   };
 
   const handleViewRecipe = useCallback(
