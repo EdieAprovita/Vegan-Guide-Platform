@@ -10,16 +10,6 @@ import { getNearbyRestaurants, Restaurant } from "@/lib/api/restaurants";
 const DEFAULT_CENTER = { lat: 19.4326, lng: -99.1332 };
 const DEFAULT_RADIUS = 5000; // 5 km
 
-/** Escapes HTML special characters to prevent XSS in InfoWindow content. */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
-}
-
 /** Clamps rating to [0, 5] to prevent RangeError in String.repeat(). */
 function safeStarCount(rating: number): number {
   if (!isFinite(rating) || isNaN(rating)) return 0;
@@ -110,36 +100,35 @@ export default function MapClient() {
     initMap();
   }, [initMap]);
 
-  const fetchRestaurants = useCallback(
-    async (center: { lat: number; lng: number }) => {
-      setIsDataLoading(true);
-      try {
-        const response = await getNearbyRestaurants({
-          latitude: center.lat,
-          longitude: center.lng,
-          radius: DEFAULT_RADIUS,
-          limit: 50,
-        });
+  const fetchRestaurants = useCallback(async (center: { lat: number; lng: number }) => {
+    setIsDataLoading(true);
+    try {
+      const response = await getNearbyRestaurants({
+        latitude: center.lat,
+        longitude: center.lng,
+        radius: DEFAULT_RADIUS,
+        limit: 50,
+      });
 
-        const fetched: MarkerData[] = (response.data ?? [])
-          .map(restaurantToMarkerData)
-          .filter((m): m is MarkerData => m !== null);
+      const fetched: MarkerData[] = (response.data ?? [])
+        .map(restaurantToMarkerData)
+        .filter((m): m is MarkerData => m !== null);
 
-        setMarkers(fetched);
+      setMarkers(fetched);
 
-        if (fetched.length === 0) {
-          toast.info("No se encontraron restaurantes en esta área");
-        } else {
-          toast.success(`${fetched.length} restaurante${fetched.length > 1 ? "s" : ""} encontrado${fetched.length > 1 ? "s" : ""}`);
-        }
-      } catch {
-        toast.error("Error al cargar los restaurantes");
-      } finally {
-        setIsDataLoading(false);
+      if (fetched.length === 0) {
+        toast.info("No se encontraron restaurantes en esta área");
+      } else {
+        toast.success(
+          `${fetched.length} restaurante${fetched.length > 1 ? "s" : ""} encontrado${fetched.length > 1 ? "s" : ""}`
+        );
       }
-    },
-    []
-  );
+    } catch {
+      toast.error("Error al cargar los restaurantes");
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, []);
 
   // Fetch data once map is ready
   useEffect(() => {
@@ -156,28 +145,48 @@ export default function MapClient() {
     };
   }, []);
 
-  // Build InfoWindow HTML content for a restaurant marker
-  function buildInfoWindowContent(marker: MarkerData): string {
+  // Build InfoWindow content using DOM APIs (XSS-safe, no innerHTML/template strings)
+  function buildInfoWindowContent(marker: MarkerData): HTMLElement {
     const count = safeStarCount(marker.rating);
-    const stars = "★".repeat(count) + "☆".repeat(5 - count);
-    const safeName = escapeHtml(marker.name);
-    const safeAddress = escapeHtml(marker.address);
-    const safeId = encodeURIComponent(marker.id);
-    return `
-      <div style="font-family: sans-serif; padding: 8px; max-width: 260px;">
-        <h3 style="margin: 0 0 4px; font-size: 15px; font-weight: 700;">${safeName}</h3>
-        <p style="margin: 0 0 6px; color: #555; font-size: 13px;">${safeAddress}</p>
-        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-          <span style="color: #f59e0b; font-size: 14px;">${stars}</span>
-          <span style="font-size: 13px; color: #374151;">${marker.rating.toFixed(1)}</span>
-        </div>
-        <a
-          href="/restaurants/${safeId}"
-          style="display: inline-block; background: #16a34a; color: #fff; font-size: 13px;
-                 padding: 4px 10px; border-radius: 4px; text-decoration: none;"
-        >Ver detalle</a>
-      </div>
-    `;
+    const safeRating = typeof marker.rating === "number" ? marker.rating : 0;
+
+    const container = document.createElement("div");
+    container.style.cssText = "font-family: sans-serif; padding: 8px; max-width: 260px;";
+
+    const title = document.createElement("h3");
+    title.style.cssText = "margin: 0 0 4px; font-size: 15px; font-weight: 700;";
+    title.textContent = marker.name;
+
+    const address = document.createElement("p");
+    address.style.cssText = "margin: 0 0 6px; color: #555; font-size: 13px;";
+    address.textContent = marker.address;
+
+    const ratingRow = document.createElement("div");
+    ratingRow.style.cssText = "display: flex; align-items: center; gap: 6px; margin-bottom: 8px;";
+
+    const stars = document.createElement("span");
+    stars.style.cssText = "color: #f59e0b; font-size: 14px;";
+    stars.textContent = "\u2605".repeat(count) + "\u2606".repeat(5 - count);
+
+    const ratingNum = document.createElement("span");
+    ratingNum.style.cssText = "font-size: 13px; color: #374151;";
+    ratingNum.textContent = safeRating.toFixed(1);
+
+    ratingRow.appendChild(stars);
+    ratingRow.appendChild(ratingNum);
+
+    const link = document.createElement("a");
+    link.href = `/restaurants/${encodeURIComponent(marker.id)}`;
+    link.style.cssText =
+      "display: inline-block; background: #16a34a; color: #fff; font-size: 13px; padding: 4px 10px; border-radius: 4px; text-decoration: none;";
+    link.textContent = "Ver detalle";
+
+    container.appendChild(title);
+    container.appendChild(address);
+    container.appendChild(ratingRow);
+    container.appendChild(link);
+
+    return container;
   }
 
   // Manage markers based on filters and data
@@ -219,15 +228,15 @@ export default function MapClient() {
     if (!trimmed) return;
 
     // Search by name client-side (already loaded) or re-fetch with search term
-    const filtered = markers.filter((m) =>
-      m.name.toLowerCase().includes(trimmed.toLowerCase())
-    );
+    const filtered = markers.filter((m) => m.name.toLowerCase().includes(trimmed.toLowerCase()));
 
     if (filtered.length > 0) {
       // Pan to first match
       map.setCenter(filtered[0].position);
       map.setZoom(15);
-      toast.success(`${filtered.length} resultado${filtered.length > 1 ? "s" : ""} encontrado${filtered.length > 1 ? "s" : ""}`);
+      toast.success(
+        `${filtered.length} resultado${filtered.length > 1 ? "s" : ""} encontrado${filtered.length > 1 ? "s" : ""}`
+      );
     } else {
       toast.info("No se encontraron resultados");
     }
@@ -306,13 +315,13 @@ export default function MapClient() {
                       }
                     }}
                   >
-                    <h3 className="font-semibold text-sm">{marker.name}</h3>
+                    <h3 className="text-sm font-semibold">{marker.name}</h3>
                     <p className="text-xs text-gray-500">{marker.address}</p>
                     <div className="mt-1 flex items-center justify-between">
                       <span className="text-xs text-yellow-500">
                         {"★".repeat(safeStarCount(marker.rating))}
                         <span className="ml-1 text-gray-500">
-                          {marker.rating.toFixed(1)}
+                          {(typeof marker.rating === "number" ? marker.rating : 0).toFixed(1)}
                         </span>
                       </span>
                       <Link
