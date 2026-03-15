@@ -58,7 +58,7 @@ self.addEventListener('fetch', (event) => {
           // EXCLUDED_API_PATHS covers /api/auth/, /api/user/ (incl. /api/user/profile),
           // and /api/push/ — these must never be served from cache.
           const isExcluded = EXCLUDED_API_PATHS.some((path) =>
-            url.pathname.includes(path)
+            url.pathname.startsWith(path)
           );
           const isCacheable =
             response.ok &&
@@ -161,7 +161,8 @@ self.addEventListener('fetch', (event) => {
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
   const title = data.title || 'Verde Guide';
   const options = {
     body: data.body || 'Tienes una nueva notificación',
@@ -181,6 +182,8 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'view' || !event.action) {
-    event.waitUntil(clients.openWindow(event.notification.data.url));
+    const url = event.notification.data?.url || '/';
+    if (!url.startsWith('/') && !url.startsWith(self.location.origin)) return;
+    event.waitUntil(clients.openWindow(url));
   }
 });

@@ -3,6 +3,7 @@ import { requireAuth, getServerAuthToken } from "@/lib/server-auth";
 import { generalApiRateLimit, applyRateLimit } from "@/lib/rate-limit";
 import { apiRequest, getApiHeaders } from "@/lib/api/config";
 import { z } from "zod";
+import { notificationSettingsSchema } from "@/lib/schemas/push";
 
 // Matches PushSubscriptionJSON — shape produced by subscription.toJSON() in the browser
 const pushSubscriptionSchema = z.object({
@@ -12,15 +13,6 @@ const pushSubscriptionSchema = z.object({
     auth: z.string().min(1, "auth key is required"),
   }),
   expirationTime: z.number().nullable().optional(),
-});
-
-const notificationSettingsSchema = z.object({
-  enabled: z.boolean().optional(),
-  newRestaurants: z.boolean().optional(),
-  newRecipes: z.boolean().optional(),
-  communityUpdates: z.boolean().optional(),
-  healthTips: z.boolean().optional(),
-  promotions: z.boolean().optional(),
 });
 
 const subscribeBodySchema = z.object({
@@ -87,23 +79,32 @@ export async function POST(request: NextRequest) {
         { success: true, message: "Push subscription saved" },
         { status: 200 }
       );
-    } catch (backendError) {
-      // TODO(backend): Remove this fallback once PUT /api/users/push-subscription is live.
-      // The backend endpoint is not yet implemented; acknowledge the request so
-      // the client does not surface an error to the user.
-      console.warn(
-        "push/subscribe — backend endpoint not available, returning 202 stub:",
-        backendError instanceof Error ? backendError.message : backendError
-      );
+    } catch (backendError: unknown) {
+      const status = (backendError as { status?: number })?.status;
+
+      if (status === 404 || status === 501 || status === undefined) {
+        // TODO(backend): Remove this fallback once PUT /api/users/push-subscription is live.
+        // The backend endpoint is not yet implemented; acknowledge the request so
+        // the client does not surface an error to the user.
+        console.warn(
+          "push/subscribe — backend endpoint not available, returning 202 stub:",
+          backendError instanceof Error ? backendError.message : backendError
+        );
+
+        const headers: Record<string, string> =
+          process.env.NODE_ENV !== "production"
+            ? { "X-TODO": "Implement PUT /api/users/push-subscription on backend" }
+            : {};
+
+        return NextResponse.json(
+          { message: "Subscription received — backend storage pending" },
+          { status: 202, headers }
+        );
+      }
 
       return NextResponse.json(
-        { message: "Subscription received — backend storage pending" },
-        {
-          status: 202,
-          headers: {
-            "X-TODO": "Implement PUT /api/users/push-subscription on backend",
-          },
-        }
+        { error: "Service temporarily unavailable" },
+        { status: 502 }
       );
     }
   } catch (error) {

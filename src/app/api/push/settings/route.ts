@@ -2,18 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, getServerAuthToken } from "@/lib/server-auth";
 import { generalApiRateLimit, applyRateLimit } from "@/lib/rate-limit";
 import { apiRequest, getApiHeaders } from "@/lib/api/config";
-import { z } from "zod";
-
-// Mirrors NotificationSettings in push-notifications.tsx — every field is
-// optional so callers can send partial updates (PATCH semantics over PUT).
-const notificationSettingsSchema = z.object({
-  enabled: z.boolean().optional(),
-  newRestaurants: z.boolean().optional(),
-  newRecipes: z.boolean().optional(),
-  communityUpdates: z.boolean().optional(),
-  healthTips: z.boolean().optional(),
-  promotions: z.boolean().optional(),
-});
+import { notificationSettingsSchema } from "@/lib/schemas/push";
 
 // TODO(backend): Implement PUT /api/users/push-settings on the Express API.
 // Expected request body: NotificationSettings (fields above)
@@ -72,23 +61,32 @@ export async function PUT(request: NextRequest) {
         { success: true, message: "Notification settings updated" },
         { status: 200 }
       );
-    } catch (backendError) {
-      // TODO(backend): Remove this fallback once PUT /api/users/push-settings is live.
-      // The backend endpoint is not yet implemented; acknowledge the request so
-      // the client does not surface an error to the user.
-      console.warn(
-        "push/settings — backend endpoint not available, returning 202 stub:",
-        backendError instanceof Error ? backendError.message : backendError
-      );
+    } catch (backendError: unknown) {
+      const status = (backendError as { status?: number })?.status;
+
+      if (status === 404 || status === 501 || status === undefined) {
+        // TODO(backend): Remove this fallback once PUT /api/users/push-settings is live.
+        // The backend endpoint is not yet implemented; acknowledge the request so
+        // the client does not surface an error to the user.
+        console.warn(
+          "push/settings — backend endpoint not available, returning 202 stub:",
+          backendError instanceof Error ? backendError.message : backendError
+        );
+
+        const headers: Record<string, string> =
+          process.env.NODE_ENV !== "production"
+            ? { "X-TODO": "Implement PUT /api/users/push-settings on backend" }
+            : {};
+
+        return NextResponse.json(
+          { message: "Settings received — backend storage pending" },
+          { status: 202, headers }
+        );
+      }
 
       return NextResponse.json(
-        { message: "Settings received — backend storage pending" },
-        {
-          status: 202,
-          headers: {
-            "X-TODO": "Implement PUT /api/users/push-settings on backend",
-          },
-        }
+        { error: "Service temporarily unavailable" },
+        { status: 502 }
       );
     }
   } catch (error) {
