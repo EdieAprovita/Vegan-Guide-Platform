@@ -20,6 +20,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               width={24}
               height={24}
               unoptimized
+              priority
               className="text-white"
             />
           </div>

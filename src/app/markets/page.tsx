@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { getMarkets, Market } from "@/lib/api/markets";
 import { SimpleMarketList } from "@/components/features/markets/simple-market-list";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
@@ -28,18 +27,6 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function MarketsPage() {
-  let initialMarkets: Market[] = [];
-
-  try {
-    const response = await getMarkets();
-    // Ensure we always pass an array
-    initialMarkets = Array.isArray(response) ? response : response?.data || [];
-  } catch (error) {
-    console.error("Failed to fetch markets:", error);
-    // Continue with empty array, the client-side will handle the loading
-    initialMarkets = [];
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-7xl">
