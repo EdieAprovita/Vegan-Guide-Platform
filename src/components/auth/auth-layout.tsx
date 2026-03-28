@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -13,15 +12,14 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     <div className="relative container grid min-h-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="absolute top-4 left-4 z-30 flex items-center gap-2 md:top-8 md:left-8">
         <Link href="/" className="group flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-            <Image
+          <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full">
+            {/* SVG logo — use plain <img> so Next.js image optimiser is not applied to SVGs */}
+            <img
               src="/logo.svg"
               alt="Verde Guide Logo"
               width={24}
               height={24}
               className="text-white"
-              priority
-              sizes="24px"
             />
           </div>
           <span className="text-primary group-hover:text-primary/80 font-['Clicker_Script'] text-[28px] font-normal transition-colors sm:text-[35px]">

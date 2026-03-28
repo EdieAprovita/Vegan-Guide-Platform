@@ -17,8 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Force dynamic rendering
-export const dynamic = "force-dynamic";
+// Re-generate the page at most once per hour (ISR)
+export const revalidate = 3600;
 
 export default async function DoctorsPage() {
   let initialDoctors: Doctor[] = [];

@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import { ResetPasswordClient } from "@/components/auth/reset-password-client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Reset Password",
@@ -24,7 +23,8 @@ export default async function ResetPasswordPage() {
         </div>
       </div>
       <div className="relative flex w-1/2 items-center justify-center bg-green-600 p-12 text-white">
-        <Image
+        {/* SVG logo — use plain <img> so Next.js image optimiser is not applied to SVGs */}
+        <img
           src="/logo.svg"
           alt="Vegan Guide Logo"
           width={150}

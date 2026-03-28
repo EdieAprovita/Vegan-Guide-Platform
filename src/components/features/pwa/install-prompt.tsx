@@ -10,7 +10,11 @@ import { toast } from "sonner";
 export function InstallPrompt() {
   const { isPWAInstalled, isOnline, canInstall, installPWA } = usePWA();
   const [showPrompt, setShowPrompt] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  // Initialise from localStorage so dismissal survives page reloads
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("pwa-prompt-dismissed") === "true";
+  });
 
   useEffect(() => {
     // Show prompt if PWA can be installed and user hasn't dismissed it
