@@ -4,7 +4,8 @@ import { screen } from "@testing-library/react";
  * Asserts that form validation blocked submission.
  * Waits for at least one role="alert" to appear, then verifies onSubmit was NOT called.
  */
-export async function expectValidationBlocked(onSubmit: jest.Mock): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export async function expectValidationBlocked(onSubmit: Function): Promise<void> {
   await screen.findAllByRole("alert");
   expect(onSubmit).not.toHaveBeenCalled();
 }
