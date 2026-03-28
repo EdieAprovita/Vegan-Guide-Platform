@@ -24,15 +24,27 @@ export async function middleware(request: NextRequest) {
   if (!session && !isAuthPage) {
     const url = new URL("/login", request.url);
 
-    // Validate callbackUrl: must be a safe relative path
-    const callbackPath = pathname.split("?")[0]; // strip query params
-    const isSafeCallback =
-      callbackPath.startsWith("/") &&
-      !callbackPath.startsWith("//") &&
-      !callbackPath.includes("\\");
+    // Validate callbackUrl: must be a safe, same-origin relative path
+    const rawCallbackPath = pathname.split("?")[0]; // strip query params
+    let safeCallbackPath: string | null = null;
+    try {
+      const decodedPath = decodeURIComponent(rawCallbackPath);
+      const isSafe =
+        decodedPath.startsWith("/") && !decodedPath.startsWith("//") && !decodedPath.includes("\\");
 
-    if (isSafeCallback) {
-      url.searchParams.set("callbackUrl", callbackPath);
+      if (isSafe) {
+        const baseUrl = new URL(request.url);
+        const resolved = new URL(decodedPath, baseUrl);
+        if (resolved.origin === baseUrl.origin) {
+          safeCallbackPath = decodedPath;
+        }
+      }
+    } catch {
+      // Malformed percent-encoding — treat as unsafe
+    }
+
+    if (safeCallbackPath) {
+      url.searchParams.set("callbackUrl", safeCallbackPath);
     }
 
     return NextResponse.redirect(url);
