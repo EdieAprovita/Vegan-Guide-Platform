@@ -43,7 +43,7 @@ async function setupAuthSession(page: Page, user: MockUser) {
         },
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       }),
-    }),
+    })
   );
 
   // Mock CSRF token endpoint
@@ -52,7 +52,7 @@ async function setupAuthSession(page: Page, user: MockUser) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ csrfToken: "mock-csrf-token-e2e" }),
-    }),
+    })
   );
 
   // Mock providers endpoint
@@ -63,20 +63,20 @@ async function setupAuthSession(page: Page, user: MockUser) {
       body: JSON.stringify({
         credentials: { id: "credentials", name: "Credentials", type: "credentials" },
       }),
-    }),
+    })
   );
 
   // Mock user profile endpoint
-  await page.route(`${API}/users/${user._id}`, (route) =>
-    route.fulfill(jsonResponse(user)),
-  );
+  await page.route(`${API}/users/${user._id}`, (route) => route.fulfill(jsonResponse(user)));
 
   await page.route(`${API}/users/profile/${user._id}`, (route) => {
     if (route.request().method() === "GET") {
       return route.fulfill(jsonResponse(user));
     }
     if (route.request().method() === "PUT") {
-      return route.fulfill(jsonResponse({ ...user, ...JSON.parse(route.request().postData() || "{}") }));
+      return route.fulfill(
+        jsonResponse({ ...user, ...JSON.parse(route.request().postData() || "{}") })
+      );
     }
     return route.continue();
   });
@@ -100,12 +100,12 @@ type AuthFixtures = {
 export const test = base.extend<AuthFixtures>({
   authedPage: async ({ page }, use) => {
     await setupAuthSession(page, mockUser);
-    await use(page);
+    await use(page); // NOSONAR — Playwright fixture API, not a React Hook
   },
 
   adminPage: async ({ page }, use) => {
     await setupAuthSession(page, mockAdmin);
-    await use(page);
+    await use(page); // NOSONAR — Playwright fixture API, not a React Hook
   },
 });
 

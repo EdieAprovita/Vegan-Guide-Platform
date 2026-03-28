@@ -189,9 +189,10 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
             <ScrollArea className="flex-1">
               <div className="space-y-1 p-2">
                 {chatRooms.map((room) => (
-                  <div
+                  <button
+                    type="button"
                     key={room.id}
-                    className={`cursor-pointer rounded-lg p-3 transition-colors ${
+                    className={`w-full cursor-pointer rounded-lg p-3 text-left transition-colors ${
                       activeRoom?.id === room.id
                         ? "border border-green-200 bg-green-100"
                         : "hover:bg-gray-50"
@@ -228,7 +229,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </ScrollArea>
