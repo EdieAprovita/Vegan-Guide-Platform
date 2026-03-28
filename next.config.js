@@ -38,7 +38,6 @@ const nextConfig = {
     ],
     // Configuración de optimización
     unoptimized: false,
-    dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Configuración de tamaños para mejorar rendimiento

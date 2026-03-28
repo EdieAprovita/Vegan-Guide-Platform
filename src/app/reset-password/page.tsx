@@ -1,8 +1,8 @@
+import Image from "next/image";
 import { Metadata } from "next";
 import { ResetPasswordClient } from "@/components/auth/reset-password-client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Reset Password",
@@ -29,6 +29,7 @@ export default async function ResetPasswordPage() {
           alt="Vegan Guide Logo"
           width={150}
           height={150}
+          unoptimized
           className="absolute top-10 left-10"
         />
         <div className="text-center">

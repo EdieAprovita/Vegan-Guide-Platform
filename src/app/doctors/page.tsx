@@ -3,7 +3,6 @@ import { SimpleDoctorList } from "@/components/features/doctors/simple-doctor-li
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getDoctors, Doctor } from "@/lib/api/doctors";
 
 export const metadata: Metadata = {
   title: "Doctores Veganos | Verde Guide",
@@ -17,22 +16,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Force dynamic rendering
-export const dynamic = "force-dynamic";
+// Re-generate the page at most once per hour (ISR)
+export const revalidate = 3600;
 
 export default async function DoctorsPage() {
-  let initialDoctors: Doctor[] = [];
-
-  try {
-    const response = await getDoctors();
-    // Ensure we always pass an array
-    initialDoctors = Array.isArray(response) ? response : response?.data || [];
-  } catch (error) {
-    console.error("Failed to fetch doctors:", error);
-    // Continue with empty array, the client-side will handle the loading
-    initialDoctors = [];
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-7xl">
