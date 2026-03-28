@@ -48,7 +48,7 @@ export const test = base.extend<ResourceFixtures>({
     await mockRestaurantList(authedPage);
     await mockRestaurantDetail(authedPage);
     await mockRestaurantCreate(authedPage);
-    await use(authedPage);
+    await use(authedPage); // NOSONAR — Playwright fixture API, not a React Hook
   },
 
   recipePage: async ({ authedPage }, use) => {
@@ -57,7 +57,7 @@ export const test = base.extend<ResourceFixtures>({
     await mockRecipeList(authedPage);
     await mockRecipeDetail(authedPage);
     await mockRecipeCreate(authedPage);
-    await use(authedPage);
+    await use(authedPage); // NOSONAR — Playwright fixture API, not a React Hook
   },
 
   doctorPage: async ({ authedPage }, use) => {
@@ -66,7 +66,7 @@ export const test = base.extend<ResourceFixtures>({
     await mockDoctorList(authedPage);
     await mockDoctorDetail(authedPage);
     await mockDoctorCreate(authedPage);
-    await use(authedPage);
+    await use(authedPage); // NOSONAR — Playwright fixture API, not a React Hook
   },
 
   marketPage: async ({ authedPage }, use) => {
@@ -75,7 +75,7 @@ export const test = base.extend<ResourceFixtures>({
     await mockMarketList(authedPage);
     await mockMarketDetail(authedPage);
     await mockMarketCreate(authedPage);
-    await use(authedPage);
+    await use(authedPage); // NOSONAR — Playwright fixture API, not a React Hook
   },
 });
 
