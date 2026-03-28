@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Clicker_Script, Playfair_Display } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPrompt } from "@/components/features/pwa/install-prompt";
 import { DebugInfo } from "@/components/ui/debug-info";
 import { Header } from "@/components/vegan-landing/header";
+
+const WebVitalsReporter = dynamic(
+  () =>
+    import("@/components/performance/web-vitals-reporter").then(
+      (mod) => mod.WebVitalsReporter
+    ),
+  { ssr: false }
+);
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -131,6 +140,7 @@ export default function RootLayout({
           </main>
           <InstallPrompt />
           {process.env.NODE_ENV === "development" && <DebugInfo />}
+          <WebVitalsReporter />
         </Providers>
       </body>
     </html>

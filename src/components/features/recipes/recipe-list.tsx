@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useRecipes } from "@/hooks/useRecipes";
-import type { Recipe } from "@/lib/api/recipes";
+import { useInfiniteRecipes } from "@/hooks/useRecipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +18,7 @@ import { Search } from "lucide-react";
 const PAGE_LIMIT = 12;
 
 interface RecipeListProps {
+  /** @deprecated Not used — infinite query manages pages internally */
   initialPage?: number;
   initialLimit?: number;
   initialSearch?: string;
@@ -27,7 +27,6 @@ interface RecipeListProps {
 }
 
 export function RecipeList({
-  initialPage = 1,
   initialLimit = PAGE_LIMIT,
   initialSearch = "",
   initialCategory = "",
@@ -37,41 +36,22 @@ export function RecipeList({
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
-  const [page, setPage] = useState(initialPage);
-  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const {
-    data: recipes = [],
+    data,
     isLoading,
-    isFetching,
+    isFetchingNextPage,
     error,
-  } = useRecipes({
-    page,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteRecipes({
     limit: initialLimit,
     search,
     category,
     difficulty,
   });
 
-  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
-  useEffect(() => {
-    if (recipes.length > 0 || page === 1) {
-      setAllRecipes((prev) => {
-        if (page === 1) return recipes;
-        const existingIds = new Set(prev.map((r) => r._id));
-        const newItems = recipes.filter((r) => !existingIds.has(r._id));
-        return [...prev, ...newItems];
-      });
-    }
-  }, [recipes, page]);
-
-  // Reset accumulated list whenever filters change
-  useEffect(() => {
-    setPage(1);
-    setAllRecipes([]);
-  }, [search, category, difficulty]);
-
-  const hasMore = recipes.length === initialLimit;
+  const allRecipes = data?.pages.flat() ?? [];
 
   if (error) {
     return (
@@ -125,7 +105,7 @@ export function RecipeList({
         </Select>
       </div>
 
-      {isLoading && allRecipes.length === 0 ? (
+      {isLoading ? (
         <div className="grid animate-pulse grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <div key={i} className="h-[400px] rounded-lg bg-emerald-100" />
@@ -154,15 +134,15 @@ export function RecipeList({
             ))}
           </div>
 
-          {hasMore && (
+          {hasNextPage && (
             <div className="flex justify-center pt-8">
               <Button
-                onClick={() => setPage((prev) => prev + 1)}
-                disabled={isFetching}
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
                 variant="outline"
                 className="min-w-[200px]"
               >
-                {isFetching ? "Loading..." : "Load More"}
+                {isFetchingNextPage ? "Loading..." : "Load More"}
               </Button>
             </div>
           )}
