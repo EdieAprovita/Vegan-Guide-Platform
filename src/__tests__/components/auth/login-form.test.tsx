@@ -25,7 +25,7 @@ jest.mock("@/components/ui/form", () => {
     }: {
       name: string;
       control: object;
-      render: (args: { field: object; fieldState: object }) => React.ReactNode;
+      render: (args: { field: object; fieldState: object }) => React.ReactElement;
     }) => (
       <FormFieldNameContext.Provider value={name}>
         <Controller
