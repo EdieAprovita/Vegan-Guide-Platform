@@ -14,16 +14,16 @@ import { useTranslation } from "@/lib/i18n";
 type NavItemDef = { labelKey: string; href: string };
 
 const NAV_ITEM_DEFS: NavItemDef[] = [
-  { labelKey: "nav.home",            href: "/"                },
-  { labelKey: "nav.recipes",         href: "/recipes"         },
-  { labelKey: "nav.restaurants",     href: "/restaurants"     },
-  { labelKey: "nav.businesses",      href: "/businesses"      },
-  { labelKey: "nav.doctors",         href: "/doctors"         },
-  { labelKey: "nav.markets",         href: "/markets"         },
-  { labelKey: "nav.community",       href: "/community"       },
-  { labelKey: "nav.map",             href: "/map"             },
+  { labelKey: "nav.home", href: "/" },
+  { labelKey: "nav.recipes", href: "/recipes" },
+  { labelKey: "nav.restaurants", href: "/restaurants" },
+  { labelKey: "nav.businesses", href: "/businesses" },
+  { labelKey: "nav.doctors", href: "/doctors" },
+  { labelKey: "nav.markets", href: "/markets" },
+  { labelKey: "nav.community", href: "/community" },
+  { labelKey: "nav.map", href: "/map" },
   { labelKey: "nav.recommendations", href: "/recommendations" },
-  { labelKey: "nav.achievements",    href: "/achievements"    },
+  { labelKey: "nav.achievements", href: "/achievements" },
 ];
 
 export function Header() {
@@ -264,9 +264,7 @@ export function Header() {
 
             {/* Theme Toggle — mobile */}
             <li className="border-border/50 flex items-center justify-between border-t px-6 py-3">
-              <span className="font-brand-serif text-foreground/70 text-sm font-medium">
-                Tema
-              </span>
+              <span className="font-brand-serif text-foreground/70 text-sm font-medium">Tema</span>
               <ThemeToggle />
             </li>
           </ul>

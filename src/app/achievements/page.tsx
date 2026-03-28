@@ -1,5 +1,20 @@
 import { Metadata } from "next";
-import { AchievementSystem } from "@/components/features/gamification/achievement-system";
+import dynamic from "next/dynamic";
+
+const AchievementSystem = dynamic(
+  () =>
+    import("@/components/features/gamification/achievement-system").then((mod) => ({
+      default: mod.AchievementSystem,
+    })),
+  {
+    loading: () => (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-green-600" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export const metadata: Metadata = {
   title: "Logros | Verde Guide",
@@ -14,8 +29,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Logros | Verde Guide",
-    description:
-      "Desbloquea logros e insignias explorando la comunidad vegana en Verde Guide.",
+    description: "Desbloquea logros e insignias explorando la comunidad vegana en Verde Guide.",
   },
 };
 

@@ -97,7 +97,6 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
                 width={300}
                 height={300}
                 className="h-full w-full object-cover md:w-64"
-                priority
                 sizes="(max-width: 768px) 100vw, 300px"
                 placeholder="blur"
                 blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"

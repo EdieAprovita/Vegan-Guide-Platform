@@ -8,7 +8,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const nextConfig = {
   // Configuración experimental compatible con Next.js 15
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
   // Configuración de imágenes mejorada
   images: {
@@ -122,8 +122,6 @@ const nextConfig = {
       },
     ];
   },
-  // Configuración de transpilación
-  transpilePackages: ["lucide-react"],
   // Configuración adicional para estabilidad
   poweredByHeader: false,
   generateEtags: false,
