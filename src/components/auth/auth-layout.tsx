@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -13,12 +14,12 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <div className="absolute top-4 left-4 z-30 flex items-center gap-2 md:top-8 md:left-8">
         <Link href="/" className="group flex items-center gap-2">
           <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full">
-            {/* SVG logo — use plain <img> so Next.js image optimiser is not applied to SVGs */}
-            <img
+            <Image
               src="/logo.svg"
               alt="Verde Guide Logo"
               width={24}
               height={24}
+              unoptimized
               className="text-white"
             />
           </div>

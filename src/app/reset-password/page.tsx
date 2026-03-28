@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Metadata } from "next";
 import { ResetPasswordClient } from "@/components/auth/reset-password-client";
 import { auth } from "@/lib/auth";
@@ -23,12 +24,12 @@ export default async function ResetPasswordPage() {
         </div>
       </div>
       <div className="relative flex w-1/2 items-center justify-center bg-green-600 p-12 text-white">
-        {/* SVG logo — use plain <img> so Next.js image optimiser is not applied to SVGs */}
-        <img
+        <Image
           src="/logo.svg"
           alt="Vegan Guide Logo"
           width={150}
           height={150}
+          unoptimized
           className="absolute top-10 left-10"
         />
         <div className="text-center">
