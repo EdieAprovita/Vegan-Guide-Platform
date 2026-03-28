@@ -2,6 +2,40 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function buildCsp(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  const directives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
+    "font-src 'self'",
+    `connect-src 'self' ${apiUrl}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ];
+  return directives.join("; ");
+}
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload",
+  );
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(self)",
+  );
+  response.headers.set("Content-Security-Policy", buildCsp());
+  response.headers.delete("X-Powered-By");
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   let session;
   try {
@@ -9,7 +43,9 @@ export async function middleware(request: NextRequest) {
   } catch (error) {
     // Auth provider failed — log for observability, redirect without callbackUrl to avoid loops
     console.error("[middleware] auth() failed:", error);
-    return NextResponse.redirect(new URL("/login", request.url));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL("/login", request.url)),
+    );
   }
 
   const { pathname } = request.nextUrl;
@@ -47,23 +83,27 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("callbackUrl", safeCallbackPath);
     }
 
-    return NextResponse.redirect(url);
+    return applySecurityHeaders(NextResponse.redirect(url));
   }
 
   // If user is authenticated and trying to access auth pages
   if (session && isAuthPage) {
-    return NextResponse.redirect(new URL("/profile", request.url));
+    return applySecurityHeaders(
+      NextResponse.redirect(new URL("/profile", request.url)),
+    );
   }
 
   // Role-based protection: only admins can access /admin routes
   if (pathname.startsWith("/admin")) {
     const userRole = (session?.user as { role?: string } | undefined)?.role;
     if (userRole !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url));
+      return applySecurityHeaders(
+        NextResponse.redirect(new URL("/", request.url)),
+      );
     }
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next());
 }
 
 export const config = {

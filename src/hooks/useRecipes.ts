@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as recipesApi from "@/lib/api/recipes";
 import type { Recipe, CreateRecipeData, RecipeReview } from "@/lib/api/recipes";
 import { processBackendResponse } from "@/lib/api/config";
@@ -19,6 +19,45 @@ export function useRecipes(params?: {
       const response = await recipesApi.getRecipes(params);
       const data = processBackendResponse<Recipe>(response);
       return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Infinite scroll / load-more query — use this in list views instead of useRecipes
+export function useInfiniteRecipes(params?: {
+  limit?: number;
+  search?: string;
+  category?: string;
+  difficulty?: string;
+}) {
+  const limit = params?.limit ?? 12;
+
+  return useInfiniteQuery({
+    queryKey: [
+      "recipes",
+      "infinite",
+      {
+        search: params?.search,
+        category: params?.category,
+        difficulty: params?.difficulty,
+        limit,
+      },
+    ],
+    queryFn: async ({ pageParam }) => {
+      const response = await recipesApi.getRecipes({
+        page: pageParam,
+        limit,
+        search: params?.search,
+        category: params?.category,
+        difficulty: params?.difficulty,
+      });
+      const data = processBackendResponse<Recipe>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      return lastPage.length === limit ? lastPageParam + 1 : undefined;
     },
     staleTime: 5 * 60 * 1000,
   });
