@@ -122,8 +122,6 @@ const nextConfig = {
       },
     ];
   },
-  // Configuración de transpilación
-  transpilePackages: ["lucide-react"],
   // Configuración adicional para estabilidad
   poweredByHeader: false,
   generateEtags: false,

@@ -41,7 +41,7 @@ export function ChatButton() {
         )}
       </Button>
 
-      <ChatSystem isOpen={isChatOpen} onClose={handleCloseChat} />
+      {isChatOpen && <ChatSystem isOpen={isChatOpen} onClose={handleCloseChat} />}
     </>
   );
 }
