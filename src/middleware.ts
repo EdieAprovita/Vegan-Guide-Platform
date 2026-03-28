@@ -3,7 +3,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    // Auth provider failed — log for observability, redirect without callbackUrl to avoid loops
+    console.error("[middleware] auth() failed:", error);
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   const { pathname } = request.nextUrl;
 
   const isAuthPage =
@@ -15,7 +23,18 @@ export async function middleware(request: NextRequest) {
   // If user is not authenticated and trying to access protected routes
   if (!session && !isAuthPage) {
     const url = new URL("/login", request.url);
-    url.searchParams.set("callbackUrl", pathname);
+
+    // Validate callbackUrl: must be a safe relative path
+    const callbackPath = pathname.split("?")[0]; // strip query params
+    const isSafeCallback =
+      callbackPath.startsWith("/") &&
+      !callbackPath.startsWith("//") &&
+      !callbackPath.includes("\\");
+
+    if (isSafeCallback) {
+      url.searchParams.set("callbackUrl", callbackPath);
+    }
+
     return NextResponse.redirect(url);
   }
 
