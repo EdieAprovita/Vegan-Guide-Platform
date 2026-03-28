@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Post, getPosts } from "@/lib/api/posts";
+import { useState, useMemo, useEffect } from "react";
+import { usePosts } from "@/hooks/usePosts";
+import type { Post } from "@/lib/api/posts";
 import { PostCard } from "./post-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
 
 interface PostListProps {
-  initialPosts?: Post[];
   showFilters?: boolean;
   title?: string;
 }
@@ -29,89 +28,65 @@ const TAG_OPTIONS = [
   "Other",
 ];
 
-export function PostList({
-  initialPosts = [],
-  showFilters = true,
-  title = "Community Posts",
-}: PostListProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [loading, setLoading] = useState(false);
+const PAGE_LIMIT = 12;
+
+export function PostList({ showFilters = true, title = "Community Posts" }: PostListProps) {
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [allRawPosts, setAllRawPosts] = useState<Post[]>([]);
 
-  const loadPosts = useCallback(
-    async (reset = false) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : page;
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: rawPosts = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = usePosts({
+    search: search || undefined,
+    tags: tagFilter || undefined,
+    page,
+    limit: PAGE_LIMIT,
+  });
 
-        if (search) params.search = search;
-        if (tagFilter) params.tags = tagFilter;
-
-        const response = await getPosts(params);
-
-        if (reset) {
-          setPosts(response.data || response);
-          setPage(1);
-        } else {
-          setPosts((prev) => [...prev, ...(response.data || response)]);
-        }
-
-        setHasMore((response.data || response).length === 12);
-      } catch {
-        toast.error("Failed to load posts");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, tagFilter]
-  );
-
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
   useEffect(() => {
-    if (initialPosts.length === 0) {
-      loadPosts(true);
+    if (rawPosts.length > 0 || page === 1) {
+      setAllRawPosts((prev) => {
+        if (page === 1) return rawPosts;
+        const existingIds = new Set(prev.map((p) => p._id));
+        const newItems = rawPosts.filter((p) => !existingIds.has(p._id));
+        return [...prev, ...newItems];
+      });
     }
-  }, [initialPosts.length, loadPosts]);
+  }, [rawPosts, page]);
 
-  const handleSearch = () => {
-    loadPosts(true);
-  };
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRawPosts([]);
+  }, [search, tagFilter]);
 
-  const handleFilterChange = () => {
-    loadPosts(true);
-  };
-
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-    // Sort posts locally
-    const sortedPosts = [...posts];
-    switch (value) {
-      case "recent":
-        sortedPosts.sort(
+  // Sort accumulated posts client-side
+  const posts = useMemo(() => {
+    const sorted = [...allRawPosts];
+    switch (sortBy) {
+      case "popular":
+        return sorted.sort((a, b) => b.likes.length - a.likes.length);
+      case "comments":
+        return sorted.sort((a, b) => b.comments.length - a.comments.length);
+      default:
+        return sorted.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        break;
-      case "popular":
-        sortedPosts.sort((a, b) => b.likes.length - a.likes.length);
-        break;
-      case "comments":
-        sortedPosts.sort((a, b) => b.comments.length - a.comments.length);
-        break;
     }
-    setPosts(sortedPosts);
-  };
+  }, [allRawPosts, sortBy]);
+
+  const hasMore = rawPosts.length === PAGE_LIMIT;
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
+    if (!isFetching && hasMore) {
       setPage((prev) => prev + 1);
-      loadPosts(false);
     }
   };
 
@@ -135,7 +110,6 @@ export function PostList({
                   placeholder="Search posts..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-10"
                 />
               </div>
@@ -143,10 +117,7 @@ export function PostList({
               {/* Tag Filter */}
               <select
                 value={tagFilter}
-                onChange={(e) => {
-                  setTagFilter(e.target.value);
-                  handleFilterChange();
-                }}
+                onChange={(e) => setTagFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All tags</option>
@@ -160,7 +131,7 @@ export function PostList({
               {/* Sort By */}
               <select
                 value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">Sort by</option>
@@ -170,8 +141,8 @@ export function PostList({
               </select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={() => setPage(1)} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -179,10 +150,16 @@ export function PostList({
       )}
 
       {/* Posts Grid */}
-      {posts.length > 0 ? (
+      {isLoading && posts.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[220px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : posts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {posts.map((post) => (
-            <PostCard key={post._id} post={post} onLikeChange={() => loadPosts(true)} />
+            <PostCard key={post._id} post={post} onLikeChange={() => refetch()} />
           ))}
         </div>
       ) : (
@@ -200,8 +177,8 @@ export function PostList({
       {/* Load More Button */}
       {hasMore && posts.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}

@@ -68,7 +68,7 @@ export default async function DoctorsPage() {
         </div>
 
         {/* Doctor List */}
-        <SimpleDoctorList initialDoctors={initialDoctors} />
+        <SimpleDoctorList />
       </div>
     </div>
   );

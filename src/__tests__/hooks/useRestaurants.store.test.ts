@@ -1,17 +1,32 @@
-import { act } from "@testing-library/react";
-import { useRestaurants } from "@/hooks/useRestaurants";
+/**
+ * Tests for the base useRestaurants, useRestaurant, and useTopRatedRestaurants
+ * TanStack Query hooks (migrated from Zustand).
+ */
+import { renderHook } from "@testing-library/react";
+import { useRestaurants, useRestaurant, useTopRatedRestaurants } from "@/hooks/useRestaurants";
 import * as restaurantsApi from "@/lib/api/restaurants";
-import { setupStoreTest } from "./store-test-utils";
+import { useQuery } from "@tanstack/react-query";
+
+jest.mock("@tanstack/react-query", () => ({
+  useQuery: jest.fn(),
+  useMutation: jest.fn(),
+  useQueryClient: jest.fn(),
+}));
 
 jest.mock("@/lib/api/restaurants", () => ({
   getRestaurants: jest.fn(),
   getRestaurant: jest.fn(),
   getTopRatedRestaurants: jest.fn(),
+  getNearbyRestaurants: jest.fn(),
+  getRestaurantsByCuisine: jest.fn(),
+  getAdvancedRestaurants: jest.fn(),
   createRestaurant: jest.fn(),
   updateRestaurant: jest.fn(),
   deleteRestaurant: jest.fn(),
   addRestaurantReview: jest.fn(),
 }));
+
+const useQueryMock = useQuery as unknown as jest.Mock;
 
 const mockRestaurant = {
   _id: "1",
@@ -28,138 +43,76 @@ const mockRestaurant = {
   updatedAt: "2024-01-01",
 };
 
-setupStoreTest(useRestaurants, {
-  restaurants: [],
-  currentRestaurant: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
+beforeEach(() => {
+  useQueryMock.mockReturnValue({ data: [mockRestaurant], isLoading: false, isError: false });
+  jest.clearAllMocks();
+  useQueryMock.mockReturnValue({ data: [mockRestaurant], isLoading: false, isError: false });
 });
 
-describe("useRestaurants store actions", () => {
-  it("fetches restaurants successfully", async () => {
+describe("useRestaurants query hook", () => {
+  it("calls useQuery with restaurants queryKey", () => {
+    renderHook(() => useRestaurants({ search: "green" }));
+
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["restaurants", expect.objectContaining({ search: "green" })],
+      })
+    );
+  });
+
+  it("returns data from useQuery", () => {
+    const { result } = renderHook(() => useRestaurants());
+    expect(result.current.data).toEqual([mockRestaurant]);
+  });
+
+  it("passes params to queryFn that calls getRestaurants", async () => {
+    let capturedConfig: any;
+    useQueryMock.mockImplementation((config: any) => {
+      capturedConfig = config;
+      return { data: [], isLoading: false };
+    });
+
     (restaurantsApi.getRestaurants as jest.Mock).mockResolvedValue({
       success: true,
       data: [mockRestaurant],
     });
 
-    await act(async () => {
-      await useRestaurants.getState().getRestaurants({ search: "green" });
-    });
+    renderHook(() => useRestaurants({ search: "green" }));
 
-    const state = useRestaurants.getState();
-    expect(restaurantsApi.getRestaurants).toHaveBeenCalledWith({ search: "green" });
-    expect(state.restaurants).toEqual([mockRestaurant]);
-    expect(state.error).toBeNull();
+    await capturedConfig.queryFn();
+    expect(restaurantsApi.getRestaurants).toHaveBeenCalledWith(
+      expect.objectContaining({ search: "green" })
+    );
+  });
+});
+
+describe("useRestaurant single query", () => {
+  it("calls useQuery with single restaurant queryKey", () => {
+    renderHook(() => useRestaurant("1"));
+
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["restaurants", "1"],
+        enabled: true,
+      })
+    );
   });
 
-  it("handles errors when fetching restaurants", async () => {
-    (restaurantsApi.getRestaurants as jest.Mock).mockRejectedValue(new Error("fail"));
+  it("disables query when id is empty", () => {
+    renderHook(() => useRestaurant(""));
 
-    await expect(useRestaurants.getState().getRestaurants()).rejects.toThrow("fail");
-
-    const state = useRestaurants.getState();
-    expect(state.restaurants).toEqual([]);
-    expect(state.error).toBe("fail");
+    expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
+});
 
-  it("retrieves a single restaurant and updates state", async () => {
-    (restaurantsApi.getRestaurant as jest.Mock).mockResolvedValue({
-      success: true,
-      data: mockRestaurant,
-    });
+describe("useTopRatedRestaurants", () => {
+  it("calls useQuery with topRated queryKey", () => {
+    renderHook(() => useTopRatedRestaurants(5));
 
-    await act(async () => {
-      await useRestaurants.getState().getRestaurant("1");
-    });
-
-    expect(restaurantsApi.getRestaurant).toHaveBeenCalledWith("1");
-    expect(useRestaurants.getState().currentRestaurant).toEqual(mockRestaurant);
-  });
-
-  it("loads top rated restaurants", async () => {
-    (restaurantsApi.getTopRatedRestaurants as jest.Mock).mockResolvedValue({
-      success: true,
-      data: [mockRestaurant],
-    });
-
-    await act(async () => {
-      await useRestaurants.getState().getTopRatedRestaurants(5);
-    });
-
-    expect(restaurantsApi.getTopRatedRestaurants).toHaveBeenCalledWith(5);
-    expect(useRestaurants.getState().restaurants).toEqual([mockRestaurant]);
-  });
-
-  it("creates a restaurant and prepends it to the list", async () => {
-    (restaurantsApi.createRestaurant as jest.Mock).mockResolvedValue({
-      success: true,
-      data: mockRestaurant,
-    });
-
-    await act(async () => {
-      await useRestaurants.getState().createRestaurant(mockRestaurant, "token");
-    });
-
-    expect(restaurantsApi.createRestaurant).toHaveBeenCalledWith(mockRestaurant, "token");
-    expect(useRestaurants.getState().restaurants[0]).toEqual(mockRestaurant);
-  });
-
-  it("updates restaurants list and current entry", async () => {
-    const updated = { ...mockRestaurant, restaurantName: "Updated" };
-    (restaurantsApi.updateRestaurant as jest.Mock).mockResolvedValue({
-      success: true,
-      data: updated,
-    });
-
-    useRestaurants.setState({
-      restaurants: [mockRestaurant],
-      currentRestaurant: mockRestaurant,
-    });
-
-    await act(async () => {
-      await useRestaurants.getState().updateRestaurant("1", { restaurantName: "Updated" });
-    });
-
-    const state = useRestaurants.getState();
-    expect(state.restaurants[0]).toEqual(updated);
-    expect(state.currentRestaurant).toEqual(updated);
-  });
-
-  it("removes restaurants when deleting", async () => {
-    (restaurantsApi.deleteRestaurant as jest.Mock).mockResolvedValue(undefined);
-
-    useRestaurants.setState({
-      restaurants: [mockRestaurant],
-      currentRestaurant: mockRestaurant,
-    });
-
-    await act(async () => {
-      await useRestaurants.getState().deleteRestaurant("1");
-    });
-
-    const state = useRestaurants.getState();
-    expect(state.restaurants).toEqual([]);
-    expect(state.currentRestaurant).toBeNull();
-  });
-
-  it("updates reviews list when adding a review", async () => {
-    const withReview = { ...mockRestaurant, reviews: [{ rating: 5, comment: "Great" }] };
-    (restaurantsApi.addRestaurantReview as jest.Mock).mockResolvedValue({
-      success: true,
-      data: withReview,
-    });
-
-    useRestaurants.setState({
-      restaurants: [mockRestaurant],
-      currentRestaurant: mockRestaurant,
-    });
-
-    await act(async () => {
-      await useRestaurants.getState().addRestaurantReview("1", { rating: 5, comment: "Great" });
-    });
-
-    expect(useRestaurants.getState().restaurants[0].reviews).toEqual(withReview.reviews);
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["restaurants", "topRated", 5],
+      })
+    );
   });
 });

@@ -1,417 +1,195 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getDoctors,
   getDoctor,
-  searchDoctors,
-  addDoctorReview,
   getNearbyDoctors,
   getDoctorsBySpecialty,
   getAdvancedDoctors,
+  addDoctorReview,
+  createDoctor,
+  updateDoctor,
+  deleteDoctor,
   Doctor,
   DoctorSearchParams,
+  DoctorReview,
+  CreateDoctorData,
 } from "@/lib/api/doctors";
 import { processBackendResponse } from "@/lib/api/config";
-import { getCurrentLocation } from "@/lib/utils/geospatial";
-import { toast } from "sonner";
+import { useUserLocation } from "@/hooks/useGeolocation";
 
-export function useDoctors(initialDoctors: Doctor[] = []) {
-  const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors);
-  const [currentDoctor, setCurrentDoctor] = useState<Doctor | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-
-  const fetchDoctors = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await getDoctors();
-      const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-      setDoctors(Array.isArray(doctors) ? doctors : []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load doctors";
-      setError(message);
-      toast.error("Failed to fetch doctors");
-      setDoctors([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const fetchDoctorsWithParams = useCallback(async (params?: DoctorSearchParams) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+// Base list query
+export function useDoctors(params?: DoctorSearchParams) {
+  return useQuery({
+    queryKey: ["doctors", params],
+    queryFn: async () => {
       const response = await getDoctors(params);
-      const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-      setDoctors(Array.isArray(doctors) ? doctors : []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load doctors";
-      setError(message);
-      toast.error("Failed to fetch doctors");
-      setDoctors([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      const data = processBackendResponse<Doctor>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
-  const getDoctorById = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+// Single doctor query
+export function useDoctor(id: string) {
+  return useQuery({
+    queryKey: ["doctors", id],
+    queryFn: async () => {
       const response = await getDoctor(id);
-      const doctor = processBackendResponse<Doctor>(response) as Doctor;
-      setCurrentDoctor(doctor);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load doctor details";
-      setError(message);
-      toast.error("Failed to fetch doctor details");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleSearch = useCallback(async (query: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await searchDoctors(query);
-      const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-      setDoctors(Array.isArray(doctors) ? doctors : []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to search for doctors";
-      setError(message);
-      toast.error("Failed to search for doctors");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleAddReview = useCallback(
-    async (id: string, review: { rating: number; comment: string }) => {
-      try {
-        await addDoctorReview(id, review);
-        toast.success("Review added successfully");
-        getDoctorById(id);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to add review";
-        setError(message);
-        toast.error("Failed to add review");
-      }
+      return processBackendResponse<Doctor>(response) as Doctor;
     },
-    [getDoctorById]
-  );
-
-  const getUserLocation = useCallback(async () => {
-    try {
-      const location = await getCurrentLocation();
-      setUserLocation(location);
-      return location;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to get user location";
-      setError(message);
-      toast.error("Failed to get user location");
-      throw err;
-    }
-  }, []);
-
-  return {
-    doctors,
-    currentDoctor,
-    isLoading,
-    error,
-    userLocation,
-    fetchDoctors,
-    fetchDoctorsWithParams,
-    getDoctorById,
-    handleSearch,
-    handleAddReview,
-    getUserLocation,
-  };
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export function useNearbyDoctors(radius: number = 5) {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+// Nearby doctors query
+export function useNearbyDoctors(params?: {
+  radius?: number;
+  limit?: number;
+  specialty?: string;
+  minRating?: number;
+  enabled?: boolean;
+}) {
+  const { userCoords } = useUserLocation();
 
-  const fetchNearbyDoctors = useCallback(
-    async (params?: { specialty?: string; minRating?: number; limit?: number }) => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  return useQuery({
+    queryKey: ["nearbyDoctors", userCoords, params],
+    queryFn: async () => {
+      const response = await getNearbyDoctors({
+        latitude: userCoords!.lat,
+        longitude: userCoords!.lng,
+        radius: params?.radius || 5,
+        limit: params?.limit || 20,
+        specialty: params?.specialty,
+        minRating: params?.minRating,
+      });
 
-        let location = userLocation;
-        if (!location) {
-          location = await getCurrentLocation();
-          setUserLocation(location);
-        }
-
-        const response = await getNearbyDoctors({
-          latitude: location.lat,
-          longitude: location.lng,
-          radius,
-          ...params,
-        });
-
-        const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-        setDoctors(Array.isArray(doctors) ? doctors : []);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load nearby doctors";
-        setError(message);
-        toast.error("Failed to fetch nearby doctors");
-        setDoctors([]);
-      } finally {
-        setIsLoading(false);
-      }
+      return processBackendResponse<Doctor>(response) as Doctor[];
     },
-    [radius, userLocation]
-  );
-
-  const fetchWithLocation = useCallback(
-    async (
-      lat: number,
-      lng: number,
-      params?: {
-        specialty?: string;
-        minRating?: number;
-        limit?: number;
-      }
-    ) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const location = { lat, lng };
-        setUserLocation(location);
-
-        const response = await getNearbyDoctors({
-          latitude: lat,
-          longitude: lng,
-          radius,
-          ...params,
-        });
-
-        const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-        setDoctors(Array.isArray(doctors) ? doctors : []);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load nearby doctors";
-        setError(message);
-        toast.error("Failed to fetch nearby doctors");
-        setDoctors([]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [radius]
-  );
-
-  return {
-    doctors,
-    isLoading,
-    error,
-    userLocation,
-    fetchNearbyDoctors,
-    fetchWithLocation,
-  };
+    enabled: params?.enabled !== false && !!userCoords,
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export function useDoctorsBySpecialty(specialty: string) {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+// Doctors by specialty query
+export function useDoctorsBySpecialty(
+  specialty: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    includeLocation?: boolean;
+    radius?: number;
+    enabled?: boolean;
+  }
+) {
+  const { userCoords } = useUserLocation();
 
-  const fetchDoctorsBySpecialty = useCallback(
-    async (params?: { page?: number; limit?: number; useLocation?: boolean; radius?: number }) => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  return useQuery({
+    queryKey: ["doctorsBySpecialty", specialty, userCoords, params],
+    queryFn: async () => {
+      const apiParams: Parameters<typeof getDoctorsBySpecialty>[1] = {
+        page: params?.page,
+        limit: params?.limit,
+      };
 
-        interface ApiParams {
-          specialty: string;
-          page?: number;
-          limit?: number;
-          latitude?: number;
-          longitude?: number;
-          radius?: number;
-        }
-
-        let apiParams: ApiParams = {
-          specialty: specialty,
-          page: params?.page,
-          limit: params?.limit,
-        };
-
-        if (params?.useLocation) {
-          let location = userLocation;
-          if (!location) {
-            location = await getCurrentLocation();
-            setUserLocation(location);
-          }
-          apiParams.latitude = location.lat;
-          apiParams.longitude = location.lng;
-          apiParams.radius = params.radius || 10;
-        }
-
-        const response = await getDoctorsBySpecialty(specialty, apiParams);
-        const doctors = processBackendResponse<Doctor>(response) as Doctor[];
-        setDoctors(Array.isArray(doctors) ? doctors : []);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : `Failed to load ${specialty} doctors`;
-        setError(message);
-        toast.error(`Failed to fetch ${specialty} doctors`);
-        setDoctors([]);
-      } finally {
-        setIsLoading(false);
+      if (params?.includeLocation && userCoords) {
+        apiParams.latitude = userCoords.lat;
+        apiParams.longitude = userCoords.lng;
+        apiParams.radius = params.radius || 10;
       }
+
+      const response = await getDoctorsBySpecialty(specialty, apiParams);
+      return processBackendResponse<Doctor>(response) as Doctor[];
     },
-    [specialty, userLocation]
-  );
-
-  useEffect(() => {
-    if (specialty) {
-      fetchDoctorsBySpecialty();
-    }
-  }, [specialty, fetchDoctorsBySpecialty]);
-
-  return {
-    doctors,
-    isLoading,
-    error,
-    userLocation,
-    fetchDoctorsBySpecialty,
-  };
+    enabled: params?.enabled !== false && !!specialty,
+    staleTime: 10 * 60 * 1000,
+  });
 }
 
-export function useAdvancedDoctorSearch() {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+// Advanced doctor search query
+export function useAdvancedDoctorSearch(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  specialty?: string;
+  minRating?: number;
+  languages?: string[];
+  radius?: number;
+  sortBy?: "distance" | "rating" | "name" | "createdAt";
+  includeLocation?: boolean;
+  enabled?: boolean;
+}) {
+  const { userCoords } = useUserLocation();
 
-  const searchDoctors = useCallback(
-    async (params: {
-      page?: number;
-      limit?: number;
-      search?: string;
-      specialty?: string;
-      minRating?: number;
-      languages?: string[];
-      useLocation?: boolean;
-      radius?: number;
-      sortBy?: "distance" | "rating" | "name" | "createdAt";
-      append?: boolean;
-    }) => {
-      try {
-        setIsLoading(true);
-        if (!params.append) {
-          setError(null);
-        }
+  return useQuery({
+    queryKey: ["advancedDoctorSearch", userCoords, params],
+    queryFn: async () => {
+      const apiParams: Parameters<typeof getAdvancedDoctors>[0] = {
+        page: params.page || 1,
+        limit: params.limit || 12,
+        search: params.search,
+        specialty: params.specialty,
+        minRating: params.minRating,
+        languages: params.languages,
+        sortBy: params.sortBy,
+      };
 
-        interface ApiParams {
-          page?: number;
-          limit?: number;
-          search?: string;
-          specialty?: string;
-          minRating?: number;
-          languages?: string[];
-          sortBy?: "distance" | "rating" | "name" | "createdAt";
-          latitude?: number;
-          longitude?: number;
-          radius?: number;
-        }
-
-        let apiParams: ApiParams = {
-          page: params.page || 1,
-          limit: params.limit || 12,
-          search: params.search,
-          specialty: params.specialty,
-          minRating: params.minRating,
-          languages: params.languages,
-          sortBy: params.sortBy,
-        };
-
-        if (params.useLocation) {
-          let location = userLocation;
-          if (!location) {
-            location = await getCurrentLocation();
-            setUserLocation(location);
-          }
-          apiParams.latitude = location.lat;
-          apiParams.longitude = location.lng;
-          apiParams.radius = params.radius || 10;
-        }
-
-        const response = await getAdvancedDoctors(apiParams);
-        const newDoctors = processBackendResponse<Doctor>(response) as Doctor[];
-
-        if (params.append) {
-          setDoctors((prev) => [...prev, ...(Array.isArray(newDoctors) ? newDoctors : [])]);
-        } else {
-          setDoctors(Array.isArray(newDoctors) ? newDoctors : []);
-        }
-
-        const hasMoreResults =
-          Array.isArray(newDoctors) && newDoctors.length === (params.limit || 12);
-        setHasMore(hasMoreResults);
-        setCurrentPage(params.page || 1);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to search doctors";
-        setError(message);
-        toast.error("Failed to search doctors");
-        if (!params.append) {
-          setDoctors([]);
-        }
-      } finally {
-        setIsLoading(false);
+      if (params.includeLocation && userCoords) {
+        apiParams.latitude = userCoords.lat;
+        apiParams.longitude = userCoords.lng;
+        apiParams.radius = params.radius || 10;
       }
+
+      const response = await getAdvancedDoctors(apiParams);
+      return processBackendResponse<Doctor>(response) as Doctor[];
     },
-    [userLocation]
-  );
+    enabled: params.enabled !== false,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
-  const loadMore = useCallback(
-    async (params: {
-      search?: string;
-      specialty?: string;
-      minRating?: number;
-      languages?: string[];
-      useLocation?: boolean;
-      radius?: number;
-      sortBy?: "distance" | "rating" | "name" | "createdAt";
-    }) => {
-      if (hasMore && !isLoading) {
-        await searchDoctors({
-          ...params,
-          page: currentPage + 1,
-          append: true,
-        });
-      }
+// Mutations with automatic cache invalidation
+export function useDoctorMutations() {
+  const queryClient = useQueryClient();
+
+  const create = useMutation({
+    mutationFn: ({ data }: { data: CreateDoctorData }) => createDoctor(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({ queryKey: ["nearbyDoctors"] });
+      queryClient.invalidateQueries({ queryKey: ["doctorsBySpecialty"] });
+      queryClient.invalidateQueries({ queryKey: ["advancedDoctorSearch"] });
     },
-    [hasMore, isLoading, currentPage, searchDoctors]
-  );
+  });
 
-  const clearResults = useCallback(() => {
-    setDoctors([]);
-    setError(null);
-    setHasMore(true);
-    setCurrentPage(1);
-  }, []);
+  const update = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateDoctorData> }) =>
+      updateDoctor(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({ queryKey: ["doctors", variables.id] });
+    },
+  });
 
-  return {
-    doctors,
-    isLoading,
-    error,
-    userLocation,
-    hasMore,
-    currentPage,
-    searchDoctors,
-    loadMore,
-    clearResults,
-  };
+  const remove = useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteDoctor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({ queryKey: ["nearbyDoctors"] });
+    },
+  });
+
+  const addReview = useMutation({
+    mutationFn: ({ id, review }: { id: string; review: DoctorReview }) =>
+      addDoctorReview(id, review),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["doctors", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+    },
+  });
+
+  return { create, update, remove, addReview };
 }

@@ -5,8 +5,8 @@ import {
   CreateReviewData,
   ReviewStats,
   getReview,
-  updateReview,
-  deleteReview,
+  updateReview as updateReviewApi,
+  deleteReview as deleteReviewApi,
   markReviewHelpful,
   removeReviewHelpful,
   getRestaurantReviews,
@@ -44,7 +44,7 @@ export function useReviews({
   limit = 10,
   autoFetch = true,
 }: UseReviewsParams): UseReviewsReturn {
-  const { token, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -133,7 +133,7 @@ export function useReviews({
 
   const addReview = useCallback(
     async (data: CreateReviewData): Promise<Review | null> => {
-      if (!isAuthenticated || !token) {
+      if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para crear una review");
       }
 
@@ -143,7 +143,7 @@ export function useReviews({
 
         // Currently all resource types use the same endpoint
         // TODO: Implement specific endpoints when APIs become available for other resource types
-        const response = await createRestaurantReview(resourceId, data, token);
+        const response = await createRestaurantReview(resourceId, data);
 
         if (response?.data) {
           const newReview = response.data;
@@ -164,12 +164,12 @@ export function useReviews({
         setLoading(false);
       }
     },
-    [resourceId, token, isAuthenticated, fetchStats]
+    [resourceId, isAuthenticated, fetchStats]
   );
 
   const updateReview = useCallback(
     async (reviewId: string, data: Partial<CreateReviewData>): Promise<Review | null> => {
-      if (!isAuthenticated || !token) {
+      if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para actualizar una review");
       }
 
@@ -177,10 +177,10 @@ export function useReviews({
         setLoading(true);
         setError(null);
 
-        const response = await updateReview(reviewId, data);
+        const response = await updateReviewApi(reviewId, data);
 
-        if (response) {
-          const updatedReview = response;
+        if (response?.data) {
+          const updatedReview = response.data;
           setReviews((prev) =>
             prev.map((review) => (review._id === reviewId ? updatedReview : review))
           );
@@ -199,12 +199,12 @@ export function useReviews({
         setLoading(false);
       }
     },
-    [token, isAuthenticated, fetchStats]
+    [isAuthenticated, fetchStats]
   );
 
   const deleteReview = useCallback(
     async (reviewId: string): Promise<boolean> => {
-      if (!isAuthenticated || !token) {
+      if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para eliminar una review");
       }
 
@@ -212,7 +212,7 @@ export function useReviews({
         setLoading(true);
         setError(null);
 
-        await deleteReview(reviewId);
+        await deleteReviewApi(reviewId);
 
         // Remove from local state
         setReviews((prev) => prev.filter((review) => review._id !== reviewId));
@@ -229,12 +229,12 @@ export function useReviews({
         setLoading(false);
       }
     },
-    [token, isAuthenticated, fetchStats]
+    [isAuthenticated, fetchStats]
   );
 
   const toggleHelpful = useCallback(
     async (reviewId: string, isHelpful: boolean): Promise<boolean> => {
-      if (!isAuthenticated || !token) {
+      if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para votar");
       }
 
@@ -242,9 +242,9 @@ export function useReviews({
         let response;
 
         if (isHelpful) {
-          response = await markReviewHelpful(reviewId, token);
+          response = await markReviewHelpful(reviewId);
         } else {
-          response = await removeReviewHelpful(reviewId, token);
+          response = await removeReviewHelpful(reviewId);
         }
 
         if (response?.data) {
@@ -262,7 +262,7 @@ export function useReviews({
         return false;
       }
     },
-    [token, isAuthenticated]
+    [isAuthenticated]
   );
 
   const refetch = useCallback(async () => {
@@ -307,7 +307,7 @@ export function useReviews({
 
 // Hook for managing a single review
 export function useReview(reviewId: string) {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -338,7 +338,7 @@ export function useReview(reviewId: string) {
 
   const updateReviewLocal = useCallback(
     async (data: Partial<CreateReviewData>) => {
-      if (!token) {
+      if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para actualizar una review");
       }
 
@@ -346,7 +346,7 @@ export function useReview(reviewId: string) {
         setLoading(true);
         setError(null);
 
-        const response = await updateReview(reviewId, data, token);
+        const response = await updateReviewApi(reviewId, data);
 
         if (response?.data) {
           setReview(response.data);
@@ -361,11 +361,11 @@ export function useReview(reviewId: string) {
         setLoading(false);
       }
     },
-    [reviewId, token]
+    [reviewId, isAuthenticated]
   );
 
   const deleteReviewLocal = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       throw new Error("Debes iniciar sesión para eliminar una review");
     }
 
@@ -373,7 +373,7 @@ export function useReview(reviewId: string) {
       setLoading(true);
       setError(null);
 
-      await deleteReview(reviewId);
+      await deleteReviewApi(reviewId);
       setReview(null);
 
       return true;
@@ -383,7 +383,7 @@ export function useReview(reviewId: string) {
     } finally {
       setLoading(false);
     }
-  }, [reviewId, token]);
+  }, [reviewId, isAuthenticated]);
 
   return {
     review,

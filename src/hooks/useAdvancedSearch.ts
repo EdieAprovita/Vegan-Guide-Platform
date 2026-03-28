@@ -30,7 +30,7 @@ const DEFAULT_FILTERS: SearchFilters = {
 };
 
 export function useAdvancedSearch() {
-  const { token } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   const [searchState, setSearchState] = useState<SearchState>({
     isSearching: false,
@@ -148,14 +148,14 @@ export function useAdvancedSearch() {
           totalPages: searchData.totalPages,
         }));
 
-        // Save search analytics
-        if (searchState.filters.query && token) {
+        // Save search analytics (server handles auth via HttpOnly cookie)
+        if (searchState.filters.query && isAuthenticated) {
           try {
             const resourceType =
               searchState.filters.resourceTypes.length === 1
                 ? searchState.filters.resourceTypes[0]
                 : undefined;
-            await saveSearchQuery(searchState.filters.query, resourceType, token);
+            await saveSearchQuery(searchState.filters.query, resourceType);
           } catch (error) {
             console.warn("Error saving search analytics:", error);
           }
@@ -170,7 +170,7 @@ export function useAdvancedSearch() {
         console.error("Search error:", error);
       }
     },
-    [searchState.filters, token]
+    [searchState.filters, isAuthenticated]
   );
 
   const loadMore = useCallback(() => {

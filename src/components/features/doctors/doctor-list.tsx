@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Doctor, getDoctors } from "@/lib/api/doctors";
-import { processBackendResponse } from "@/lib/api/config";
+import { useState, useEffect } from "react";
+import { useDoctors } from "@/hooks/useDoctors";
+import type { Doctor } from "@/lib/api/doctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
-import { toast } from "sonner";
 
 interface DoctorListProps {
-  initialDoctors?: Doctor[];
   showFilters?: boolean;
   title?: string;
 }
@@ -44,73 +42,55 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function DoctorList({
-  initialDoctors = [],
-  showFilters = true,
-  title = "Doctors",
-}: DoctorListProps) {
-  const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors);
-  const [loading, setLoading] = useState(false);
+const PAGE_LIMIT = 12;
+
+export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorListProps) {
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
 
-  const loadDoctors = useCallback(
-    async (reset = false, pageOverride?: number) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : (pageOverride ?? page);
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: doctors = [],
+    isLoading,
+    isFetching,
+  } = useDoctors({
+    search: search || undefined,
+    specialty: specialtyFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    page,
+    limit: PAGE_LIMIT,
+  });
 
-        if (search) params.search = search;
-        if (specialtyFilter) params.specialty = specialtyFilter;
-        if (ratingFilter) params.rating = parseInt(ratingFilter);
-
-        const response = await getDoctors(params);
-        const data = processBackendResponse<Doctor>(response);
-        const list = Array.isArray(data) ? data : data ? [data] : [];
-
-        if (reset) {
-          setDoctors(list);
-          setPage(1);
-        } else {
-          setDoctors((prev) => [...prev, ...list]);
-        }
-
-        setHasMore(list.length === 12);
-      } catch {
-        toast.error("Failed to load doctors");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, specialtyFilter, ratingFilter]
-  );
-
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
   useEffect(() => {
-    if (initialDoctors.length === 0) {
-      loadDoctors(true);
+    if (doctors.length > 0 || page === 1) {
+      setAllDoctors((prev) => {
+        if (page === 1) return doctors;
+        const existingIds = new Set(prev.map((d) => d._id));
+        const newItems = doctors.filter((d) => !existingIds.has(d._id));
+        return [...prev, ...newItems];
+      });
     }
-  }, [initialDoctors.length, loadDoctors]);
+  }, [doctors, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllDoctors([]);
+  }, [search, specialtyFilter, ratingFilter]);
+
+  const hasMore = doctors.length === PAGE_LIMIT;
 
   const handleSearch = () => {
-    loadDoctors(true);
-  };
-
-  const handleFilterChange = () => {
-    loadDoctors(true);
+    setPage(1);
+    setAllDoctors([]);
   };
 
   const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    const next = page + 1;
-    setPage(next);
-    loadDoctors(false, next);
+    if (isFetching || !hasMore) return;
+    setPage((prev) => prev + 1);
   };
 
   return (
@@ -118,7 +98,7 @@ export function DoctorList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">{doctors.length} doctors found</div>
+        <div className="text-sm text-gray-600">{allDoctors.length} doctors found</div>
       </div>
 
       {/* Search and Filters */}
@@ -143,7 +123,7 @@ export function DoctorList({
                 value={specialtyFilter}
                 onValueChange={(value) => {
                   setSpecialtyFilter(value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
               >
                 <SelectTrigger>
@@ -164,7 +144,7 @@ export function DoctorList({
                 value={ratingFilter}
                 onValueChange={(value) => {
                   setRatingFilter(value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
               >
                 <SelectTrigger>
@@ -180,8 +160,8 @@ export function DoctorList({
               </Select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={handleSearch} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -189,9 +169,15 @@ export function DoctorList({
       )}
 
       {/* Doctor Grid */}
-      {doctors.length > 0 ? (
+      {isLoading && allDoctors.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {doctors.map((doctor) => (
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : allDoctors.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {allDoctors.map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
           ))}
         </div>
@@ -206,10 +192,10 @@ export function DoctorList({
       )}
 
       {/* Load More Button */}
-      {hasMore && doctors.length > 0 && (
+      {hasMore && allDoctors.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}

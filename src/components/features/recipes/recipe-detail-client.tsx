@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRecipes } from "@/hooks/useRecipes";
+import { useRecipe } from "@/hooks/useRecipes";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,12 +11,8 @@ interface RecipeDetailClientProps {
 }
 
 export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
-  const { currentRecipe, isLoading, error, getRecipe } = useRecipes();
+  const { data: recipe, isLoading, error } = useRecipe(recipeId);
   const { user } = useAuth();
-
-  useEffect(() => {
-    getRecipe(recipeId);
-  }, [getRecipe, recipeId]);
 
   if (isLoading) {
     return (
@@ -30,12 +25,14 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500">
+          {error instanceof Error ? error.message : "Failed to load recipe"}
+        </p>
       </div>
     );
   }
 
-  if (!currentRecipe) {
+  if (!recipe) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p className="text-emerald-600">Recipe not found</p>
@@ -47,7 +44,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
     easy: "text-green-500",
     medium: "text-yellow-500",
     hard: "text-red-500",
-  }[currentRecipe?.difficulty || "easy"];
+  }[recipe?.difficulty || "easy"];
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -64,8 +61,8 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
 
         <div className="relative h-96 overflow-hidden rounded-xl">
           <Image
-            src={currentRecipe.image || "/placeholder-recipe.jpg"}
-            alt={currentRecipe.title + " - Receta vegana"}
+            src={recipe.image || "/placeholder-recipe.jpg"}
+            alt={recipe.title + " - Receta vegana"}
             fill
             className="object-cover"
             priority
@@ -84,7 +81,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
                 <p className="font-medium">Author</p>
               </div>
             </div>
-            <h1 className="font-['Playfair_Display'] text-4xl font-bold">{currentRecipe.title}</h1>
+            <h1 className="font-['Playfair_Display'] text-4xl font-bold">{recipe.title}</h1>
           </div>
         </div>
 
@@ -94,7 +91,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <div>
               <p className="text-sm opacity-70">Total Time</p>
               <p className="font-medium">
-                {(currentRecipe.preparationTime || 0) + currentRecipe.cookingTime} min
+                {(recipe.preparationTime || 0) + recipe.cookingTime} min
               </p>
             </div>
           </div>
@@ -102,16 +99,14 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <Users className="h-5 w-5" aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Servings</p>
-              <p className="font-medium">{currentRecipe.servings}</p>
+              <p className="font-medium">{recipe.servings}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <ChefHat className={`h-5 w-5 ${difficultyColor}`} aria-hidden="true" />
             <div>
               <p className="text-sm opacity-70">Difficulty</p>
-              <p className={`font-medium capitalize ${difficultyColor}`}>
-                {currentRecipe.difficulty}
-              </p>
+              <p className={`font-medium capitalize ${difficultyColor}`}>{recipe.difficulty}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-emerald-700">
@@ -119,7 +114,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <div>
               <p className="text-sm opacity-70">Rating</p>
               <p className="font-medium">
-                {(currentRecipe.averageRating || currentRecipe.rating)?.toFixed(1) || "N/A"}
+                {(recipe.averageRating || recipe.rating)?.toFixed(1) || "N/A"}
               </p>
             </div>
           </div>
@@ -149,7 +144,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <h2 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-emerald-800">
               Description
             </h2>
-            <p className="leading-relaxed text-emerald-600">{currentRecipe.description}</p>
+            <p className="leading-relaxed text-emerald-600">{recipe.description}</p>
           </div>
 
           <div>
@@ -157,7 +152,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
               Ingredients
             </h2>
             <ul className="space-y-2">
-              {currentRecipe.ingredients.map((ingredient, index) => (
+              {recipe.ingredients.map((ingredient, index) => (
                 <li key={index} className="flex items-center gap-2 text-emerald-600">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
                   {ingredient}
@@ -170,15 +165,15 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
             <h2 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-emerald-800">
               Instructions
             </h2>
-            {Array.isArray(currentRecipe.instructions) ? (
+            {Array.isArray(recipe.instructions) ? (
               <ol className="list-decimal space-y-3 pl-5 leading-relaxed text-emerald-600">
-                {currentRecipe.instructions.map((step: string, index: number) => (
+                {recipe.instructions.map((step: string, index: number) => (
                   <li key={index}>{step}</li>
                 ))}
               </ol>
             ) : (
               <ol className="list-decimal space-y-3 pl-5 leading-relaxed text-emerald-600">
-                {String(currentRecipe.instructions)
+                {String(recipe.instructions)
                   .split(/\n+/)
                   .filter((s: string) => s.trim())
                   .map((step: string, index: number) => (
@@ -193,11 +188,7 @@ export function RecipeDetailClient({ recipeId }: RecipeDetailClientProps) {
               <h2 className="mb-4 font-['Playfair_Display'] text-2xl font-bold text-emerald-800">
                 Rate this Recipe
               </h2>
-              <div
-                role="group"
-                aria-label="Calificacion de la receta"
-                className="flex gap-2"
-              >
+              <div role="group" aria-label="Calificacion de la receta" className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <Button
                     key={rating}

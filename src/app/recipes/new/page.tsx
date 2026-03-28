@@ -1,23 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRecipes } from "@/hooks/useRecipes";
+import { useRecipeMutations } from "@/hooks/useRecipes";
 import { RecipeForm } from "@/components/features/recipes/recipe-form";
 import type { CreateRecipeData } from "@/lib/api/recipes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { processBackendResponse } from "@/lib/api/config";
+import type { Recipe } from "@/lib/api/recipes";
 
 export default function NewRecipePage() {
   const router = useRouter();
-  const { createRecipe, isLoading } = useRecipes();
+  const { createRecipe } = useRecipeMutations();
 
   const handleSubmit = async (data: CreateRecipeData) => {
     try {
-      const recipeId = await createRecipe(data);
+      const response = await createRecipe.mutateAsync(data);
+      const recipe = processBackendResponse<Recipe>(response) as Recipe;
       toast.success("Recipe created successfully!");
-      router.push(`/recipes/${recipeId}`);
+      router.push(`/recipes/${recipe._id}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create recipe";
       toast.error(message);
@@ -51,7 +54,7 @@ export default function NewRecipePage() {
         </div>
 
         <div className="rounded-2xl bg-white/80 p-8 shadow-lg backdrop-blur-sm">
-          <RecipeForm onSubmit={handleSubmit} isLoading={isLoading} />
+          <RecipeForm onSubmit={handleSubmit} isLoading={createRecipe.isPending} />
         </div>
       </div>
     </main>

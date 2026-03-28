@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRecipes } from "@/hooks/useRecipes";
+import type { Recipe } from "@/lib/api/recipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
+const PAGE_LIMIT = 12;
+
 interface RecipeListProps {
   initialPage?: number;
   initialLimit?: number;
@@ -25,111 +28,57 @@ interface RecipeListProps {
 
 export function RecipeList({
   initialPage = 1,
-  initialLimit = 12,
+  initialLimit = PAGE_LIMIT,
   initialSearch = "",
   initialCategory = "",
   initialDifficulty = "",
 }: RecipeListProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const { recipes, isLoading, error, totalPages, currentPage, getRecipes } = useRecipes();
+  const [search, setSearch] = useState(initialSearch);
+  const [category, setCategory] = useState(initialCategory);
+  const [difficulty, setDifficulty] = useState(initialDifficulty);
+  const [page, setPage] = useState(initialPage);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const {
+    data: recipes = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useRecipes({
+    page,
+    limit: initialLimit,
+    search,
+    category,
+    difficulty,
+  });
 
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
   useEffect(() => {
-    if (mounted) {
-      getRecipes({
-        page: initialPage,
-        limit: initialLimit,
-        search: initialSearch,
-        category: initialCategory,
-        difficulty: initialDifficulty,
-      }).catch((err) => {
-        console.error("Error fetching recipes:", err);
+    if (recipes.length > 0 || page === 1) {
+      setAllRecipes((prev) => {
+        if (page === 1) return recipes;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = recipes.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
       });
     }
-  }, [
-    mounted,
-    getRecipes,
-    initialPage,
-    initialLimit,
-    initialSearch,
-    initialCategory,
-    initialDifficulty,
-  ]);
+  }, [recipes, page]);
 
-  const handleSearch = (search: string) => {
-    getRecipes({
-      page: 1,
-      limit: initialLimit,
-      search,
-      category: initialCategory,
-      difficulty: initialDifficulty,
-    }).catch((err) => {
-      console.error("Error searching recipes:", err);
-    });
-  };
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRecipes([]);
+  }, [search, category, difficulty]);
 
-  const handleCategoryChange = (category: string) => {
-    getRecipes({
-      page: 1,
-      limit: initialLimit,
-      search: initialSearch,
-      category,
-      difficulty: initialDifficulty,
-    }).catch((err) => {
-      console.error("Error filtering by category:", err);
-    });
-  };
-
-  const handleDifficultyChange = (difficulty: string) => {
-    getRecipes({
-      page: 1,
-      limit: initialLimit,
-      search: initialSearch,
-      category: initialCategory,
-      difficulty,
-    }).catch((err) => {
-      console.error("Error filtering by difficulty:", err);
-    });
-  };
-
-  const handlePageChange = (page: number) => {
-    getRecipes({
-      page,
-      limit: initialLimit,
-      search: initialSearch,
-      category: initialCategory,
-      difficulty: initialDifficulty,
-    }).catch((err) => {
-      console.error("Error changing page:", err);
-    });
-  };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="h-10 flex-1 animate-pulse rounded bg-gray-200" />
-          <div className="h-10 w-full animate-pulse rounded bg-gray-200 sm:w-[180px]" />
-          <div className="h-10 w-full animate-pulse rounded bg-gray-200 sm:w-[180px]" />
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-[400px] animate-pulse rounded-lg bg-gray-200" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const hasMore = recipes.length === initialLimit;
 
   if (error) {
     return (
       <div className="py-8 text-center">
-        <p className="text-lg text-red-500">Error loading recipes: {error}</p>
+        <p className="text-lg text-red-500">
+          Error loading recipes: {error instanceof Error ? error.message : "Unknown error"}
+        </p>
         <Button onClick={() => window.location.reload()} className="mt-4" variant="outline">
           Try Again
         </Button>
@@ -145,12 +94,12 @@ export function RecipeList({
             type="text"
             placeholder="Search recipes..."
             defaultValue={initialSearch}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500" />
         </div>
-        <Select defaultValue={initialCategory} onValueChange={handleCategoryChange}>
+        <Select defaultValue={initialCategory} onValueChange={(value) => setCategory(value)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -163,7 +112,7 @@ export function RecipeList({
             <SelectItem value="snack">Snack</SelectItem>
           </SelectContent>
         </Select>
-        <Select defaultValue={initialDifficulty} onValueChange={handleDifficultyChange}>
+        <Select defaultValue={initialDifficulty} onValueChange={(value) => setDifficulty(value)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
@@ -176,7 +125,7 @@ export function RecipeList({
         </Select>
       </div>
 
-      {isLoading ? (
+      {isLoading && allRecipes.length === 0 ? (
         <div className="grid animate-pulse grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <div key={i} className="h-[400px] rounded-lg bg-emerald-100" />
@@ -185,7 +134,7 @@ export function RecipeList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {recipes.map((recipe) => (
+            {allRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe._id}
                 title={recipe.title}
@@ -205,21 +154,16 @@ export function RecipeList({
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 pt-8">
-              {Array.from({ length: totalPages }).map((_, i) => {
-                const page = i + 1;
-                return (
-                  <Button
-                    key={page}
-                    variant={page === currentPage ? "default" : "outline"}
-                    onClick={() => handlePageChange(page)}
-                    className={page === currentPage ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-                  >
-                    {page}
-                  </Button>
-                );
-              })}
+          {hasMore && (
+            <div className="flex justify-center pt-8">
+              <Button
+                onClick={() => setPage((prev) => prev + 1)}
+                disabled={isFetching}
+                variant="outline"
+                className="min-w-[200px]"
+              >
+                {isFetching ? "Loading..." : "Load More"}
+              </Button>
             </div>
           )}
         </>

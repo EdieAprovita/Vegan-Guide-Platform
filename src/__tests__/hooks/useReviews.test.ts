@@ -132,8 +132,7 @@ describe("useReviews", () => {
   // loadMore calls fetchReviews with the next page when hasMore is true.
   // Use a small limit of 1 so one review sets hasMore=true (1 === 1).
   it("loadMore triggers a page 2 fetch when hasMore is true", async () => {
-    (reviewsApi.getRestaurantReviews as jest.Mock)
-      .mockResolvedValue({ data: [mockReview] }); // always return 1 item so hasMore stays true
+    (reviewsApi.getRestaurantReviews as jest.Mock).mockResolvedValue({ data: [mockReview] }); // always return 1 item so hasMore stays true
     (reviewsApi.getRestaurantReviewStats as jest.Mock).mockResolvedValue({ data: mockStats });
 
     const { result } = renderHook(() => useReviews({ ...defaultParams, limit: 1 }));
@@ -176,11 +175,10 @@ describe("useReviews", () => {
       newReview = await result.current.addReview({ rating: 4, comment: "Great place!" });
     });
 
-    expect(reviewsApi.createRestaurantReview).toHaveBeenCalledWith(
-      "rest1",
-      { rating: 4, comment: "Great place!" },
-      "auth-token"
-    );
+    expect(reviewsApi.createRestaurantReview).toHaveBeenCalledWith("rest1", {
+      rating: 4,
+      comment: "Great place!",
+    });
     expect(newReview).toEqual(mockReview);
     expect(result.current.reviews[0]).toEqual(mockReview);
     expect(result.current.totalReviews).toBe(1);
@@ -241,7 +239,7 @@ describe("useReviews", () => {
       isHelpful = await result.current.toggleHelpful("rev1", true);
     });
 
-    expect(reviewsApi.markReviewHelpful).toHaveBeenCalledWith("rev1", "auth-token");
+    expect(reviewsApi.markReviewHelpful).toHaveBeenCalledWith("rev1");
     expect(isHelpful).toBe(true);
   });
 
@@ -255,7 +253,7 @@ describe("useReviews", () => {
       await result.current.toggleHelpful("rev1", false);
     });
 
-    expect(reviewsApi.removeReviewHelpful).toHaveBeenCalledWith("rev1", "auth-token");
+    expect(reviewsApi.removeReviewHelpful).toHaveBeenCalledWith("rev1");
   });
 
   it("calculates stats from reviews when resourceType is not restaurant", async () => {
@@ -266,9 +264,7 @@ describe("useReviews", () => {
       ],
     });
 
-    const { result } = renderHook(() =>
-      useReviews({ resourceType: "recipe", resourceId: "rec1" })
-    );
+    const { result } = renderHook(() => useReviews({ resourceType: "recipe", resourceId: "rec1" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -313,7 +309,7 @@ describe("useReview", () => {
     expect(result.current.review).toBeNull();
   });
 
-  it("updateReview throws when no token", async () => {
+  it("updateReview throws when not authenticated", async () => {
     // useAuthStore is mocked globally; setUnauthenticated is already applied in beforeEach
     (reviewsApi.getReview as jest.Mock).mockResolvedValue({ data: mockReview });
 
@@ -326,7 +322,7 @@ describe("useReview", () => {
     );
   });
 
-  it("deleteReview throws when no token", async () => {
+  it("deleteReview throws when not authenticated", async () => {
     // useAuthStore is mocked globally; setUnauthenticated is already applied in beforeEach
     (reviewsApi.getReview as jest.Mock).mockResolvedValue({ data: mockReview });
 

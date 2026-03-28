@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useDoctors } from "@/hooks/useDoctors";
+import { useDoctor } from "@/hooks/useDoctors";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,11 +11,7 @@ interface DoctorDetailClientProps {
 }
 
 export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
-  const { currentDoctor, isLoading, getDoctorById } = useDoctors();
-
-  useEffect(() => {
-    getDoctorById(doctorId);
-  }, [getDoctorById, doctorId]);
+  const { data: doctor, isLoading } = useDoctor(doctorId);
 
   if (isLoading) {
     return (
@@ -26,7 +21,7 @@ export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
     );
   }
 
-  if (!currentDoctor) {
+  if (!doctor) {
     return notFound();
   }
 
@@ -46,8 +41,8 @@ export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
           <div className="md:flex">
             <div className="md:flex-shrink-0">
               <Image
-                src={currentDoctor.author.photo || "/placeholder-doctor.jpg"}
-                alt={"Dr. " + currentDoctor.name + " - Profesional de salud vegana"}
+                src={doctor.author.photo || "/placeholder-doctor.jpg"}
+                alt={"Dr. " + doctor.name + " - Profesional de salud vegana"}
                 width={300}
                 height={300}
                 className="h-full w-full object-cover md:w-64"
@@ -59,21 +54,21 @@ export function DoctorDetailClient({ doctorId }: DoctorDetailClientProps) {
             </div>
             <div className="p-8">
               <div className="text-sm font-semibold tracking-wide text-emerald-500 uppercase">
-                {currentDoctor.specialty}
+                {doctor.specialty}
               </div>
               <h1 className="mt-1 block text-2xl leading-tight font-bold text-gray-900">
-                Dr. {currentDoctor.name}
+                Dr. {doctor.name}
               </h1>
-              {currentDoctor.address && (
+              {doctor.address && (
                 <p className="mt-3 flex items-center text-gray-600">
                   <span className="sr-only">Direccion:</span>
-                  {currentDoctor.address}
+                  {doctor.address}
                 </p>
               )}
-              {currentDoctor.languages && currentDoctor.languages.length > 0 && (
+              {doctor.languages && doctor.languages.length > 0 && (
                 <div className="mt-3">
                   <h2 className="text-sm font-semibold text-gray-700">Idiomas</h2>
-                  <p className="text-gray-600">{currentDoctor.languages.join(", ")}</p>
+                  <p className="text-gray-600">{doctor.languages.join(", ")}</p>
                 </div>
               )}
             </div>

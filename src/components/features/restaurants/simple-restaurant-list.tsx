@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Restaurant, getRestaurants } from "@/lib/api/restaurants";
+import { useState, useEffect } from "react";
+import { useRestaurants } from "@/hooks/useRestaurants";
+import type { Restaurant } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin } from "lucide-react";
-import { toast } from "sonner";
 
 interface SimpleRestaurantListProps {
-  initialRestaurants?: Restaurant[];
   showFilters?: boolean;
   title?: string;
 }
+
+const PAGE_LIMIT = 12;
 
 const CUISINE_OPTIONS = [
   "Vegan",
@@ -38,126 +39,52 @@ const RATING_OPTIONS = [
 ];
 
 export function SimpleRestaurantList({
-  initialRestaurants = [],
   showFilters = true,
   title = "Restaurants",
 }: SimpleRestaurantListProps) {
-  const [mounted, setMounted] = useState(false);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(
-    Array.isArray(initialRestaurants) ? initialRestaurants : []
-  );
-  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
 
+  const {
+    data: restaurants = [],
+    isLoading,
+    isFetching,
+  } = useRestaurants({
+    search: search.trim() || undefined,
+    cuisine: cuisineFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    location: locationFilter.trim() || undefined,
+    page,
+    limit: PAGE_LIMIT,
+  });
+
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const fetchRestaurants = useCallback(
-    async (isLoadMore = false, currentPage?: number) => {
-      if (!mounted) return;
-
-      // Use the passed currentPage or calculate based on isLoadMore
-      const targetPage = currentPage ?? (isLoadMore ? page + 1 : 1);
-
-      try {
-        setLoading(true);
-        const filters = {
-          search: search.trim(),
-          cuisine: cuisineFilter,
-          rating: ratingFilter ? parseInt(ratingFilter) : undefined,
-          location: locationFilter.trim(),
-          page: targetPage,
-          limit: 12,
-        };
-
-        const response = await getRestaurants(filters);
-
-        // Extract restaurants from backend response format {success: true, data: [...]}
-        const restaurantsData = Array.isArray(response) ? response : response?.data || [];
-
-        if (isLoadMore) {
-          setRestaurants((prev) => [...(Array.isArray(prev) ? prev : []), ...restaurantsData]);
-          setPage(targetPage);
-        } else {
-          setRestaurants(restaurantsData);
-          setPage(1);
-        }
-
-        setHasMore(restaurantsData.length === 12);
-      } catch (error) {
-        console.error("Error fetching restaurants:", error);
-        toast.error("Failed to load restaurants");
-        // Ensure restaurants is always an array on error
-        if (!isLoadMore) {
-          setRestaurants([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [mounted, search, cuisineFilter, ratingFilter, locationFilter, page]
-  );
-
-  useEffect(() => {
-    if (mounted) {
-      fetchRestaurants();
+    if (restaurants.length > 0 || page === 1) {
+      setAllRestaurants((prev) => {
+        if (page === 1) return restaurants;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = restaurants.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
+      });
     }
-  }, [fetchRestaurants, mounted]);
+  }, [restaurants, page]);
 
-  const handleSearch = (value: string) => {
-    setSearch(value);
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
     setPage(1);
-  };
+    setAllRestaurants([]);
+  }, [search, cuisineFilter, ratingFilter, locationFilter]);
 
-  const handleCuisineChange = (value: string) => {
-    setCuisineFilter(value);
-    setPage(1);
-  };
-
-  const handleRatingChange = (value: string) => {
-    setRatingFilter(value);
-    setPage(1);
-  };
-
-  const handleLocationChange = (value: string) => {
-    setLocationFilter(value);
-    setPage(1);
-  };
+  const hasMore = restaurants.length === PAGE_LIMIT;
 
   const handleLoadMore = () => {
-    fetchRestaurants(true);
+    setPage((prev) => prev + 1);
   };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="space-y-6">
-        {showFilters && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -173,7 +100,7 @@ export function SimpleRestaurantList({
                 <Input
                   placeholder="Search restaurants..."
                   value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -181,7 +108,7 @@ export function SimpleRestaurantList({
               {/* Cuisine Filter */}
               <select
                 value={cuisineFilter}
-                onChange={(e) => handleCuisineChange(e.target.value)}
+                onChange={(e) => setCuisineFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Cuisines</option>
@@ -195,7 +122,7 @@ export function SimpleRestaurantList({
               {/* Rating Filter */}
               <select
                 value={ratingFilter}
-                onChange={(e) => handleRatingChange(e.target.value)}
+                onChange={(e) => setRatingFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
@@ -211,7 +138,7 @@ export function SimpleRestaurantList({
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
-                  onChange={(e) => handleLocationChange(e.target.value)}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -220,13 +147,13 @@ export function SimpleRestaurantList({
         </Card>
       )}
 
-      {loading && restaurants.length === 0 ? (
+      {isLoading && allRestaurants.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : !restaurants || !Array.isArray(restaurants) || restaurants.length === 0 ? (
+      ) : allRestaurants.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">No restaurants found.</p>
           <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
@@ -234,22 +161,20 @@ export function SimpleRestaurantList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {restaurants &&
-              Array.isArray(restaurants) &&
-              restaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant._id} restaurant={restaurant} />
-              ))}
+            {allRestaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant._id} restaurant={restaurant} />
+            ))}
           </div>
 
           {hasMore && (
             <div className="flex justify-center">
               <Button
                 onClick={handleLoadMore}
-                disabled={loading}
+                disabled={isFetching}
                 variant="outline"
                 className="min-w-[200px]"
               >
-                {loading ? "Loading..." : "Load More"}
+                {isFetching ? "Loading..." : "Load More"}
               </Button>
             </div>
           )}

@@ -1,6 +1,5 @@
 "use client";
 
-import { create } from "zustand";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as sanctuariesApi from "@/lib/api/sanctuaries";
 import type {
@@ -12,144 +11,31 @@ import type {
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 
-interface SanctuariesState {
-  sanctuaries: Sanctuary[];
-  currentSanctuary: Sanctuary | null;
-  isLoading: boolean;
-  error: string | null;
-  totalPages: number;
-  currentPage: number;
-  getSanctuaries: (params?: SanctuarySearchParams) => Promise<void>;
-  getSanctuary: (id: string) => Promise<void>;
-  createSanctuary: (data: CreateSanctuaryData, token?: string) => Promise<void>;
-  updateSanctuary: (
-    id: string,
-    data: Partial<CreateSanctuaryData>,
-    token?: string
-  ) => Promise<void>;
-  deleteSanctuary: (id: string, token?: string) => Promise<void>;
-  addSanctuaryReview: (id: string, review: SanctuaryReview, token?: string) => Promise<void>;
+// Base list query
+export function useSanctuaries(params?: SanctuarySearchParams) {
+  return useQuery({
+    queryKey: ["sanctuaries", params],
+    queryFn: async () => {
+      const response = await sanctuariesApi.getSanctuaries(params);
+      const data = processBackendResponse<Sanctuary>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export const useSanctuaries = create<SanctuariesState>((set) => ({
-  sanctuaries: [],
-  currentSanctuary: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
-
-  getSanctuaries: async (params) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await sanctuariesApi.getSanctuaries(params);
-
-      // Use the universal helper to process backend response
-      const sanctuaries = processBackendResponse<Sanctuary>(response) as Sanctuary[];
-
-      set({
-        sanctuaries: Array.isArray(sanctuaries) ? sanctuaries : [],
-        totalPages: 1, // Backend doesn't implement pagination yet
-        currentPage: 1,
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load sanctuaries";
-      console.error("getSanctuaries error:", err);
-      set({
-        error: message,
-        isLoading: false,
-        sanctuaries: [],
-      });
-      throw err;
-    }
-  },
-
-  getSanctuary: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
+// Single sanctuary query
+export function useSanctuary(id: string) {
+  return useQuery({
+    queryKey: ["sanctuaries", id],
+    queryFn: async () => {
       const response = await sanctuariesApi.getSanctuary(id);
-      const sanctuary = processBackendResponse<Sanctuary>(response) as Sanctuary;
-      set({ currentSanctuary: sanctuary, isLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load sanctuary";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  createSanctuary: async (data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await sanctuariesApi.createSanctuary(data, token);
-      const sanctuary = processBackendResponse<Sanctuary>(response) as Sanctuary;
-      set((state) => ({
-        sanctuaries: [sanctuary, ...state.sanctuaries],
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create sanctuary";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  updateSanctuary: async (id, data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await sanctuariesApi.updateSanctuary(id, data, token);
-      const updatedSanctuary = processBackendResponse<Sanctuary>(response) as Sanctuary;
-      set((state) => ({
-        sanctuaries: state.sanctuaries.map((sanctuary) =>
-          sanctuary._id === id ? updatedSanctuary : sanctuary
-        ),
-        currentSanctuary:
-          state.currentSanctuary?._id === id ? updatedSanctuary : state.currentSanctuary,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update sanctuary";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  deleteSanctuary: async (id, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      await sanctuariesApi.deleteSanctuary(id, token);
-      set((state) => ({
-        sanctuaries: state.sanctuaries.filter((sanctuary) => sanctuary._id !== id),
-        currentSanctuary: state.currentSanctuary?._id === id ? null : state.currentSanctuary,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete sanctuary";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  addSanctuaryReview: async (id, review, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await sanctuariesApi.addSanctuaryReview(id, review, token);
-      const updatedSanctuary = processBackendResponse<Sanctuary>(response) as Sanctuary;
-      set((state) => ({
-        sanctuaries: state.sanctuaries.map((sanctuary) =>
-          sanctuary._id === id ? updatedSanctuary : sanctuary
-        ),
-        currentSanctuary:
-          state.currentSanctuary?._id === id ? updatedSanctuary : state.currentSanctuary,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add sanctuary review";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-}));
+      return processBackendResponse<Sanctuary>(response) as Sanctuary;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 // Hook para búsqueda por proximidad
 export function useNearbySanctuaries(params?: {

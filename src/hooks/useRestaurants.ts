@@ -1,6 +1,5 @@
 "use client";
 
-import { create } from "zustand";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as restaurantsApi from "@/lib/api/restaurants";
 import type {
@@ -12,168 +11,44 @@ import type {
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 
-interface RestaurantsState {
-  restaurants: Restaurant[];
-  currentRestaurant: Restaurant | null;
-  isLoading: boolean;
-  error: string | null;
-  totalPages: number;
-  currentPage: number;
-  getRestaurants: (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    cuisine?: string;
-    rating?: number;
-    location?: string;
-  }) => Promise<void>;
-  getRestaurant: (id: string) => Promise<void>;
-  getTopRatedRestaurants: (limit?: number) => Promise<void>;
-  createRestaurant: (data: CreateRestaurantData, token?: string) => Promise<void>;
-  updateRestaurant: (
-    id: string,
-    data: Partial<CreateRestaurantData>,
-    token?: string
-  ) => Promise<void>;
-  deleteRestaurant: (id: string, token?: string) => Promise<void>;
-  addRestaurantReview: (id: string, review: RestaurantReview, token?: string) => Promise<void>;
+// Base list query
+export function useRestaurants(params?: RestaurantSearchParams) {
+  return useQuery({
+    queryKey: ["restaurants", params],
+    queryFn: async () => {
+      const response = await restaurantsApi.getRestaurants(params);
+      const data = processBackendResponse<Restaurant>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export const useRestaurants = create<RestaurantsState>((set) => ({
-  restaurants: [],
-  currentRestaurant: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
-
-  getRestaurants: async (params) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await restaurantsApi.getRestaurants(params);
-
-      // Use the universal helper to process backend response
-      const restaurants = processBackendResponse<Restaurant>(response) as Restaurant[];
-
-      set({
-        restaurants: Array.isArray(restaurants) ? restaurants : [],
-        totalPages: 1, // Backend doesn't implement pagination yet
-        currentPage: 1,
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load restaurants";
-      console.error("getRestaurants error:", err);
-      set({
-        error: message,
-        isLoading: false,
-        restaurants: [],
-      });
-      throw err;
-    }
-  },
-
-  getRestaurant: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
+// Single restaurant query
+export function useRestaurant(id: string) {
+  return useQuery({
+    queryKey: ["restaurants", id],
+    queryFn: async () => {
       const response = await restaurantsApi.getRestaurant(id);
-      const restaurant = processBackendResponse<Restaurant>(response) as Restaurant;
-      set({ currentRestaurant: restaurant, isLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load restaurant";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
+      return processBackendResponse<Restaurant>(response) as Restaurant;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
-  getTopRatedRestaurants: async (limit = 10) => {
-    try {
-      set({ isLoading: true, error: null });
+// Top-rated restaurants query
+export function useTopRatedRestaurants(limit = 10) {
+  return useQuery({
+    queryKey: ["restaurants", "topRated", limit],
+    queryFn: async () => {
       const response = await restaurantsApi.getTopRatedRestaurants(limit);
-      const restaurants = processBackendResponse<Restaurant>(response) as Restaurant[];
-      set({
-        restaurants: Array.isArray(restaurants) ? restaurants : [],
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load top rated restaurants";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  createRestaurant: async (data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await restaurantsApi.createRestaurant(data, token);
-      const restaurant = processBackendResponse<Restaurant>(response) as Restaurant;
-      set((state) => ({
-        restaurants: [restaurant, ...state.restaurants],
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create restaurant";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  updateRestaurant: async (id, data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await restaurantsApi.updateRestaurant(id, data, token);
-      const updatedRestaurant = processBackendResponse<Restaurant>(response) as Restaurant;
-      set((state) => ({
-        restaurants: state.restaurants.map((restaurant) =>
-          restaurant._id === id ? updatedRestaurant : restaurant
-        ),
-        currentRestaurant:
-          state.currentRestaurant?._id === id ? updatedRestaurant : state.currentRestaurant,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update restaurant";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  deleteRestaurant: async (id, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      await restaurantsApi.deleteRestaurant(id, token);
-      set((state) => ({
-        restaurants: state.restaurants.filter((restaurant) => restaurant._id !== id),
-        currentRestaurant: state.currentRestaurant?._id === id ? null : state.currentRestaurant,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete restaurant";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  addRestaurantReview: async (id, review, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await restaurantsApi.addRestaurantReview(id, review, token);
-      const updatedRestaurant = processBackendResponse<Restaurant>(response) as Restaurant;
-      set((state) => ({
-        restaurants: state.restaurants.map((restaurant) =>
-          restaurant._id === id ? updatedRestaurant : restaurant
-        ),
-        currentRestaurant:
-          state.currentRestaurant?._id === id ? updatedRestaurant : state.currentRestaurant,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add restaurant review";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-}));
+      const data = processBackendResponse<Restaurant>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
 
 // Hook para búsqueda por proximidad
 export function useNearbyRestaurants(params?: {
