@@ -8,7 +8,6 @@ const customJestConfig = {
   maxWorkers: "50%",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   testEnvironment: "jest-environment-jsdom",
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/src/__tests__/helpers/"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },

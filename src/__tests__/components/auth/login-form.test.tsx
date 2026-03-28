@@ -108,6 +108,8 @@ describe("LoginForm", () => {
       await user.type(screen.getByPlaceholderText("Enter your password"), "Password1");
       await user.click(screen.getByRole("button", { name: "Sign In" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -119,6 +121,8 @@ describe("LoginForm", () => {
       await user.type(screen.getByPlaceholderText("Enter your email"), "user@example.com");
       await user.click(screen.getByRole("button", { name: "Sign In" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -131,6 +135,8 @@ describe("LoginForm", () => {
       await user.type(screen.getByPlaceholderText("Enter your password"), "Password1");
       await user.click(screen.getByRole("button", { name: "Sign In" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -143,6 +149,8 @@ describe("LoginForm", () => {
       await user.type(screen.getByPlaceholderText("Enter your password"), "password1");
       await user.click(screen.getByRole("button", { name: "Sign In" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 

@@ -137,6 +137,8 @@ describe("RegisterForm", () => {
       await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
       await user.click(screen.getByRole("button", { name: "Create Account" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -152,6 +154,8 @@ describe("RegisterForm", () => {
       await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
       await user.click(screen.getByRole("button", { name: "Create Account" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -167,6 +171,8 @@ describe("RegisterForm", () => {
       await user.type(screen.getByPlaceholderText("Confirm your password"), "Password2");
       await user.click(screen.getByRole("button", { name: "Create Account" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -182,6 +188,8 @@ describe("RegisterForm", () => {
       await user.type(screen.getByPlaceholderText("Confirm your password"), "P1a");
       await user.click(screen.getByRole("button", { name: "Create Account" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
@@ -198,6 +206,8 @@ describe("RegisterForm", () => {
       await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
       await user.click(screen.getByRole("button", { name: "Create Account" }));
 
+      // Wait for validation to actually run and produce error(s)
+      await screen.findAllByRole("alert");
       expect(props.onSubmit).not.toHaveBeenCalled();
     });
 
