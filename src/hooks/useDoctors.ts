@@ -31,8 +31,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       const doctors = processBackendResponse<Doctor>(response) as Doctor[];
       setDoctors(Array.isArray(doctors) ? doctors : []);
     } catch (err) {
-      const e = err as Error;
-      setError(e.message);
+      const message = err instanceof Error ? err.message : "Failed to load doctors";
+      setError(message);
       toast.error("Failed to fetch doctors");
       setDoctors([]);
     } finally {
@@ -48,8 +48,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       const doctors = processBackendResponse<Doctor>(response) as Doctor[];
       setDoctors(Array.isArray(doctors) ? doctors : []);
     } catch (err) {
-      const e = err as Error;
-      setError(e.message);
+      const message = err instanceof Error ? err.message : "Failed to load doctors";
+      setError(message);
       toast.error("Failed to fetch doctors");
       setDoctors([]);
     } finally {
@@ -65,8 +65,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       const doctor = processBackendResponse<Doctor>(response) as Doctor;
       setCurrentDoctor(doctor);
     } catch (err) {
-      const e = err as Error;
-      setError(e.message);
+      const message = err instanceof Error ? err.message : "Failed to load doctor details";
+      setError(message);
       toast.error("Failed to fetch doctor details");
     } finally {
       setIsLoading(false);
@@ -81,8 +81,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       const doctors = processBackendResponse<Doctor>(response) as Doctor[];
       setDoctors(Array.isArray(doctors) ? doctors : []);
     } catch (err) {
-      const e = err as Error;
-      setError(e.message);
+      const message = err instanceof Error ? err.message : "Failed to search for doctors";
+      setError(message);
       toast.error("Failed to search for doctors");
     } finally {
       setIsLoading(false);
@@ -96,8 +96,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
         toast.success("Review added successfully");
         getDoctorById(id);
       } catch (err) {
-        const e = err as Error;
-        setError(e.message);
+        const message = err instanceof Error ? err.message : "Failed to add review";
+        setError(message);
         toast.error("Failed to add review");
       }
     },
@@ -110,8 +110,8 @@ export function useDoctors(initialDoctors: Doctor[] = []) {
       setUserLocation(location);
       return location;
     } catch (err) {
-      const e = err as Error;
-      setError(e.message);
+      const message = err instanceof Error ? err.message : "Failed to get user location";
+      setError(message);
       toast.error("Failed to get user location");
       throw err;
     }
@@ -160,8 +160,8 @@ export function useNearbyDoctors(radius: number = 5) {
         const doctors = processBackendResponse<Doctor>(response) as Doctor[];
         setDoctors(Array.isArray(doctors) ? doctors : []);
       } catch (err) {
-        const e = err as Error;
-        setError(e.message);
+        const message = err instanceof Error ? err.message : "Failed to load nearby doctors";
+        setError(message);
         toast.error("Failed to fetch nearby doctors");
         setDoctors([]);
       } finally {
@@ -198,8 +198,8 @@ export function useNearbyDoctors(radius: number = 5) {
         const doctors = processBackendResponse<Doctor>(response) as Doctor[];
         setDoctors(Array.isArray(doctors) ? doctors : []);
       } catch (err) {
-        const e = err as Error;
-        setError(e.message);
+        const message = err instanceof Error ? err.message : "Failed to load nearby doctors";
+        setError(message);
         toast.error("Failed to fetch nearby doctors");
         setDoctors([]);
       } finally {
@@ -261,8 +261,8 @@ export function useDoctorsBySpecialty(specialty: string) {
         const doctors = processBackendResponse<Doctor>(response) as Doctor[];
         setDoctors(Array.isArray(doctors) ? doctors : []);
       } catch (err) {
-        const e = err as Error;
-        setError(e.message);
+        const message = err instanceof Error ? err.message : `Failed to load ${specialty} doctors`;
+        setError(message);
         toast.error(`Failed to fetch ${specialty} doctors`);
         setDoctors([]);
       } finally {
@@ -362,8 +362,8 @@ export function useAdvancedDoctorSearch() {
         setHasMore(hasMoreResults);
         setCurrentPage(params.page || 1);
       } catch (err) {
-        const e = err as Error;
-        setError(e.message);
+        const message = err instanceof Error ? err.message : "Failed to search doctors";
+        setError(message);
         toast.error("Failed to search doctors");
         if (!params.append) {
           setDoctors([]);

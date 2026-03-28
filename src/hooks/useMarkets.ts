@@ -52,14 +52,14 @@ export const useMarkets = create<MarketsState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      console.error("getMarkets error:", error);
+      const message = err instanceof Error ? err.message : "Failed to load markets";
+      console.error("getMarkets error:", err);
       set({
-        error: error.message,
+        error: message,
         isLoading: false,
         markets: [],
       });
-      throw error;
+      throw err;
     }
   },
 
@@ -70,9 +70,9 @@ export const useMarkets = create<MarketsState>((set) => ({
       const market = processBackendResponse<Market>(response) as Market;
       set({ currentMarket: market, isLoading: false });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load market";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -86,9 +86,9 @@ export const useMarkets = create<MarketsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to create market";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -103,9 +103,9 @@ export const useMarkets = create<MarketsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to update market";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -119,9 +119,9 @@ export const useMarkets = create<MarketsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to delete market";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -136,9 +136,9 @@ export const useMarkets = create<MarketsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to add market review";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 }));

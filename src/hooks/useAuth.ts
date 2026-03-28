@@ -47,7 +47,7 @@ export function useAuthWithRouter() {
       toast.success("Login successful!");
       setAuthModalOpen(false);
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(error instanceof Error ? error.message : "Login failed");
       throw error;
     } finally {
       setIsLoggingIn(false);
@@ -62,7 +62,7 @@ export function useAuthWithRouter() {
       toast.success("Registration successful!");
       setAuthModalOpen(false);
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(error instanceof Error ? error.message : "Registration failed");
       throw error;
     } finally {
       setIsRegistering(false);
@@ -75,7 +75,7 @@ export function useAuthWithRouter() {
       await authApi.forgotPassword(data);
       toast.success("Password reset link sent to your email.");
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(error instanceof Error ? error.message : "Failed to send password reset email");
       throw error;
     } finally {
       setIsSendingResetEmail(false);
@@ -88,7 +88,7 @@ export function useAuthWithRouter() {
       toast.success("Password has been reset successfully.");
       router.push("/login");
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(error instanceof Error ? error.message : "Failed to reset password");
       throw error;
     }
   };
@@ -118,7 +118,7 @@ export function useAuthWithRouter() {
       setUser(updatedUser);
       toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
       throw error;
     } finally {
       setIsUpdatingProfile(false);

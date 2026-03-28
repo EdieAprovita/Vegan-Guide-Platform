@@ -62,14 +62,14 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      console.error("getRestaurants error:", error);
+      const message = err instanceof Error ? err.message : "Failed to load restaurants";
+      console.error("getRestaurants error:", err);
       set({
-        error: error.message,
+        error: message,
         isLoading: false,
         restaurants: [],
       });
-      throw error;
+      throw err;
     }
   },
 
@@ -80,9 +80,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
       const restaurant = processBackendResponse<Restaurant>(response) as Restaurant;
       set({ currentRestaurant: restaurant, isLoading: false });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load restaurant";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -96,9 +96,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load top rated restaurants";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -112,9 +112,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to create restaurant";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -132,9 +132,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to update restaurant";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -148,9 +148,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to delete restaurant";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -168,9 +168,9 @@ export const useRestaurants = create<RestaurantsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to add restaurant review";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 }));

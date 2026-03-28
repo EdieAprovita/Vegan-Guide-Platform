@@ -64,14 +64,14 @@ export const usePosts = create<PostsState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      console.error("getPosts error:", error);
+      const message = err instanceof Error ? err.message : "Failed to load posts";
+      console.error("getPosts error:", err);
       set({
-        error: error.message,
+        error: message,
         isLoading: false,
         posts: [],
       });
-      throw error;
+      throw err;
     }
   },
 
@@ -82,9 +82,9 @@ export const usePosts = create<PostsState>((set) => ({
       const post = processBackendResponse<Post>(response) as Post;
       set({ currentPost: post, isLoading: false });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load post";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -98,9 +98,9 @@ export const usePosts = create<PostsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to create post";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -115,9 +115,9 @@ export const usePosts = create<PostsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to update post";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -131,9 +131,9 @@ export const usePosts = create<PostsState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to delete post";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -148,9 +148,9 @@ export const usePosts = create<PostsState>((set) => ({
           state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to like post";
+      set({ error: message });
+      throw err;
     }
   },
 
@@ -165,9 +165,9 @@ export const usePosts = create<PostsState>((set) => ({
           state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to unlike post";
+      set({ error: message });
+      throw err;
     }
   },
 
@@ -182,9 +182,9 @@ export const usePosts = create<PostsState>((set) => ({
           state.currentPost?._id === id ? { ...state.currentPost, comments } : state.currentPost,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to add comment";
+      set({ error: message });
+      throw err;
     }
   },
 }));
