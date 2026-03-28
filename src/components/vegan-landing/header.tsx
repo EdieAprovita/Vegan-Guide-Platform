@@ -6,16 +6,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
-import dynamic from "next/dynamic";
-
-const LoginModal = dynamic(
-  () => import("@/components/auth/auth-modal").then((m) => ({ default: m.LoginModal })),
-  { ssr: false }
-);
-const RegisterModal = dynamic(
-  () => import("@/components/auth/auth-modal").then((m) => ({ default: m.RegisterModal })),
-  { ssr: false }
-);
+import { LoginModal, RegisterModal } from "@/components/auth/auth-modal";
 import { useAuthStore } from "@/lib/store/auth";
 import * as authApi from "@/lib/api/auth";
 import { useTranslation } from "@/lib/i18n";
