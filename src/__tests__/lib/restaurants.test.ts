@@ -21,7 +21,13 @@ setupFetchMocks();
 const sampleRestaurant: CreateRestaurantData = {
   restaurantName: "Leafy Greens Bistro",
   address: "789 Plant St",
-  contact: [{ phone: "555-0300", facebook: "https://facebook.com/leafy", instagram: "https://instagram.com/leafy" }],
+  contact: [
+    {
+      phone: "555-0300",
+      facebook: "https://facebook.com/leafy",
+      instagram: "https://instagram.com/leafy",
+    },
+  ],
   cuisine: ["Vegan", "Mediterranean"],
 };
 
@@ -73,14 +79,11 @@ describe("getRestaurants", () => {
     expect(url).toContain("sortBy=distance");
   });
 
-  it("falls back to mock data on network error", async () => {
+  it("throws on network error in non-development environments", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
 
-    const result = await getRestaurants();
-
-    // The function catches errors and returns mock data
-    expect(result).toMatchObject({ success: true });
-    expect(Array.isArray((result as { data: unknown[] }).data)).toBe(true);
+    // In test/production NODE_ENV, errors propagate to the error boundary
+    await expect(getRestaurants()).rejects.toThrow("Network error");
   });
 });
 
@@ -136,7 +139,9 @@ describe("createRestaurant", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/restaurants`);
     expect(options.method).toBe("POST");
-    expect(JSON.parse(options.body as string)).toMatchObject({ restaurantName: "Leafy Greens Bistro" });
+    expect(JSON.parse(options.body as string)).toMatchObject({
+      restaurantName: "Leafy Greens Bistro",
+    });
     expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
     expect(result).toEqual(payload);
   });
@@ -258,12 +263,10 @@ describe("getNearbyRestaurants", () => {
     expect(url).toContain("rating=4");
   });
 
-  it("falls back to mock data on network error", async () => {
+  it("throws on network error in non-development environments", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Offline"));
 
-    const result = await getNearbyRestaurants({ latitude: 0, longitude: 0 });
-
-    expect(result).toMatchObject({ success: true });
+    await expect(getNearbyRestaurants({ latitude: 0, longitude: 0 })).rejects.toThrow("Offline");
   });
 });
 
@@ -287,12 +290,10 @@ describe("getRestaurantsByCuisine", () => {
     expect(url).toContain("sortBy=distance");
   });
 
-  it("falls back to mock data on network error", async () => {
+  it("throws on network error in non-development environments", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Offline"));
 
-    const result = await getRestaurantsByCuisine("Mexican");
-
-    expect(result).toMatchObject({ success: true });
+    await expect(getRestaurantsByCuisine("Mexican")).rejects.toThrow("Offline");
   });
 });
 
@@ -336,11 +337,9 @@ describe("getAdvancedRestaurants", () => {
     expect(url).not.toContain("cuisine=");
   });
 
-  it("falls back to mock data on network error", async () => {
+  it("throws on network error in non-development environments", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Offline"));
 
-    const result = await getAdvancedRestaurants({});
-
-    expect(result).toMatchObject({ success: true });
+    await expect(getAdvancedRestaurants({})).rejects.toThrow("Offline");
   });
 });

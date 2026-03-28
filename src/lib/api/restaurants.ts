@@ -1,9 +1,16 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import {
+  apiRequest,
+  getApiHeaders,
+  BackendListResponse,
+  BackendResponse,
+  ApiError,
+} from "./config";
 import { buildSearchParams } from "./utils";
 import { Review } from "@/types";
 import { GeoLocation } from "@/types/geospatial";
 
-// Development flag to use mock data when backend has issues
+// WARNING: Mock data is ONLY used in development for network/timeout failures (not HTTP errors).
+// ApiError (4xx/5xx responses) and production errors always propagate to error boundaries.
 
 export interface Restaurant {
   _id: string;
@@ -84,11 +91,11 @@ export async function getRestaurants(params?: RestaurantSearchParams) {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-
-    // Return mock data if there's a network error
-    console.warn("Network error detected, returning mock data for development");
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
+      console.warn("[DEV] Network/timeout error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -272,8 +279,11 @@ export async function getNearbyRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
+      console.warn("[DEV] Network/timeout error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -306,8 +316,11 @@ export async function getRestaurantsByCuisine(
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
+      console.warn("[DEV] Network/timeout error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -342,7 +355,10 @@ export async function getAdvancedRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
+      console.warn("[DEV] Network/timeout error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
