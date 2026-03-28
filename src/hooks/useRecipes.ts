@@ -41,6 +41,7 @@ export function useInfiniteRecipes(params?: {
         search: params?.search,
         category: params?.category,
         difficulty: params?.difficulty,
+        limit,
       },
     ],
     queryFn: async ({ pageParam }) => {

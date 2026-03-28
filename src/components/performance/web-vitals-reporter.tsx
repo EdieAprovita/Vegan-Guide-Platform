@@ -26,18 +26,27 @@ function reportMetric(metric: VitalMetric): void {
   };
 
   if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
     console.log("[WebVitals]", entry);
     return;
   }
 
-  // TODO: replace with real analytics integration (e.g. Plausible, PostHog, Datadog RUM)
-  // Example:
-  //   fetch("/api/analytics/web-vitals", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(entry),
-  //   });
-  console.log("[WebVitals]", entry);
+  // Use sendBeacon/fetch instead of console.log — SWC strips console.* in production
+  const body = JSON.stringify(entry);
+
+  if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+    navigator.sendBeacon("/api/analytics/web-vitals", new Blob([body], { type: "application/json" }));
+    return;
+  }
+
+  void fetch("/api/analytics/web-vitals", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {
+    // Swallow errors — analytics must not impact user experience
+  });
 }
 
 export function WebVitalsReporter(): null {
