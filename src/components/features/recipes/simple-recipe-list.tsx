@@ -121,7 +121,12 @@ export function SimpleRecipeList({
       targetPage: 1,
       append: false,
     });
-    pushFilterParams({ search: searchValue, category: categoryValue, difficulty: difficultyValue, page: 1 });
+    pushFilterParams({
+      search: searchValue,
+      category: categoryValue,
+      difficulty: difficultyValue,
+      page: 1,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, searchValue, categoryValue, difficultyValue]);
 
@@ -151,7 +156,12 @@ export function SimpleRecipeList({
     });
     if (success) {
       setPage(nextPage);
-      pushFilterParams({ search: searchValue, category: categoryValue, difficulty: difficultyValue, page: nextPage });
+      pushFilterParams({
+        search: searchValue,
+        category: categoryValue,
+        difficulty: difficultyValue,
+        page: nextPage,
+      });
     }
   };
 
@@ -174,7 +184,10 @@ export function SimpleRecipeList({
             className="pl-10"
             aria-label="Search recipes"
           />
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500" aria-hidden="true" />
+          <Search
+            className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500"
+            aria-hidden="true"
+          />
         </div>
 
         <select
@@ -247,7 +260,11 @@ export function SimpleRecipeList({
           {hasMore && (
             <div className="flex justify-center">
               <Button
-                onClick={handleLoadMore}
+                onClick={() => {
+                  handleLoadMore().catch((err) => {
+                    console.error("Failed to load more recipes:", err);
+                  });
+                }}
                 disabled={isLoading}
                 variant="outline"
                 className="min-w-[200px]"

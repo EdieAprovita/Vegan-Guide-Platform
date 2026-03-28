@@ -54,14 +54,14 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
         isLoading: false,
       });
     } catch (err) {
-      const error = err as Error;
-      console.error("getSanctuaries error:", error);
+      const message = err instanceof Error ? err.message : "Failed to load sanctuaries";
+      console.error("getSanctuaries error:", err);
       set({
-        error: error.message,
+        error: message,
         isLoading: false,
         sanctuaries: [],
       });
-      throw error;
+      throw err;
     }
   },
 
@@ -72,9 +72,9 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
       const sanctuary = processBackendResponse<Sanctuary>(response) as Sanctuary;
       set({ currentSanctuary: sanctuary, isLoading: false });
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to load sanctuary";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -88,9 +88,9 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to create sanctuary";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -108,9 +108,9 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to update sanctuary";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -124,9 +124,9 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to delete sanctuary";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 
@@ -144,9 +144,9 @@ export const useSanctuaries = create<SanctuariesState>((set) => ({
         isLoading: false,
       }));
     } catch (err) {
-      const error = err as Error;
-      set({ error: error.message, isLoading: false });
-      throw error;
+      const message = err instanceof Error ? err.message : "Failed to add sanctuary review";
+      set({ error: message, isLoading: false });
+      throw err;
     }
   },
 }));
