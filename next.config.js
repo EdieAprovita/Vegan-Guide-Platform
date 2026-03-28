@@ -1,6 +1,6 @@
 // @ts-check
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
   openAnalyzer: false,
 });
 
@@ -39,6 +39,7 @@ const nextConfig = {
     // Configuración de optimización
     unoptimized: false,
     dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Configuración de tamaños para mejorar rendimiento
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -66,6 +67,7 @@ const nextConfig = {
   },
   // Configuración de PWA
   async headers() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
     return [
       {
         source: "/manifest.json",
@@ -73,6 +75,49 @@ const nextConfig = {
           {
             key: "Content-Type",
             value: "application/manifest+json",
+          },
+        ],
+      },
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(self)",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
+              "font-src 'self'",
+              `connect-src 'self' ${apiUrl}`,
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
           },
         ],
       },

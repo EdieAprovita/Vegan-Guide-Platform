@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { isSafeUrl } from "@/lib/utils";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -29,12 +30,12 @@ function RestaurantCardComponent({ restaurant, showActions = true }: RestaurantC
   return (
     <article
       aria-label={`Restaurante: ${restaurant.restaurantName}`}
-      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+      className="bg-card text-card-foreground flex flex-col gap-6 overflow-hidden rounded-xl border py-6 shadow-sm transition-shadow duration-300 hover:shadow-lg"
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-foreground line-clamp-1 text-lg font-semibold leading-none">
+            <h3 className="text-foreground line-clamp-1 text-lg leading-none font-semibold">
               {restaurant.restaurantName}
             </h3>
             <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
@@ -44,7 +45,10 @@ function RestaurantCardComponent({ restaurant, showActions = true }: RestaurantC
           </div>
           <div className="ml-2 flex items-center gap-1">
             <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
-            <span className="text-sm font-medium" aria-label={`Calificación: ${formatRating(restaurant.rating)} de 5`}>
+            <span
+              className="text-sm font-medium"
+              aria-label={`Calificación: ${formatRating(restaurant.rating)} de 5`}
+            >
               {formatRating(restaurant.rating)}
             </span>
             <span className="text-muted-foreground text-xs">({restaurant.numReviews})</span>
@@ -79,7 +83,7 @@ function RestaurantCardComponent({ restaurant, showActions = true }: RestaurantC
           {/* Social Links */}
           {restaurant.contact.length > 0 && (
             <div className="flex gap-2">
-              {restaurant.contact[0].facebook && (
+              {restaurant.contact[0].facebook && isSafeUrl(restaurant.contact[0].facebook) && (
                 <Button asChild variant="outline" size="sm" className="h-8 px-2">
                   <a
                     href={restaurant.contact[0].facebook}
@@ -92,7 +96,7 @@ function RestaurantCardComponent({ restaurant, showActions = true }: RestaurantC
                   </a>
                 </Button>
               )}
-              {restaurant.contact[0].instagram && (
+              {restaurant.contact[0].instagram && isSafeUrl(restaurant.contact[0].instagram) && (
                 <Button asChild variant="outline" size="sm" className="h-8 px-2">
                   <a
                     href={restaurant.contact[0].instagram}

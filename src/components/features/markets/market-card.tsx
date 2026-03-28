@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
 import Link from "next/link";
+import { isSafeUrl } from "@/lib/utils";
 
 interface MarketCardProps {
   market: Market;
@@ -39,12 +40,12 @@ function MarketCardComponent({ market, showActions = true }: MarketCardProps) {
   return (
     <article
       aria-label={`Mercado: ${market.marketName}`}
-      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+      className="bg-card text-card-foreground flex flex-col gap-6 overflow-hidden rounded-xl border py-6 shadow-sm transition-shadow duration-300 hover:shadow-lg"
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-foreground line-clamp-1 text-lg font-semibold leading-none">
+            <h3 className="text-foreground line-clamp-1 text-lg leading-none font-semibold">
               {market.marketName}
             </h3>
             <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
@@ -106,21 +107,24 @@ function MarketCardComponent({ market, showActions = true }: MarketCardProps) {
           )}
 
           {/* Website Link */}
-          {market.contact && market.contact.length > 0 && market.contact[0].website && (
-            <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm" className="h-8 px-2">
-                <a
-                  href={market.contact[0].website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <Globe aria-hidden="true" className="h-3 w-3" />
-                  Website
-                </a>
-              </Button>
-            </div>
-          )}
+          {market.contact &&
+            market.contact.length > 0 &&
+            market.contact[0].website &&
+            isSafeUrl(market.contact[0].website) && (
+              <div className="flex gap-2">
+                <Button asChild variant="outline" size="sm" className="h-8 px-2">
+                  <a
+                    href={market.contact[0].website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Globe aria-hidden="true" className="h-3 w-3" />
+                    Website
+                  </a>
+                </Button>
+              </div>
+            )}
 
           {/* Actions */}
           {showActions && (

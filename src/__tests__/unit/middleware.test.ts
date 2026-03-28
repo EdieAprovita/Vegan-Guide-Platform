@@ -85,3 +85,15 @@ describe("middleware config", () => {
     expect(config.matcher).toContain("/reset-password");
   });
 });
+
+describe("middleware — auth failure", () => {
+  it("redirects to /login without callbackUrl when auth() throws", async () => {
+    const { NextResponse } = jest.requireMock("next/server");
+    mockAuth.mockRejectedValue(new Error("auth provider unavailable"));
+
+    const response = await middleware(createRequest("/profile"));
+
+    expect(response?.headers.get("location")).toBe("http://localhost/login");
+    expect(NextResponse.next).not.toHaveBeenCalled();
+  });
+});

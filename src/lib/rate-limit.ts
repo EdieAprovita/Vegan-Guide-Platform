@@ -83,20 +83,23 @@ export const passwordResetRateLimit = rateLimit({
 
 // Utility to get client IP
 function getClientIP(request: NextRequest): string {
-  const xff = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-  const cfConnectingIp = request.headers.get("cf-connecting-ip");
-
-  if (xff) {
-    return xff.split(",")[0].trim();
+  // request.ip is set by Next.js from the trusted transport layer — prefer it.
+  if (request.ip) {
+    return request.ip;
   }
 
+  const xff = request.headers.get("x-forwarded-for");
+  if (xff) {
+    // Use the RIGHTMOST IP: proxies append their observed source address, so the
+    // rightmost entry is the last trusted hop. The leftmost is client-supplied
+    // and trivially spoofable — never use it for security decisions.
+    const ips = xff.split(",");
+    return ips[ips.length - 1].trim();
+  }
+
+  const realIp = request.headers.get("x-real-ip");
   if (realIp) {
     return realIp.trim();
-  }
-
-  if (cfConnectingIp) {
-    return cfConnectingIp.trim();
   }
 
   return "unknown";
