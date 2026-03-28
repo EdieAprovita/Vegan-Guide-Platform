@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { usePosts, usePostMutations } from "@/hooks/usePosts";
+import { useState, useMemo, useEffect } from "react";
+import { usePosts } from "@/hooks/usePosts";
+import type { Post } from "@/lib/api/posts";
 import { PostCard } from "./post-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,11 +28,14 @@ const TAG_OPTIONS = [
   "Other",
 ];
 
+const PAGE_LIMIT = 12;
+
 export function PostList({ showFilters = true, title = "Community Posts" }: PostListProps) {
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [page, setPage] = useState(1);
+  const [allRawPosts, setAllRawPosts] = useState<Post[]>([]);
 
   const {
     data: rawPosts = [],
@@ -42,12 +46,30 @@ export function PostList({ showFilters = true, title = "Community Posts" }: Post
     search: search || undefined,
     tags: tagFilter || undefined,
     page,
-    limit: 12,
+    limit: PAGE_LIMIT,
   });
 
-  // Sort posts client-side since the list is already fetched
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (rawPosts.length > 0 || page === 1) {
+      setAllRawPosts((prev) => {
+        if (page === 1) return rawPosts;
+        const existingIds = new Set(prev.map((p) => p._id));
+        const newItems = rawPosts.filter((p) => !existingIds.has(p._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [rawPosts, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRawPosts([]);
+  }, [search, tagFilter]);
+
+  // Sort accumulated posts client-side
   const posts = useMemo(() => {
-    const sorted = [...rawPosts];
+    const sorted = [...allRawPosts];
     switch (sortBy) {
       case "popular":
         return sorted.sort((a, b) => b.likes.length - a.likes.length);
@@ -58,9 +80,9 @@ export function PostList({ showFilters = true, title = "Community Posts" }: Post
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
     }
-  }, [rawPosts, sortBy]);
+  }, [allRawPosts, sortBy]);
 
-  const hasMore = rawPosts.length === 12;
+  const hasMore = rawPosts.length === PAGE_LIMIT;
 
   const handleLoadMore = () => {
     if (!isFetching && hasMore) {
@@ -87,11 +109,7 @@ export function PostList({ showFilters = true, title = "Community Posts" }: Post
                 <Input
                   placeholder="Search posts..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  onKeyDown={(e) => e.key === "Enter" && setPage(1)}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -99,10 +117,7 @@ export function PostList({ showFilters = true, title = "Community Posts" }: Post
               {/* Tag Filter */}
               <select
                 value={tagFilter}
-                onChange={(e) => {
-                  setTagFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setTagFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All tags</option>

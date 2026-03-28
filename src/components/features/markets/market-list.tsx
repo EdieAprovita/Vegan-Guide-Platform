@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMarkets } from "@/hooks/useMarkets";
+import type { Market } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,11 +35,14 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
+const PAGE_LIMIT = 12;
+
 export function MarketList({ showFilters = true, title = "Markets" }: MarketListProps) {
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allMarkets, setAllMarkets] = useState<Market[]>([]);
 
   const {
     data: markets = [],
@@ -49,13 +53,32 @@ export function MarketList({ showFilters = true, title = "Markets" }: MarketList
     products: productFilter || undefined,
     rating: ratingFilter ? parseInt(ratingFilter) : undefined,
     page,
-    limit: 12,
+    limit: PAGE_LIMIT,
   });
 
-  const hasMore = markets.length === 12;
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (markets.length > 0 || page === 1) {
+      setAllMarkets((prev) => {
+        if (page === 1) return markets;
+        const existingIds = new Set(prev.map((m) => m._id));
+        const newItems = markets.filter((m) => !existingIds.has(m._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [markets, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllMarkets([]);
+  }, [search, productFilter, ratingFilter]);
+
+  const hasMore = markets.length === PAGE_LIMIT;
 
   const handleSearch = () => {
     setPage(1);
+    setAllMarkets([]);
   };
 
   const handleLoadMore = () => {
@@ -68,7 +91,7 @@ export function MarketList({ showFilters = true, title = "Markets" }: MarketList
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">{markets.length} markets found</div>
+        <div className="text-sm text-gray-600">{allMarkets.length} markets found</div>
       </div>
 
       {/* Search and Filters */}
@@ -131,15 +154,15 @@ export function MarketList({ showFilters = true, title = "Markets" }: MarketList
       )}
 
       {/* Market Grid */}
-      {isLoading && markets.length === 0 ? (
+      {isLoading && allMarkets.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : markets.length > 0 ? (
+      ) : allMarkets.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {markets.map((market) => (
+          {allMarkets.map((market) => (
             <MarketCard key={market._id} market={market} />
           ))}
         </div>
@@ -154,7 +177,7 @@ export function MarketList({ showFilters = true, title = "Markets" }: MarketList
       )}
 
       {/* Load More Button */}
-      {hasMore && markets.length > 0 && (
+      {hasMore && allMarkets.length > 0 && (
         <div className="text-center">
           <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
             {isFetching ? "Loading..." : "Load More"}

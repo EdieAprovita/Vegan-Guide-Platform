@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMarkets } from "@/hooks/useMarkets";
+import type { Market } from "@/lib/api/markets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
   const [ratingFilter, setRatingFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allMarkets, setAllMarkets] = useState<Market[]>([]);
 
   const {
     data: markets = [],
@@ -55,6 +57,24 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
     page,
     limit: PAGE_LIMIT,
   });
+
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (markets.length > 0 || page === 1) {
+      setAllMarkets((prev) => {
+        if (page === 1) return markets;
+        const existingIds = new Set(prev.map((m) => m._id));
+        const newItems = markets.filter((m) => !existingIds.has(m._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [markets, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllMarkets([]);
+  }, [search, productFilter, ratingFilter, locationFilter]);
 
   const hasMore = markets.length === PAGE_LIMIT;
 
@@ -76,10 +96,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
                 <Input
                   placeholder="Search markets..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -87,10 +104,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
               {/* Product Filter */}
               <select
                 value={productFilter}
-                onChange={(e) => {
-                  setProductFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setProductFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Products</option>
@@ -104,10 +118,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
               {/* Rating Filter */}
               <select
                 value={ratingFilter}
-                onChange={(e) => {
-                  setRatingFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setRatingFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
@@ -123,10 +134,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
-                  onChange={(e) => {
-                    setLocationFilter(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -135,13 +143,13 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
         </Card>
       )}
 
-      {isLoading && markets.length === 0 ? (
+      {isLoading && allMarkets.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : markets.length === 0 ? (
+      ) : allMarkets.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">No markets found.</p>
           <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
@@ -149,7 +157,7 @@ export function SimpleMarketList({ showFilters = true, title = "Markets" }: Simp
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {markets.map((market) => (
+            {allMarkets.map((market) => (
               <MarketCard key={market._id} market={market} />
             ))}
           </div>

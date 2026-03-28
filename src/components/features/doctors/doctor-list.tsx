@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDoctors } from "@/hooks/useDoctors";
+import type { Doctor } from "@/lib/api/doctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,11 +42,14 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
+const PAGE_LIMIT = 12;
+
 export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorListProps) {
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
 
   const {
     data: doctors = [],
@@ -56,13 +60,32 @@ export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorList
     specialty: specialtyFilter || undefined,
     rating: ratingFilter ? parseInt(ratingFilter) : undefined,
     page,
-    limit: 12,
+    limit: PAGE_LIMIT,
   });
 
-  const hasMore = doctors.length === 12;
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (doctors.length > 0 || page === 1) {
+      setAllDoctors((prev) => {
+        if (page === 1) return doctors;
+        const existingIds = new Set(prev.map((d) => d._id));
+        const newItems = doctors.filter((d) => !existingIds.has(d._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [doctors, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllDoctors([]);
+  }, [search, specialtyFilter, ratingFilter]);
+
+  const hasMore = doctors.length === PAGE_LIMIT;
 
   const handleSearch = () => {
     setPage(1);
+    setAllDoctors([]);
   };
 
   const handleLoadMore = () => {
@@ -75,7 +98,7 @@ export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorList
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">{doctors.length} doctors found</div>
+        <div className="text-sm text-gray-600">{allDoctors.length} doctors found</div>
       </div>
 
       {/* Search and Filters */}
@@ -146,15 +169,15 @@ export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorList
       )}
 
       {/* Doctor Grid */}
-      {isLoading && doctors.length === 0 ? (
+      {isLoading && allDoctors.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : doctors.length > 0 ? (
+      ) : allDoctors.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {doctors.map((doctor) => (
+          {allDoctors.map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
           ))}
         </div>
@@ -169,7 +192,7 @@ export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorList
       )}
 
       {/* Load More Button */}
-      {hasMore && doctors.length > 0 && (
+      {hasMore && allDoctors.length > 0 && (
         <div className="text-center">
           <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
             {isFetching ? "Loading..." : "Load More"}

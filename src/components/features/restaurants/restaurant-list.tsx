@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRestaurants } from "@/hooks/useRestaurants";
+import type { Restaurant } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,14 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
+const PAGE_LIMIT = 12;
+
 export function RestaurantList({ showFilters = true, title = "Restaurants" }: RestaurantListProps) {
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
 
   const {
     data: restaurants = [],
@@ -50,13 +54,32 @@ export function RestaurantList({ showFilters = true, title = "Restaurants" }: Re
     cuisine: cuisineFilter || undefined,
     rating: ratingFilter ? parseInt(ratingFilter) : undefined,
     page,
-    limit: 12,
+    limit: PAGE_LIMIT,
   });
 
-  const hasMore = restaurants.length === 12;
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (restaurants.length > 0 || page === 1) {
+      setAllRestaurants((prev) => {
+        if (page === 1) return restaurants;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = restaurants.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [restaurants, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRestaurants([]);
+  }, [search, cuisineFilter, ratingFilter]);
+
+  const hasMore = restaurants.length === PAGE_LIMIT;
 
   const handleSearch = () => {
     setPage(1);
+    setAllRestaurants([]);
   };
 
   const handleLoadMore = () => {
@@ -69,7 +92,7 @@ export function RestaurantList({ showFilters = true, title = "Restaurants" }: Re
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <div className="text-sm text-gray-600">{restaurants.length} restaurants found</div>
+        <div className="text-sm text-gray-600">{allRestaurants.length} restaurants found</div>
       </div>
 
       {/* Search and Filters */}
@@ -132,15 +155,15 @@ export function RestaurantList({ showFilters = true, title = "Restaurants" }: Re
       )}
 
       {/* Restaurant Grid */}
-      {isLoading && restaurants.length === 0 ? (
+      {isLoading && allRestaurants.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : restaurants.length > 0 ? (
+      ) : allRestaurants.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant) => (
+          {allRestaurants.map((restaurant) => (
             <RestaurantCard key={restaurant._id} restaurant={restaurant} />
           ))}
         </div>
@@ -155,7 +178,7 @@ export function RestaurantList({ showFilters = true, title = "Restaurants" }: Re
       )}
 
       {/* Load More Button */}
-      {hasMore && restaurants.length > 0 && (
+      {hasMore && allRestaurants.length > 0 && (
         <div className="text-center">
           <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
             {isFetching ? "Loading..." : "Load More"}

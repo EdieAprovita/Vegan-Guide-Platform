@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRestaurants } from "@/hooks/useRestaurants";
+import type { Restaurant } from "@/lib/api/restaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export function SimpleRestaurantList({
   const [ratingFilter, setRatingFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
 
   const {
     data: restaurants = [],
@@ -59,6 +61,24 @@ export function SimpleRestaurantList({
     page,
     limit: PAGE_LIMIT,
   });
+
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (restaurants.length > 0 || page === 1) {
+      setAllRestaurants((prev) => {
+        if (page === 1) return restaurants;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = restaurants.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [restaurants, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRestaurants([]);
+  }, [search, cuisineFilter, ratingFilter, locationFilter]);
 
   const hasMore = restaurants.length === PAGE_LIMIT;
 
@@ -80,10 +100,7 @@ export function SimpleRestaurantList({
                 <Input
                   placeholder="Search restaurants..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -91,10 +108,7 @@ export function SimpleRestaurantList({
               {/* Cuisine Filter */}
               <select
                 value={cuisineFilter}
-                onChange={(e) => {
-                  setCuisineFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setCuisineFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Cuisines</option>
@@ -108,10 +122,7 @@ export function SimpleRestaurantList({
               {/* Rating Filter */}
               <select
                 value={ratingFilter}
-                onChange={(e) => {
-                  setRatingFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setRatingFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
@@ -127,10 +138,7 @@ export function SimpleRestaurantList({
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
-                  onChange={(e) => {
-                    setLocationFilter(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -139,13 +147,13 @@ export function SimpleRestaurantList({
         </Card>
       )}
 
-      {isLoading && restaurants.length === 0 ? (
+      {isLoading && allRestaurants.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : restaurants.length === 0 ? (
+      ) : allRestaurants.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">No restaurants found.</p>
           <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
@@ -153,7 +161,7 @@ export function SimpleRestaurantList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {restaurants.map((restaurant) => (
+            {allRestaurants.map((restaurant) => (
               <RestaurantCard key={restaurant._id} restaurant={restaurant} />
             ))}
           </div>

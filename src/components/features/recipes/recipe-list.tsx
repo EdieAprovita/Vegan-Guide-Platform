@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRecipes } from "@/hooks/useRecipes";
+import type { Recipe } from "@/lib/api/recipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export function RecipeList({
   const [category, setCategory] = useState(initialCategory);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
   const [page, setPage] = useState(initialPage);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const {
     data: recipes = [],
@@ -50,6 +52,24 @@ export function RecipeList({
     category,
     difficulty,
   });
+
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (recipes.length > 0 || page === 1) {
+      setAllRecipes((prev) => {
+        if (page === 1) return recipes;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = recipes.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [recipes, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRecipes([]);
+  }, [search, category, difficulty]);
 
   const hasMore = recipes.length === initialLimit;
 
@@ -74,21 +94,12 @@ export function RecipeList({
             type="text"
             placeholder="Search recipes..."
             defaultValue={initialSearch}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-500" />
         </div>
-        <Select
-          defaultValue={initialCategory}
-          onValueChange={(value) => {
-            setCategory(value);
-            setPage(1);
-          }}
-        >
+        <Select defaultValue={initialCategory} onValueChange={(value) => setCategory(value)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -101,13 +112,7 @@ export function RecipeList({
             <SelectItem value="snack">Snack</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          defaultValue={initialDifficulty}
-          onValueChange={(value) => {
-            setDifficulty(value);
-            setPage(1);
-          }}
-        >
+        <Select defaultValue={initialDifficulty} onValueChange={(value) => setDifficulty(value)}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
@@ -120,7 +125,7 @@ export function RecipeList({
         </Select>
       </div>
 
-      {isLoading ? (
+      {isLoading && allRecipes.length === 0 ? (
         <div className="grid animate-pulse grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <div key={i} className="h-[400px] rounded-lg bg-emerald-100" />
@@ -129,7 +134,7 @@ export function RecipeList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {recipes.map((recipe) => (
+            {allRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe._id}
                 title={recipe.title}

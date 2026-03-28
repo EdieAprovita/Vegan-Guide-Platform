@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDoctors } from "@/hooks/useDoctors";
+import type { Doctor } from "@/lib/api/doctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
   const [ratingFilter, setRatingFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [allDoctors, setAllDoctors] = useState<Doctor[]>([]);
 
   const {
     data: doctors = [],
@@ -55,6 +57,24 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
     page,
     limit: PAGE_LIMIT,
   });
+
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (doctors.length > 0 || page === 1) {
+      setAllDoctors((prev) => {
+        if (page === 1) return doctors;
+        const existingIds = new Set(prev.map((d) => d._id));
+        const newItems = doctors.filter((d) => !existingIds.has(d._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [doctors, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllDoctors([]);
+  }, [search, specialtyFilter, ratingFilter, locationFilter]);
 
   const hasMore = doctors.length === PAGE_LIMIT;
 
@@ -76,10 +96,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
                 <Input
                   placeholder="Search doctors..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -87,10 +104,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
               {/* Specialty Filter */}
               <select
                 value={specialtyFilter}
-                onChange={(e) => {
-                  setSpecialtyFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setSpecialtyFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Specialties</option>
@@ -104,10 +118,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
               {/* Rating Filter */}
               <select
                 value={ratingFilter}
-                onChange={(e) => {
-                  setRatingFilter(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setRatingFilter(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
@@ -123,10 +134,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
-                  onChange={(e) => {
-                    setLocationFilter(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -135,13 +143,13 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
         </Card>
       )}
 
-      {isLoading && doctors.length === 0 ? (
+      {isLoading && allDoctors.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : doctors.length === 0 ? (
+      ) : allDoctors.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">No doctors found.</p>
           <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
@@ -149,7 +157,7 @@ export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: Simp
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {doctors.map((doctor) => (
+            {allDoctors.map((doctor) => (
               <DoctorCard key={doctor._id} doctor={doctor} />
             ))}
           </div>

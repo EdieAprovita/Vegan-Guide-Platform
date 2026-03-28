@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useRecipes } from "@/hooks/useRecipes";
+import type { Recipe } from "@/lib/api/recipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ export function SimpleRecipeList({
   const [categoryValue, setCategoryValue] = useState(initialCategory);
   const [difficultyValue, setDifficultyValue] = useState(initialDifficulty);
   const [page, setPage] = useState(initialPage);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   // Debounce search to avoid firing on every keystroke
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,6 +57,24 @@ export function SimpleRecipeList({
     difficulty: difficultyValue,
   });
 
+  // Accumulate results — reset on page 1 (filter/search change), append on subsequent pages
+  useEffect(() => {
+    if (recipes.length > 0 || page === 1) {
+      setAllRecipes((prev) => {
+        if (page === 1) return recipes;
+        const existingIds = new Set(prev.map((r) => r._id));
+        const newItems = recipes.filter((r) => !existingIds.has(r._id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [recipes, page]);
+
+  // Reset accumulated list whenever filters change
+  useEffect(() => {
+    setPage(1);
+    setAllRecipes([]);
+  }, [searchValue, categoryValue, difficultyValue]);
+
   const hasMore = recipes.length === initialLimit;
 
   // Sync active filters to URL so the page is bookmark-/share-friendly
@@ -76,7 +96,6 @@ export function SimpleRecipeList({
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       setSearchValue(value);
-      setPage(1);
       pushFilterParams({
         search: value,
         category: categoryValue,
@@ -88,13 +107,11 @@ export function SimpleRecipeList({
 
   const handleCategoryChange = (category: string) => {
     setCategoryValue(category);
-    setPage(1);
     pushFilterParams({ search: searchValue, category, difficulty: difficultyValue, page: 1 });
   };
 
   const handleDifficultyChange = (difficulty: string) => {
     setDifficultyValue(difficulty);
-    setPage(1);
     pushFilterParams({ search: searchValue, category: categoryValue, difficulty, page: 1 });
   };
 
@@ -167,13 +184,13 @@ export function SimpleRecipeList({
         </div>
       )}
 
-      {isLoading && recipes.length === 0 ? (
+      {isLoading && allRecipes.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: initialLimit }).map((_, i) => (
             <div key={i} className="h-[400px] animate-pulse rounded-lg bg-emerald-100" />
           ))}
         </div>
-      ) : !Array.isArray(recipes) || recipes.length === 0 ? (
+      ) : allRecipes.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-lg text-emerald-600">No recipes found.</p>
           <p className="text-emerald-500">Try adjusting your search criteria.</p>
@@ -181,7 +198,7 @@ export function SimpleRecipeList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {recipes.map((recipe) => (
+            {allRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe._id}
                 title={recipe.title}

@@ -5,8 +5,8 @@ import {
   CreateReviewData,
   ReviewStats,
   getReview,
-  updateReview,
-  deleteReview,
+  updateReview as updateReviewApi,
+  deleteReview as deleteReviewApi,
   markReviewHelpful,
   removeReviewHelpful,
   getRestaurantReviews,
@@ -177,10 +177,10 @@ export function useReviews({
         setLoading(true);
         setError(null);
 
-        const response = await updateReview(reviewId, data);
+        const response = await updateReviewApi(reviewId, data);
 
-        if (response) {
-          const updatedReview = response;
+        if (response?.data) {
+          const updatedReview = response.data;
           setReviews((prev) =>
             prev.map((review) => (review._id === reviewId ? updatedReview : review))
           );
@@ -212,7 +212,7 @@ export function useReviews({
         setLoading(true);
         setError(null);
 
-        await deleteReview(reviewId);
+        await deleteReviewApi(reviewId);
 
         // Remove from local state
         setReviews((prev) => prev.filter((review) => review._id !== reviewId));
@@ -346,7 +346,7 @@ export function useReview(reviewId: string) {
         setLoading(true);
         setError(null);
 
-        const response = await updateReview(reviewId, data);
+        const response = await updateReviewApi(reviewId, data);
 
         if (response?.data) {
           setReview(response.data);
@@ -373,7 +373,7 @@ export function useReview(reviewId: string) {
       setLoading(true);
       setError(null);
 
-      await deleteReview(reviewId);
+      await deleteReviewApi(reviewId);
       setReview(null);
 
       return true;
