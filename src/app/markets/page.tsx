@@ -75,7 +75,7 @@ export default async function MarketsPage() {
         </div>
 
         {/* Market List */}
-        <SimpleMarketList initialMarkets={initialMarkets} />
+        <SimpleMarketList />
       </div>
     </div>
   );

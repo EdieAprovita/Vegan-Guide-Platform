@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useAuthStore } from "@/lib/store/auth";
 import { useUserLocation } from "./useGeolocation";
 import { processBackendResponse } from "@/lib/api/config";
 import {
@@ -234,13 +233,12 @@ export function useBusinessSearch() {
 
 // Hook para mutaciones (crear, actualizar, eliminar)
 export function useBusinessMutations() {
-  const { token } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
   const createBusinessMutation = async (data: CreateBusinessData) => {
     try {
       setLoading(true);
-      const response = await createBusiness(data, token || undefined);
+      const response = await createBusiness(data);
       return response.data;
     } catch (error) {
       console.error("Error creating business:", error);
@@ -253,7 +251,7 @@ export function useBusinessMutations() {
   const updateBusinessMutation = async (id: string, data: Partial<CreateBusinessData>) => {
     try {
       setLoading(true);
-      const response = await updateBusiness(id, data, token || undefined);
+      const response = await updateBusiness(id, data);
       return response.data;
     } catch (error) {
       console.error("Error updating business:", error);
@@ -266,7 +264,7 @@ export function useBusinessMutations() {
   const deleteBusinessMutation = async (id: string) => {
     try {
       setLoading(true);
-      await deleteBusiness(id, token || undefined);
+      await deleteBusiness(id);
     } catch (error) {
       console.error("Error deleting business:", error);
       throw error;
@@ -278,7 +276,7 @@ export function useBusinessMutations() {
   const addReviewMutation = async (id: string, review: BusinessReview) => {
     try {
       setLoading(true);
-      const response = await addBusinessReview(id, review, token || undefined);
+      const response = await addBusinessReview(id, review);
       return response.data;
     } catch (error) {
       console.error("Error adding business review:", error);

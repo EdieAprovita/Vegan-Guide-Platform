@@ -8,7 +8,6 @@ import {
 } from "@/hooks/useBusinesses";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import * as businessesApi from "@/lib/api/businesses";
-import { useAuthStore } from "@/lib/store/auth";
 
 jest.mock("@/hooks/useGeolocation", () => ({
   useUserLocation: jest.fn(),
@@ -83,9 +82,7 @@ describe("useBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() =>
-      useBusinesses({ useUserLocation: true, radius: 5 })
-    );
+    const { result } = renderHook(() => useBusinesses({ useUserLocation: true, radius: 5 }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -312,11 +309,7 @@ describe("useBusinessSearch", () => {
 });
 
 describe("useBusinessMutations", () => {
-  beforeEach(() => {
-    useAuthStore.setState({ token: "auth-token" });
-  });
-
-  it("creates a business using the auth token", async () => {
+  it("creates a business", async () => {
     (businessesApi.createBusiness as jest.Mock).mockResolvedValue({ data: mockBusiness });
 
     const { result } = renderHook(() => useBusinessMutations());
@@ -335,8 +328,7 @@ describe("useBusinessMutations", () => {
     });
 
     expect(businessesApi.createBusiness).toHaveBeenCalledWith(
-      expect.objectContaining({ namePlace: "Vegan Cafe" }),
-      "auth-token"
+      expect.objectContaining({ namePlace: "Vegan Cafe" })
     );
     expect(created).toEqual(mockBusiness);
     expect(result.current.loading).toBe(false);
@@ -353,11 +345,7 @@ describe("useBusinessMutations", () => {
       updatedResult = await result.current.updateBusiness("b1", { namePlace: "Updated Cafe" });
     });
 
-    expect(businessesApi.updateBusiness).toHaveBeenCalledWith(
-      "b1",
-      { namePlace: "Updated Cafe" },
-      "auth-token"
-    );
+    expect(businessesApi.updateBusiness).toHaveBeenCalledWith("b1", { namePlace: "Updated Cafe" });
     expect(updatedResult).toEqual(updated);
   });
 
@@ -370,7 +358,7 @@ describe("useBusinessMutations", () => {
       await result.current.deleteBusiness("b1");
     });
 
-    expect(businessesApi.deleteBusiness).toHaveBeenCalledWith("b1", "auth-token");
+    expect(businessesApi.deleteBusiness).toHaveBeenCalledWith("b1");
     expect(result.current.loading).toBe(false);
   });
 
@@ -387,11 +375,10 @@ describe("useBusinessMutations", () => {
       });
     });
 
-    expect(businessesApi.addBusinessReview).toHaveBeenCalledWith(
-      "b1",
-      { rating: 5, comment: "Great place!" },
-      "auth-token"
-    );
+    expect(businessesApi.addBusinessReview).toHaveBeenCalledWith("b1", {
+      rating: 5,
+      comment: "Great place!",
+    });
     expect(reviewResult).toEqual(mockBusiness);
   });
 

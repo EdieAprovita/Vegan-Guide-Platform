@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Doctor, getDoctors } from "@/lib/api/doctors";
+import { useState } from "react";
+import { useDoctors } from "@/hooks/useDoctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
-import { toast } from "sonner";
 
 interface SimpleDoctorListProps {
-  initialDoctors?: Doctor[];
   showFilters?: boolean;
   title?: string;
 }
+
+const PAGE_LIMIT = 12;
 
 const SPECIALTY_OPTIONS = [
   "Nutritionist",
@@ -36,124 +36,31 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function SimpleDoctorList({
-  initialDoctors = [],
-  showFilters = true,
-  title = "Doctors",
-}: SimpleDoctorListProps) {
-  const [mounted, setMounted] = useState(false);
-  const [doctors, setDoctors] = useState<Doctor[]>(
-    Array.isArray(initialDoctors) ? initialDoctors : []
-  );
-  const [loading, setLoading] = useState(false);
+export function SimpleDoctorList({ showFilters = true, title = "Doctors" }: SimpleDoctorListProps) {
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const {
+    data: doctors = [],
+    isLoading,
+    isFetching,
+  } = useDoctors({
+    search: search.trim() || undefined,
+    specialty: specialtyFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    location: locationFilter.trim() || undefined,
+    page,
+    limit: PAGE_LIMIT,
+  });
 
-  const fetchDoctors = useCallback(
-    async (isLoadMore = false) => {
-      if (!mounted) return;
-
-      try {
-        setLoading(true);
-        const filters = {
-          search: search.trim(),
-          specialty: specialtyFilter,
-          rating: ratingFilter ? parseInt(ratingFilter) : undefined,
-          location: locationFilter.trim(),
-          page: isLoadMore ? page + 1 : 1,
-          limit: 12,
-        };
-
-        const response = await getDoctors(filters);
-
-        // Extract doctors from backend response format {success: true, data: [...]}
-        const doctorsData = Array.isArray(response) ? response : response?.data || [];
-
-        if (isLoadMore) {
-          setDoctors((prev) => [...(Array.isArray(prev) ? prev : []), ...doctorsData]);
-          setPage((prev) => prev + 1);
-        } else {
-          setDoctors(doctorsData);
-          setPage(1);
-        }
-
-        setHasMore(doctorsData.length === 12);
-      } catch (error) {
-        console.error("Error fetching doctors:", error);
-        toast.error("Failed to load doctors");
-        // Ensure doctors is always an array on error
-        if (!isLoadMore) {
-          setDoctors([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [mounted, search, specialtyFilter, ratingFilter, locationFilter, page]
-  );
-
-  useEffect(() => {
-    if (mounted && initialDoctors.length === 0) {
-      fetchDoctors();
-    }
-  }, [mounted, fetchDoctors, initialDoctors.length]);
-
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
-
-  const handleSpecialtyChange = (value: string) => {
-    setSpecialtyFilter(value);
-    setPage(1);
-  };
-
-  const handleRatingChange = (value: string) => {
-    setRatingFilter(value);
-    setPage(1);
-  };
-
-  const handleLocationChange = (value: string) => {
-    setLocationFilter(value);
-    setPage(1);
-  };
+  const hasMore = doctors.length === PAGE_LIMIT;
 
   const handleLoadMore = () => {
-    fetchDoctors(true);
+    setPage((prev) => prev + 1);
   };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <div className="space-y-6">
-        {showFilters && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-                <div className="bg-muted h-10 animate-pulse rounded" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -169,7 +76,10 @@ export function SimpleDoctorList({
                 <Input
                   placeholder="Search doctors..."
                   value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -177,7 +87,10 @@ export function SimpleDoctorList({
               {/* Specialty Filter */}
               <select
                 value={specialtyFilter}
-                onChange={(e) => handleSpecialtyChange(e.target.value)}
+                onChange={(e) => {
+                  setSpecialtyFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">All Specialties</option>
@@ -191,7 +104,10 @@ export function SimpleDoctorList({
               {/* Rating Filter */}
               <select
                 value={ratingFilter}
-                onChange={(e) => handleRatingChange(e.target.value)}
+                onChange={(e) => {
+                  setRatingFilter(e.target.value);
+                  setPage(1);
+                }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 {RATING_OPTIONS.map((option) => (
@@ -207,7 +123,10 @@ export function SimpleDoctorList({
                 <Input
                   placeholder="Location..."
                   value={locationFilter}
-                  onChange={(e) => handleLocationChange(e.target.value)}
+                  onChange={(e) => {
+                    setLocationFilter(e.target.value);
+                    setPage(1);
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -216,13 +135,13 @@ export function SimpleDoctorList({
         </Card>
       )}
 
-      {loading && doctors.length === 0 ? (
+      {isLoading && doctors.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-muted h-[320px] animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : !doctors || !Array.isArray(doctors) || doctors.length === 0 ? (
+      ) : doctors.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">No doctors found.</p>
           <p className="text-muted-foreground/60">Try adjusting your search criteria.</p>
@@ -230,20 +149,20 @@ export function SimpleDoctorList({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {doctors &&
-              Array.isArray(doctors) &&
-              doctors.map((doctor) => <DoctorCard key={doctor._id} doctor={doctor} />)}
+            {doctors.map((doctor) => (
+              <DoctorCard key={doctor._id} doctor={doctor} />
+            ))}
           </div>
 
           {hasMore && (
             <div className="flex justify-center">
               <Button
                 onClick={handleLoadMore}
-                disabled={loading}
+                disabled={isFetching}
                 variant="outline"
                 className="min-w-[200px]"
               >
-                {loading ? "Loading..." : "Load More"}
+                {isFetching ? "Loading..." : "Load More"}
               </Button>
             </div>
           )}

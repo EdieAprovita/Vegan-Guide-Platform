@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Doctor, getDoctors } from "@/lib/api/doctors";
-import { processBackendResponse } from "@/lib/api/config";
+import { useState } from "react";
+import { useDoctors } from "@/hooks/useDoctors";
 import { DoctorCard } from "./doctor-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
-import { toast } from "sonner";
 
 interface DoctorListProps {
-  initialDoctors?: Doctor[];
   showFilters?: boolean;
   title?: string;
 }
@@ -44,73 +41,33 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function DoctorList({
-  initialDoctors = [],
-  showFilters = true,
-  title = "Doctors",
-}: DoctorListProps) {
-  const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors);
-  const [loading, setLoading] = useState(false);
+export function DoctorList({ showFilters = true, title = "Doctors" }: DoctorListProps) {
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const loadDoctors = useCallback(
-    async (reset = false, pageOverride?: number) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : (pageOverride ?? page);
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: doctors = [],
+    isLoading,
+    isFetching,
+  } = useDoctors({
+    search: search || undefined,
+    specialty: specialtyFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    page,
+    limit: 12,
+  });
 
-        if (search) params.search = search;
-        if (specialtyFilter) params.specialty = specialtyFilter;
-        if (ratingFilter) params.rating = parseInt(ratingFilter);
-
-        const response = await getDoctors(params);
-        const data = processBackendResponse<Doctor>(response);
-        const list = Array.isArray(data) ? data : data ? [data] : [];
-
-        if (reset) {
-          setDoctors(list);
-          setPage(1);
-        } else {
-          setDoctors((prev) => [...prev, ...list]);
-        }
-
-        setHasMore(list.length === 12);
-      } catch {
-        toast.error("Failed to load doctors");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, specialtyFilter, ratingFilter]
-  );
-
-  useEffect(() => {
-    if (initialDoctors.length === 0) {
-      loadDoctors(true);
-    }
-  }, [initialDoctors.length, loadDoctors]);
+  const hasMore = doctors.length === 12;
 
   const handleSearch = () => {
-    loadDoctors(true);
-  };
-
-  const handleFilterChange = () => {
-    loadDoctors(true);
+    setPage(1);
   };
 
   const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    const next = page + 1;
-    setPage(next);
-    loadDoctors(false, next);
+    if (isFetching || !hasMore) return;
+    setPage((prev) => prev + 1);
   };
 
   return (
@@ -143,7 +100,7 @@ export function DoctorList({
                 value={specialtyFilter}
                 onValueChange={(value) => {
                   setSpecialtyFilter(value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
               >
                 <SelectTrigger>
@@ -164,7 +121,7 @@ export function DoctorList({
                 value={ratingFilter}
                 onValueChange={(value) => {
                   setRatingFilter(value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
               >
                 <SelectTrigger>
@@ -180,8 +137,8 @@ export function DoctorList({
               </Select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={handleSearch} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -189,7 +146,13 @@ export function DoctorList({
       )}
 
       {/* Doctor Grid */}
-      {doctors.length > 0 ? (
+      {isLoading && doctors.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : doctors.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {doctors.map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
@@ -208,8 +171,8 @@ export function DoctorList({
       {/* Load More Button */}
       {hasMore && doctors.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}

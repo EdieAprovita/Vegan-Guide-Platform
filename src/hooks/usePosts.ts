@@ -1,10 +1,10 @@
 "use client";
 
-import { create } from "zustand";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as postsApi from "@/lib/api/posts";
 import type { Post, CreatePostData, CreateCommentData, PostSearchParams } from "@/lib/api/posts";
 import { useUserLocation } from "@/hooks/useGeolocation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { processBackendResponse } from "@/lib/api/config";
 
 interface Comment {
   _id: string;
@@ -16,178 +16,32 @@ interface Comment {
   text: string;
   createdAt: string;
 }
-import { processBackendResponse } from "@/lib/api/config";
 
-interface PostsState {
-  posts: Post[];
-  currentPost: Post | null;
-  isLoading: boolean;
-  error: string | null;
-  totalPages: number;
-  currentPage: number;
-  getPosts: (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    tags?: string;
-    author?: string;
-  }) => Promise<void>;
-  getPost: (id: string) => Promise<void>;
-  createPost: (data: CreatePostData, token?: string) => Promise<void>;
-  updatePost: (id: string, data: Partial<CreatePostData>, token?: string) => Promise<void>;
-  deletePost: (id: string, token?: string) => Promise<void>;
-  likePost: (id: string, token?: string) => Promise<void>;
-  unlikePost: (id: string, token?: string) => Promise<void>;
-  addComment: (id: string, comment: CreateCommentData, token?: string) => Promise<void>;
+// Base list query
+export function usePosts(params?: PostSearchParams) {
+  return useQuery({
+    queryKey: ["posts", params],
+    queryFn: async () => {
+      const response = await postsApi.getPosts(params);
+      const data = processBackendResponse<Post>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
 }
 
-export const usePosts = create<PostsState>((set) => ({
-  posts: [],
-  currentPost: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
-
-  getPosts: async (params) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await postsApi.getPosts(params);
-
-      // Use the universal helper to process backend response
-      const posts = processBackendResponse<Post>(response) as Post[];
-
-      set({
-        posts: Array.isArray(posts) ? posts : [],
-        totalPages: 1, // Backend doesn't implement pagination yet
-        currentPage: 1,
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load posts";
-      console.error("getPosts error:", err);
-      set({
-        error: message,
-        isLoading: false,
-        posts: [],
-      });
-      throw err;
-    }
-  },
-
-  getPost: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
+// Single post query
+export function usePost(id: string) {
+  return useQuery({
+    queryKey: ["posts", id],
+    queryFn: async () => {
       const response = await postsApi.getPost(id);
-      const post = processBackendResponse<Post>(response) as Post;
-      set({ currentPost: post, isLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load post";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  createPost: async (data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await postsApi.createPost(data, token);
-      const post = processBackendResponse<Post>(response) as Post;
-      set((state) => ({
-        posts: [post, ...state.posts],
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create post";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  updatePost: async (id, data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await postsApi.updatePost(id, data, token);
-      const updatedPost = processBackendResponse<Post>(response) as Post;
-      set((state) => ({
-        posts: state.posts.map((post) => (post._id === id ? updatedPost : post)),
-        currentPost: state.currentPost?._id === id ? updatedPost : state.currentPost,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update post";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  deletePost: async (id, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      await postsApi.deletePost(id, token);
-      set((state) => ({
-        posts: state.posts.filter((post) => post._id !== id),
-        currentPost: state.currentPost?._id === id ? null : state.currentPost,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete post";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  likePost: async (id, token) => {
-    try {
-      const response = await postsApi.likePost(id, token);
-      // The backend returns the updated likes array
-      const likes = processBackendResponse<string[]>(response) as string[];
-      set((state) => ({
-        posts: state.posts.map((post) => (post._id === id ? { ...post, likes } : post)),
-        currentPost:
-          state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to like post";
-      set({ error: message });
-      throw err;
-    }
-  },
-
-  unlikePost: async (id, token) => {
-    try {
-      const response = await postsApi.unlikePost(id, token);
-      // The backend returns the updated likes array
-      const likes = processBackendResponse<string[]>(response) as string[];
-      set((state) => ({
-        posts: state.posts.map((post) => (post._id === id ? { ...post, likes } : post)),
-        currentPost:
-          state.currentPost?._id === id ? { ...state.currentPost, likes } : state.currentPost,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to unlike post";
-      set({ error: message });
-      throw err;
-    }
-  },
-
-  addComment: async (id, comment, token) => {
-    try {
-      const response = await postsApi.addComment(id, comment, token);
-      // The backend returns the updated comments array
-      const comments = processBackendResponse<Comment[]>(response) as Comment[];
-      set((state) => ({
-        posts: state.posts.map((post) => (post._id === id ? { ...post, comments } : post)),
-        currentPost:
-          state.currentPost?._id === id ? { ...state.currentPost, comments } : state.currentPost,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add comment";
-      set({ error: message });
-      throw err;
-    }
-  },
-}));
+      return processBackendResponse<Post>(response) as Post;
+    },
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  });
+}
 
 // Modern React Query hooks for Posts with geolocation
 export function useNearbyPosts(params: {

@@ -1,147 +1,36 @@
 "use client";
 
-import { create } from "zustand";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketsApi from "@/lib/api/markets";
 import type { Market, CreateMarketData, MarketReview, MarketSearchParams } from "@/lib/api/markets";
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 
-interface MarketsState {
-  markets: Market[];
-  currentMarket: Market | null;
-  isLoading: boolean;
-  error: string | null;
-  totalPages: number;
-  currentPage: number;
-  getMarkets: (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    products?: string;
-    rating?: number;
-    location?: string;
-  }) => Promise<void>;
-  getMarket: (id: string) => Promise<void>;
-  createMarket: (data: CreateMarketData, token?: string) => Promise<void>;
-  updateMarket: (id: string, data: Partial<CreateMarketData>, token?: string) => Promise<void>;
-  deleteMarket: (id: string, token?: string) => Promise<void>;
-  addMarketReview: (id: string, review: MarketReview, token?: string) => Promise<void>;
+// Base list query
+export function useMarkets(params?: MarketSearchParams) {
+  return useQuery({
+    queryKey: ["markets", params],
+    queryFn: async () => {
+      const response = await marketsApi.getMarkets(params);
+      const data = processBackendResponse<Market>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export const useMarkets = create<MarketsState>((set) => ({
-  markets: [],
-  currentMarket: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
-
-  getMarkets: async (params) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await marketsApi.getMarkets(params);
-
-      // Use the universal helper to process backend response
-      const markets = processBackendResponse<Market>(response) as Market[];
-
-      set({
-        markets: Array.isArray(markets) ? markets : [],
-        totalPages: 1, // Backend doesn't implement pagination yet
-        currentPage: 1,
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load markets";
-      console.error("getMarkets error:", err);
-      set({
-        error: message,
-        isLoading: false,
-        markets: [],
-      });
-      throw err;
-    }
-  },
-
-  getMarket: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
+// Single market query
+export function useMarket(id: string) {
+  return useQuery({
+    queryKey: ["markets", id],
+    queryFn: async () => {
       const response = await marketsApi.getMarket(id);
-      const market = processBackendResponse<Market>(response) as Market;
-      set({ currentMarket: market, isLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load market";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  createMarket: async (data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await marketsApi.createMarket(data, token);
-      const market = processBackendResponse<Market>(response) as Market;
-      set((state) => ({
-        markets: [market, ...state.markets],
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create market";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  updateMarket: async (id, data, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await marketsApi.updateMarket(id, data, token);
-      const updatedMarket = processBackendResponse<Market>(response) as Market;
-      set((state) => ({
-        markets: state.markets.map((market) => (market._id === id ? updatedMarket : market)),
-        currentMarket: state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update market";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  deleteMarket: async (id, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      await marketsApi.deleteMarket(id, token);
-      set((state) => ({
-        markets: state.markets.filter((market) => market._id !== id),
-        currentMarket: state.currentMarket?._id === id ? null : state.currentMarket,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete market";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-
-  addMarketReview: async (id, review, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await marketsApi.addMarketReview(id, review, token);
-      const updatedMarket = processBackendResponse<Market>(response) as Market;
-      set((state) => ({
-        markets: state.markets.map((market) => (market._id === id ? updatedMarket : market)),
-        currentMarket: state.currentMarket?._id === id ? updatedMarket : state.currentMarket,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add market review";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-}));
+      return processBackendResponse<Market>(response) as Market;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 // Hook para búsqueda por proximidad
 export function useNearbyMarkets(params?: {

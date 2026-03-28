@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Post, getPosts } from "@/lib/api/posts";
+import { useState, useMemo } from "react";
+import { usePosts, usePostMutations } from "@/hooks/usePosts";
 import { PostCard } from "./post-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
 
 interface PostListProps {
-  initialPosts?: Post[];
   showFilters?: boolean;
   title?: string;
 }
@@ -29,89 +27,44 @@ const TAG_OPTIONS = [
   "Other",
 ];
 
-export function PostList({
-  initialPosts = [],
-  showFilters = true,
-  title = "Community Posts",
-}: PostListProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [loading, setLoading] = useState(false);
+export function PostList({ showFilters = true, title = "Community Posts" }: PostListProps) {
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const loadPosts = useCallback(
-    async (reset = false) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : page;
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: rawPosts = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = usePosts({
+    search: search || undefined,
+    tags: tagFilter || undefined,
+    page,
+    limit: 12,
+  });
 
-        if (search) params.search = search;
-        if (tagFilter) params.tags = tagFilter;
-
-        const response = await getPosts(params);
-
-        if (reset) {
-          setPosts(response.data || response);
-          setPage(1);
-        } else {
-          setPosts((prev) => [...prev, ...(response.data || response)]);
-        }
-
-        setHasMore((response.data || response).length === 12);
-      } catch {
-        toast.error("Failed to load posts");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, tagFilter]
-  );
-
-  useEffect(() => {
-    if (initialPosts.length === 0) {
-      loadPosts(true);
-    }
-  }, [initialPosts.length, loadPosts]);
-
-  const handleSearch = () => {
-    loadPosts(true);
-  };
-
-  const handleFilterChange = () => {
-    loadPosts(true);
-  };
-
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-    // Sort posts locally
-    const sortedPosts = [...posts];
-    switch (value) {
-      case "recent":
-        sortedPosts.sort(
+  // Sort posts client-side since the list is already fetched
+  const posts = useMemo(() => {
+    const sorted = [...rawPosts];
+    switch (sortBy) {
+      case "popular":
+        return sorted.sort((a, b) => b.likes.length - a.likes.length);
+      case "comments":
+        return sorted.sort((a, b) => b.comments.length - a.comments.length);
+      default:
+        return sorted.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        break;
-      case "popular":
-        sortedPosts.sort((a, b) => b.likes.length - a.likes.length);
-        break;
-      case "comments":
-        sortedPosts.sort((a, b) => b.comments.length - a.comments.length);
-        break;
     }
-    setPosts(sortedPosts);
-  };
+  }, [rawPosts, sortBy]);
+
+  const hasMore = rawPosts.length === 12;
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
+    if (!isFetching && hasMore) {
       setPage((prev) => prev + 1);
-      loadPosts(false);
     }
   };
 
@@ -134,8 +87,11 @@ export function PostList({
                 <Input
                   placeholder="Search posts..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && setPage(1)}
                   className="pl-10"
                 />
               </div>
@@ -145,7 +101,7 @@ export function PostList({
                 value={tagFilter}
                 onChange={(e) => {
                   setTagFilter(e.target.value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
@@ -160,7 +116,7 @@ export function PostList({
               {/* Sort By */}
               <select
                 value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value)}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
                 <option value="">Sort by</option>
@@ -170,8 +126,8 @@ export function PostList({
               </select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={() => setPage(1)} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -179,10 +135,16 @@ export function PostList({
       )}
 
       {/* Posts Grid */}
-      {posts.length > 0 ? (
+      {isLoading && posts.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[220px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : posts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {posts.map((post) => (
-            <PostCard key={post._id} post={post} onLikeChange={() => loadPosts(true)} />
+            <PostCard key={post._id} post={post} onLikeChange={() => refetch()} />
           ))}
         </div>
       ) : (
@@ -200,8 +162,8 @@ export function PostList({
       {/* Load More Button */}
       {hasMore && posts.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}

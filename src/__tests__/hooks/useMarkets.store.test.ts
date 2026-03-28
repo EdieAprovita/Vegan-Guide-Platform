@@ -1,7 +1,17 @@
-import { act } from "@testing-library/react";
-import { useMarkets } from "@/hooks/useMarkets";
+/**
+ * Tests for the base useMarkets and useMarket TanStack Query hooks
+ * (migrated from Zustand store tests).
+ */
+import { renderHook } from "@testing-library/react";
+import { useMarkets, useMarket } from "@/hooks/useMarkets";
 import * as marketsApi from "@/lib/api/markets";
-import { setupStoreTest } from "./store-test-utils";
+import { useQuery } from "@tanstack/react-query";
+
+jest.mock("@tanstack/react-query", () => ({
+  useQuery: jest.fn(),
+  useMutation: jest.fn(),
+  useQueryClient: jest.fn(),
+}));
 
 jest.mock("@/lib/api/markets", () => ({
   getMarkets: jest.fn(),
@@ -14,6 +24,8 @@ jest.mock("@/lib/api/markets", () => ({
   getMarketsByProducts: jest.fn(),
   getAdvancedMarkets: jest.fn(),
 }));
+
+const useQueryMock = useQuery as unknown as jest.Mock;
 
 const mockMarket = {
   _id: "1",
@@ -30,97 +42,64 @@ const mockMarket = {
   updatedAt: "2024-01-01",
 };
 
-setupStoreTest(useMarkets, {
-  markets: [],
-  currentMarket: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
+beforeEach(() => {
+  useQueryMock.mockReturnValue({ data: [mockMarket], isLoading: false, isError: false });
+  jest.clearAllMocks();
+  useQueryMock.mockReturnValue({ data: [mockMarket], isLoading: false, isError: false });
 });
 
-describe("useMarkets store actions", () => {
-  it("loads markets and resets pagination", async () => {
-    (marketsApi.getMarkets as jest.Mock).mockResolvedValue({ success: true, data: [mockMarket] });
+describe("useMarkets query hook", () => {
+  it("calls useQuery with markets queryKey", () => {
+    renderHook(() => useMarkets({ search: "fresh" }));
 
-    await act(async () => {
-      await useMarkets.getState().getMarkets({ search: "fresh" });
-    });
-
-    const state = useMarkets.getState();
-    expect(marketsApi.getMarkets).toHaveBeenCalledWith({ search: "fresh" });
-    expect(state.markets).toEqual([mockMarket]);
-    expect(state.currentPage).toBe(1);
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["markets", expect.objectContaining({ search: "fresh" })],
+      })
+    );
   });
 
-  it("propagates errors while fetching markets", async () => {
-    (marketsApi.getMarkets as jest.Mock).mockRejectedValue(new Error("down"));
-
-    await expect(useMarkets.getState().getMarkets()).rejects.toThrow("down");
-
-    const state = useMarkets.getState();
-    expect(state.error).toBe("down");
+  it("returns data from useQuery", () => {
+    const { result } = renderHook(() => useMarkets());
+    expect(result.current.data).toEqual([mockMarket]);
   });
 
-  it("loads a market by id", async () => {
-    (marketsApi.getMarket as jest.Mock).mockResolvedValue({ success: true, data: mockMarket });
-
-    await act(async () => {
-      await useMarkets.getState().getMarket("1");
+  it("passes params to queryFn that calls getMarkets", async () => {
+    let capturedConfig: any;
+    useQueryMock.mockImplementation((config: any) => {
+      capturedConfig = config;
+      return { data: [], isLoading: false };
     });
 
-    expect(useMarkets.getState().currentMarket).toEqual(mockMarket);
+    (marketsApi.getMarkets as jest.Mock).mockResolvedValue({
+      success: true,
+      data: [mockMarket],
+    });
+
+    renderHook(() => useMarkets({ search: "fresh" }));
+
+    await capturedConfig.queryFn();
+    expect(marketsApi.getMarkets).toHaveBeenCalledWith(
+      expect.objectContaining({ search: "fresh" })
+    );
+  });
+});
+
+describe("useMarket single query", () => {
+  it("calls useQuery with single market queryKey", () => {
+    renderHook(() => useMarket("1"));
+
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["markets", "1"],
+        enabled: true,
+      })
+    );
   });
 
-  it("creates a market and adds it to state", async () => {
-    (marketsApi.createMarket as jest.Mock).mockResolvedValue({ success: true, data: mockMarket });
+  it("disables query when id is empty", () => {
+    renderHook(() => useMarket(""));
 
-    await act(async () => {
-      await useMarkets.getState().createMarket(mockMarket, "token");
-    });
-
-    expect(useMarkets.getState().markets[0]).toEqual(mockMarket);
-  });
-
-  it("updates existing market entries", async () => {
-    const updated = { ...mockMarket, marketName: "Updated Market" };
-    (marketsApi.updateMarket as jest.Mock).mockResolvedValue({ success: true, data: updated });
-
-    useMarkets.setState({ markets: [mockMarket], currentMarket: mockMarket });
-
-    await act(async () => {
-      await useMarkets.getState().updateMarket("1", { marketName: "Updated Market" });
-    });
-
-    const state = useMarkets.getState();
-    expect(state.markets[0]).toEqual(updated);
-    expect(state.currentMarket).toEqual(updated);
-  });
-
-  it("removes market entries when deleting", async () => {
-    (marketsApi.deleteMarket as jest.Mock).mockResolvedValue(undefined);
-
-    useMarkets.setState({ markets: [mockMarket], currentMarket: mockMarket });
-
-    await act(async () => {
-      await useMarkets.getState().deleteMarket("1");
-    });
-
-    const state = useMarkets.getState();
-    expect(state.markets).toEqual([]);
-    expect(state.currentMarket).toBeNull();
-  });
-
-  it("applies returned review when adding a market review", async () => {
-    const updated = { ...mockMarket, reviews: [{ rating: 5, comment: "great" }] };
-    (marketsApi.addMarketReview as jest.Mock).mockResolvedValue({ success: true, data: updated });
-
-    useMarkets.setState({ markets: [mockMarket], currentMarket: mockMarket });
-
-    await act(async () => {
-      await useMarkets.getState().addMarketReview("1", { rating: 5, comment: "great" });
-    });
-
-    expect(useMarkets.getState().markets[0].reviews).toEqual(updated.reviews);
+    expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 });

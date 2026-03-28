@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Market, getMarkets } from "@/lib/api/markets";
+import { useState } from "react";
+import { useMarkets } from "@/hooks/useMarkets";
 import { MarketCard } from "./market-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { processBackendResponse } from "@/lib/api/config";
-// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Store } from "lucide-react";
-import { toast } from "sonner";
 
 interface MarketListProps {
-  initialMarkets?: Market[];
   showFilters?: boolean;
   title?: string;
 }
@@ -38,73 +34,33 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function MarketList({
-  initialMarkets = [],
-  showFilters = true,
-  title = "Markets",
-}: MarketListProps) {
-  const [markets, setMarkets] = useState<Market[]>(initialMarkets);
-  const [loading, setLoading] = useState(false);
+export function MarketList({ showFilters = true, title = "Markets" }: MarketListProps) {
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const loadMarkets = useCallback(
-    async (reset = false, pageOverride?: number) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : (pageOverride ?? page);
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: markets = [],
+    isLoading,
+    isFetching,
+  } = useMarkets({
+    search: search || undefined,
+    products: productFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    page,
+    limit: 12,
+  });
 
-        if (search) params.search = search;
-        if (productFilter) params.products = productFilter;
-        if (ratingFilter) params.rating = parseInt(ratingFilter);
-
-        const response = await getMarkets(params);
-        const processed = processBackendResponse<Market>(response);
-        const data = Array.isArray(processed) ? processed : processed ? [processed] : [];
-
-        if (reset) {
-          setMarkets(data);
-          setPage(1);
-        } else {
-          setMarkets((prev) => [...prev, ...data]);
-        }
-
-        setHasMore(data.length === 12);
-      } catch {
-        toast.error("Failed to load markets");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, productFilter, ratingFilter]
-  );
-
-  useEffect(() => {
-    if (initialMarkets.length === 0) {
-      loadMarkets(true);
-    }
-  }, [initialMarkets.length, loadMarkets]);
+  const hasMore = markets.length === 12;
 
   const handleSearch = () => {
-    loadMarkets(true);
-  };
-
-  const handleFilterChange = () => {
-    loadMarkets(true);
+    setPage(1);
   };
 
   const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    const next = page + 1;
-    setPage(next);
-    loadMarkets(false, next);
+    if (isFetching || !hasMore) return;
+    setPage((prev) => prev + 1);
   };
 
   return (
@@ -137,7 +93,7 @@ export function MarketList({
                 value={productFilter}
                 onChange={(e) => {
                   setProductFilter(e.target.value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
@@ -154,7 +110,7 @@ export function MarketList({
                 value={ratingFilter}
                 onChange={(e) => {
                   setRatingFilter(e.target.value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
@@ -166,8 +122,8 @@ export function MarketList({
               </select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={handleSearch} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -175,7 +131,13 @@ export function MarketList({
       )}
 
       {/* Market Grid */}
-      {markets.length > 0 ? (
+      {isLoading && markets.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : markets.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {markets.map((market) => (
             <MarketCard key={market._id} market={market} />
@@ -194,8 +156,8 @@ export function MarketList({
       {/* Load More Button */}
       {hasMore && markets.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}

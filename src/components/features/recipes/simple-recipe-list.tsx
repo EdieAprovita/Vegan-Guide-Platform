@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Recipe, getRecipes } from "@/lib/api/recipes";
+import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { toast } from "sonner";
-import { processBackendResponse } from "@/lib/api/config";
+
+const PAGE_LIMIT = 12;
 
 interface SimpleRecipeListProps {
   initialPage?: number;
@@ -20,7 +20,7 @@ interface SimpleRecipeListProps {
 
 export function SimpleRecipeList({
   initialPage = 1,
-  initialLimit = 12,
+  initialLimit = PAGE_LIMIT,
   initialSearch = "",
   initialCategory = "",
   initialDifficulty = "",
@@ -28,141 +28,85 @@ export function SimpleRecipeList({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [mounted, setMounted] = useState(false);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(initialSearch);
   const [categoryValue, setCategoryValue] = useState(initialCategory);
   const [difficultyValue, setDifficultyValue] = useState(initialDifficulty);
   const [page, setPage] = useState(initialPage);
-  const [hasMore, setHasMore] = useState(true);
 
   // Debounce search to avoid firing on every keystroke
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     return () => {
-      // Clear any pending debounce timer on unmount to prevent state updates on an unmounted component
       if (searchTimeout.current) clearTimeout(searchTimeout.current);
     };
   }, []);
 
+  const {
+    data: recipes = [],
+    isLoading,
+    error,
+    isFetching,
+  } = useRecipes({
+    page,
+    limit: initialLimit,
+    search: searchValue.trim(),
+    category: categoryValue,
+    difficulty: difficultyValue,
+  });
+
+  const hasMore = recipes.length === initialLimit;
+
   // Sync active filters to URL so the page is bookmark-/share-friendly
-  const pushFilterParams = (params: {
-    search: string;
-    category: string;
-    difficulty: string;
-    page: number;
-  }) => {
-    const qs = new URLSearchParams();
-    const normalizedSearch = params.search.trim();
-    if (normalizedSearch) qs.set("search", normalizedSearch);
-    if (params.category) qs.set("category", params.category);
-    if (params.difficulty) qs.set("difficulty", params.difficulty);
-    if (params.page > 1) qs.set("page", String(params.page));
-    const queryString = qs.toString();
-    router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, { scroll: false });
-  };
-
-  const fetchRecipes = async (opts: {
-    search: string;
-    category: string;
-    difficulty: string;
-    targetPage: number;
-    append: boolean;
-  }): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await getRecipes({
-        page: opts.targetPage,
-        limit: initialLimit,
-        search: opts.search.trim(),
-        category: opts.category,
-        difficulty: opts.difficulty,
-      });
-
-      const recipesData = processBackendResponse<Recipe>(response);
-      const recipesArray = Array.isArray(recipesData) ? recipesData : [];
-
-      if (opts.append) {
-        setRecipes((prev) => [...(Array.isArray(prev) ? prev : []), ...recipesArray]);
-      } else {
-        setRecipes(recipesArray);
-      }
-
-      setHasMore(recipesArray.length === initialLimit);
-      return true;
-    } catch (err) {
-      console.error("Error fetching recipes:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to load recipes";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      if (!opts.append) {
-        setRecipes([]);
-      }
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initial load and filter-change fetch (reset to page 1)
-  useEffect(() => {
-    if (!mounted) return;
-    setPage(1);
-    fetchRecipes({
-      search: searchValue,
-      category: categoryValue,
-      difficulty: difficultyValue,
-      targetPage: 1,
-      append: false,
-    });
-    pushFilterParams({
-      search: searchValue,
-      category: categoryValue,
-      difficulty: difficultyValue,
-      page: 1,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, searchValue, categoryValue, difficultyValue]);
+  const pushFilterParams = useCallback(
+    (params: { search: string; category: string; difficulty: string; page: number }) => {
+      const qs = new URLSearchParams();
+      const normalizedSearch = params.search.trim();
+      if (normalizedSearch) qs.set("search", normalizedSearch);
+      if (params.category) qs.set("category", params.category);
+      if (params.difficulty) qs.set("difficulty", params.difficulty);
+      if (params.page > 1) qs.set("page", String(params.page));
+      const queryString = qs.toString();
+      router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    },
+    [router, pathname]
+  );
 
   const handleSearchChange = (value: string) => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       setSearchValue(value);
+      setPage(1);
+      pushFilterParams({
+        search: value,
+        category: categoryValue,
+        difficulty: difficultyValue,
+        page: 1,
+      });
     }, 400);
   };
 
   const handleCategoryChange = (category: string) => {
     setCategoryValue(category);
+    setPage(1);
+    pushFilterParams({ search: searchValue, category, difficulty: difficultyValue, page: 1 });
   };
 
   const handleDifficultyChange = (difficulty: string) => {
     setDifficultyValue(difficulty);
+    setPage(1);
+    pushFilterParams({ search: searchValue, category: categoryValue, difficulty, page: 1 });
   };
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = () => {
     const nextPage = page + 1;
-    const success = await fetchRecipes({
+    setPage(nextPage);
+    pushFilterParams({
       search: searchValue,
       category: categoryValue,
       difficulty: difficultyValue,
-      targetPage: nextPage,
-      append: true,
+      page: nextPage,
     });
-    if (success) {
-      setPage(nextPage);
-      pushFilterParams({
-        search: searchValue,
-        category: categoryValue,
-        difficulty: difficultyValue,
-        page: nextPage,
-      });
-    }
   };
 
   const handleViewRecipe = useCallback(
@@ -219,7 +163,7 @@ export function SimpleRecipeList({
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-red-600">
-          {error}
+          {error instanceof Error ? error.message : "Failed to load recipes"}
         </div>
       )}
 
@@ -260,16 +204,12 @@ export function SimpleRecipeList({
           {hasMore && (
             <div className="flex justify-center">
               <Button
-                onClick={() => {
-                  handleLoadMore().catch((err) => {
-                    console.error("Failed to load more recipes:", err);
-                  });
-                }}
-                disabled={isLoading}
+                onClick={handleLoadMore}
+                disabled={isFetching}
                 variant="outline"
                 className="min-w-[200px]"
               >
-                {isLoading ? "Loading..." : "Load More"}
+                {isFetching ? "Loading..." : "Load More"}
               </Button>
             </div>
           )}

@@ -1,138 +1,90 @@
 "use client";
 
-import { create } from "zustand";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as recipesApi from "@/lib/api/recipes";
 import type { Recipe, CreateRecipeData, RecipeReview } from "@/lib/api/recipes";
 import { processBackendResponse } from "@/lib/api/config";
 
-interface RecipesState {
-  recipes: Recipe[];
-  currentRecipe: Recipe | null;
-  isLoading: boolean;
-  error: string | null;
-  totalPages: number;
-  currentPage: number;
-  getRecipes: (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    category?: string;
-    difficulty?: string;
-  }) => Promise<void>;
-  getRecipe: (id: string) => Promise<void>;
-  createRecipe: (data: CreateRecipeData) => Promise<string>;
-  updateRecipe: (id: string, data: Partial<CreateRecipeData>) => Promise<void>;
-  deleteRecipe: (id: string) => Promise<void>;
-  addRecipeReview: (id: string, review: RecipeReview, token?: string) => Promise<void>;
+// Base list query
+export function useRecipes(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  difficulty?: string;
+}) {
+  return useQuery({
+    queryKey: ["recipes", params],
+    queryFn: async () => {
+      const response = await recipesApi.getRecipes(params);
+      const data = processBackendResponse<Recipe>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
-export const useRecipes = create<RecipesState>((set) => ({
-  recipes: [],
-  currentRecipe: null,
-  isLoading: false,
-  error: null,
-  totalPages: 0,
-  currentPage: 1,
-
-  getRecipes: async (params) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await recipesApi.getRecipes(params);
-
-      // Use the universal helper to process backend response
-      const recipes = processBackendResponse<Recipe>(response) as Recipe[];
-
-      set({
-        recipes: Array.isArray(recipes) ? recipes : [],
-        totalPages: 1, // Backend doesn't implement pagination yet
-        currentPage: 1,
-        isLoading: false,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load recipes";
-      console.error("getRecipes error:", err);
-      set({ error: message, isLoading: false, recipes: [] });
-      throw err;
-    }
-  },
-
-  getRecipe: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
+// Single recipe query
+export function useRecipe(id: string) {
+  return useQuery({
+    queryKey: ["recipes", id],
+    queryFn: async () => {
       const response = await recipesApi.getRecipe(id);
-      const recipe = processBackendResponse<Recipe>(response) as Recipe;
-      set({ currentRecipe: recipe, isLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load recipe";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
+      return processBackendResponse<Recipe>(response) as Recipe;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
-  createRecipe: async (data) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await recipesApi.createRecipe(data);
-      const recipe = processBackendResponse<Recipe>(response) as Recipe;
-      set((state) => ({
-        recipes: [recipe, ...state.recipes],
-        isLoading: false,
-      }));
-      return recipe._id;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create recipe";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
+// Mutations with automatic cache invalidation
+export function useRecipeMutations() {
+  const queryClient = useQueryClient();
 
-  updateRecipe: async (id, data) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await recipesApi.updateRecipe(id, data);
-      const updatedRecipe = processBackendResponse<Recipe>(response) as Recipe;
-      set((state) => ({
-        recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
-        currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update recipe";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
+  const createRecipe = useMutation({
+    mutationFn: (data: CreateRecipeData) => recipesApi.createRecipe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
 
-  deleteRecipe: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
-      await recipesApi.deleteRecipe(id);
-      set((state) => ({
-        recipes: state.recipes.filter((recipe) => recipe._id !== id),
-        currentRecipe: state.currentRecipe?._id === id ? null : state.currentRecipe,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete recipe";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
+  const updateRecipe = useMutation({
+    mutationFn: ({
+      id,
+      data,
+      token,
+    }: {
+      id: string;
+      data: Partial<CreateRecipeData>;
+      token?: string;
+    }) => recipesApi.updateRecipe(id, data, token),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recipes", variables.id] });
+    },
+  });
 
-  addRecipeReview: async (id, review, token) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await recipesApi.addRecipeReview(id, review, token);
-      const updatedRecipe = processBackendResponse<Recipe>(response) as Recipe;
-      set((state) => ({
-        recipes: state.recipes.map((recipe) => (recipe._id === id ? updatedRecipe : recipe)),
-        currentRecipe: state.currentRecipe?._id === id ? updatedRecipe : state.currentRecipe,
-        isLoading: false,
-      }));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add review";
-      set({ error: message, isLoading: false });
-      throw err;
-    }
-  },
-}));
+  const deleteRecipe = useMutation({
+    mutationFn: ({ id, token }: { id: string; token?: string }) =>
+      recipesApi.deleteRecipe(id, token),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+
+  const addReview = useMutation({
+    mutationFn: ({ id, review, token }: { id: string; review: RecipeReview; token?: string }) =>
+      recipesApi.addRecipeReview(id, review, token),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.invalidateQueries({ queryKey: ["recipes", variables.id] });
+    },
+  });
+
+  return {
+    createRecipe,
+    updateRecipe,
+    deleteRecipe,
+    addReview,
+  };
+}

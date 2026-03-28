@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Restaurant, getRestaurants } from "@/lib/api/restaurants";
+import { useState } from "react";
+import { useRestaurants } from "@/hooks/useRestaurants";
 import { RestaurantCard } from "./restaurant-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { processBackendResponse } from "@/lib/api/config";
-// Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin } from "lucide-react";
-import { toast } from "sonner";
 
 interface RestaurantListProps {
-  initialRestaurants?: Restaurant[];
   showFilters?: boolean;
   title?: string;
 }
@@ -39,73 +35,33 @@ const RATING_OPTIONS = [
   { value: "2", label: "2+ stars" },
 ];
 
-export function RestaurantList({
-  initialRestaurants = [],
-  showFilters = true,
-  title = "Restaurants",
-}: RestaurantListProps) {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(initialRestaurants);
-  const [loading, setLoading] = useState(false);
+export function RestaurantList({ showFilters = true, title = "Restaurants" }: RestaurantListProps) {
   const [search, setSearch] = useState("");
   const [cuisineFilter, setCuisineFilter] = useState("");
   const [ratingFilter, setRatingFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const loadRestaurants = useCallback(
-    async (reset = false, pageOverride?: number) => {
-      setLoading(true);
-      try {
-        const currentPage = reset ? 1 : (pageOverride ?? page);
-        const params: Record<string, string | number> = {
-          page: currentPage,
-          limit: 12,
-        };
+  const {
+    data: restaurants = [],
+    isLoading,
+    isFetching,
+  } = useRestaurants({
+    search: search || undefined,
+    cuisine: cuisineFilter || undefined,
+    rating: ratingFilter ? parseInt(ratingFilter) : undefined,
+    page,
+    limit: 12,
+  });
 
-        if (search) params.search = search;
-        if (cuisineFilter) params.cuisine = cuisineFilter;
-        if (ratingFilter) params.rating = parseInt(ratingFilter);
-
-        const response = await getRestaurants(params);
-        const processed = processBackendResponse<Restaurant>(response);
-        const data = Array.isArray(processed) ? processed : processed ? [processed] : [];
-
-        if (reset) {
-          setRestaurants(data);
-          setPage(1);
-        } else {
-          setRestaurants((prev) => [...prev, ...data]);
-        }
-
-        setHasMore(data.length === 12);
-      } catch {
-        toast.error("Failed to load restaurants");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, search, cuisineFilter, ratingFilter]
-  );
-
-  useEffect(() => {
-    if (initialRestaurants.length === 0) {
-      loadRestaurants(true);
-    }
-  }, [initialRestaurants.length, loadRestaurants]);
+  const hasMore = restaurants.length === 12;
 
   const handleSearch = () => {
-    loadRestaurants(true);
-  };
-
-  const handleFilterChange = () => {
-    loadRestaurants(true);
+    setPage(1);
   };
 
   const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    const next = page + 1;
-    setPage(next);
-    loadRestaurants(false, next);
+    if (isFetching || !hasMore) return;
+    setPage((prev) => prev + 1);
   };
 
   return (
@@ -138,7 +94,7 @@ export function RestaurantList({
                 value={cuisineFilter}
                 onChange={(e) => {
                   setCuisineFilter(e.target.value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
@@ -155,7 +111,7 @@ export function RestaurantList({
                 value={ratingFilter}
                 onChange={(e) => {
                   setRatingFilter(e.target.value);
-                  handleFilterChange();
+                  setPage(1);
                 }}
                 className="border-input focus:ring-ring rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
               >
@@ -167,8 +123,8 @@ export function RestaurantList({
               </select>
 
               {/* Search Button */}
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? "Searching..." : "Search"}
+              <Button onClick={handleSearch} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -176,7 +132,13 @@ export function RestaurantList({
       )}
 
       {/* Restaurant Grid */}
-      {restaurants.length > 0 ? (
+      {isLoading && restaurants.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-muted h-[300px] animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : restaurants.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {restaurants.map((restaurant) => (
             <RestaurantCard key={restaurant._id} restaurant={restaurant} />
@@ -195,8 +157,8 @@ export function RestaurantList({
       {/* Load More Button */}
       {hasMore && restaurants.length > 0 && (
         <div className="text-center">
-          <Button onClick={handleLoadMore} disabled={loading} variant="outline" className="px-8">
-            {loading ? "Loading..." : "Load More"}
+          <Button onClick={handleLoadMore} disabled={isFetching} variant="outline" className="px-8">
+            {isFetching ? "Loading..." : "Load More"}
           </Button>
         </div>
       )}
