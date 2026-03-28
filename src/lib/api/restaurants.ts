@@ -3,7 +3,8 @@ import { buildSearchParams } from "./utils";
 import { Review } from "@/types";
 import { GeoLocation } from "@/types/geospatial";
 
-// Development flag to use mock data when backend has issues
+// WARNING: Mock data is ONLY used in development when the backend is unreachable.
+// In production, errors propagate to error boundaries.
 
 export interface Restaurant {
   _id: string;
@@ -84,11 +85,11 @@ export async function getRestaurants(params?: RestaurantSearchParams) {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-
-    // Return mock data if there's a network error
-    console.warn("Network error detected, returning mock data for development");
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[DEV] Network error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -272,8 +273,11 @@ export async function getNearbyRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[DEV] Network error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -306,8 +310,11 @@ export async function getRestaurantsByCuisine(
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[DEV] Network error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
 
@@ -342,7 +349,10 @@ export async function getAdvancedRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    console.error("Network error:", error);
-    return getMockRestaurants();
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[DEV] Network error, returning mock data:", error);
+      return getMockRestaurants();
+    }
+    throw error;
   }
 }
