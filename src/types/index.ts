@@ -10,90 +10,11 @@ export interface Review {
   createdAt: string;
 }
 
-/**
- * @deprecated Use `Doctor` from `@/lib/api/doctors` instead.
- * The API layer is the canonical source of truth for this type.
- */
-export interface Doctor {
-  _id: string;
-  name: string;
-  specialty: string;
-  address: string;
-  city: string;
-  country: string;
-  phone: string;
-  email: string;
-  website?: string;
-  photo?: string;
-  bio: string;
-  experience: string;
-  education: string[];
-  languages: string[];
-  consultationFee: number;
-  rating: number;
-  numReviews: number;
-  reviews: Review[];
-  author: {
-    _id: string;
-    username: string;
-  };
-  createdAt: string;
-  location: {
-    type: string;
-    coordinates: number[];
-    city: string;
-    country: string;
-  };
-  yearsOfExperience: number;
-}
+export type { Doctor } from "@/lib/api/doctors";
 
-/**
- * @deprecated Use `Restaurant` from `@/lib/api/restaurants` instead.
- * The API layer is the canonical source of truth for this type.
- */
-export interface Restaurant {
-  _id: string;
-  name: string;
-  cuisine: string[];
-  address: string;
-  city: string;
-  country: string;
-  phone: string;
-  website?: string;
-  image?: string;
-  rating: number;
-  numReviews: number;
-  reviews: Review[];
-  author: {
-    _id: string;
-    username: string;
-  };
-  createdAt: string;
-}
+export type { Restaurant } from "@/lib/api/restaurants";
 
-/**
- * @deprecated Use `Market` from `@/lib/api/markets` instead.
- * The API layer is the canonical source of truth for this type.
- */
-export interface Market {
-  _id: string;
-  name: string;
-  category: string;
-  address: string;
-  city: string;
-  country: string;
-  phone: string;
-  website?: string;
-  image?: string;
-  rating: number;
-  numReviews: number;
-  reviews: Review[];
-  author: {
-    _id: string;
-    username: string;
-  };
-  createdAt: string;
-}
+export type { Market } from "@/lib/api/markets";
 
 export interface Post {
   _id: string;
@@ -114,35 +35,7 @@ export interface Post {
   createdAt: string;
 }
 
-/**
- * @deprecated Use `Recipe` from `@/lib/api/recipes` instead.
- * The API layer is the canonical source of truth for this type.
- */
-export interface Recipe {
-  _id: string;
-  title: string;
-  description: string;
-  ingredients: string[];
-  instructions: string[];
-  author: {
-    _id: string;
-    username: string;
-    photo?: string;
-  };
-  image?: string;
-  likes: string[];
-  comments: {
-    user: string;
-    text: string;
-    createdAt: string;
-  }[];
-  createdAt: string;
-  preparationTime: number;
-  cookingTime: number;
-  servings: number;
-  difficulty: "easy" | "medium" | "hard";
-  averageRating: number;
-}
+export type { Recipe } from "@/lib/api/recipes";
 
 export interface User {
   _id: string;
@@ -159,38 +52,7 @@ export interface User {
   updatedAt?: string;
 }
 
-/**
- * @deprecated Use `Business` from `@/lib/api/businesses` instead.
- * The API layer is the canonical source of truth for this type.
- */
-export interface Business {
-  _id: string;
-  namePlace: string;
-  author: {
-    _id: string;
-    username: string;
-    photo?: string;
-  };
-  address: string;
-  location?: {
-    type: string;
-    coordinates: [number, number];
-  };
-  image: string;
-  contact: {
-    phone?: string;
-    email?: string;
-    website?: string;
-  }[];
-  budget: number;
-  typeBusiness: string;
-  hours: { dayOfWeek: string; openTime: string; closeTime: string }[];
-  reviews: Review[];
-  rating: number;
-  numReviews: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { Business } from "@/lib/api/businesses";
 
 export interface Contact {
   phone: string;
@@ -336,12 +198,3 @@ export interface ProfessionalProfile {
   updatedAt: string;
 }
 
-// ---------------------------------------------------------------------------
-// Re-exports from API layer (canonical source of truth).
-// Import from these aliases to gradually migrate away from the deprecated types above.
-// ---------------------------------------------------------------------------
-export type { Restaurant as ApiRestaurant } from "@/lib/api/restaurants";
-export type { Doctor as ApiDoctor } from "@/lib/api/doctors";
-export type { Market as ApiMarket } from "@/lib/api/markets";
-export type { Recipe as ApiRecipe } from "@/lib/api/recipes";
-export type { Business as ApiBusiness } from "@/lib/api/businesses";

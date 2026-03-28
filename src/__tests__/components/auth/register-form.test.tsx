@@ -1,0 +1,250 @@
+import "@testing-library/jest-dom";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { RegisterForm } from "@/components/auth/register-form";
+import { expectValidationBlocked, expectValidationMessage } from "@/test-utils/auth-form-test-utils";
+
+jest.mock("@/components/ui/form", () => require("@/test-utils/shadcn-form-mocks").createFormMock());
+jest.mock("@/components/ui/button", () =>
+  require("@/test-utils/shadcn-form-mocks").createButtonMock()
+);
+jest.mock("@/components/ui/input", () =>
+  require("@/test-utils/shadcn-form-mocks").createInputMock()
+);
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function buildProps(overrides?: Partial<Parameters<typeof RegisterForm>[0]>) {
+  return {
+    onSubmit: jest.fn().mockResolvedValue(undefined),
+    onLogin: jest.fn(),
+    isLoading: false,
+    ...overrides,
+  };
+}
+
+type UserInstance = ReturnType<typeof userEvent.setup>;
+
+async function fillValidForm(user: UserInstance) {
+  await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+  await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+  await user.selectOptions(screen.getByRole("combobox"), "user");
+  await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+  await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+describe("RegisterForm", () => {
+  describe("rendering", () => {
+    it("renders the Join Verde Guide heading", () => {
+      render(<RegisterForm {...buildProps()} />);
+      expect(screen.getByText("Join Verde Guide")).toBeInTheDocument();
+    });
+
+    it("renders all required input fields", () => {
+      render(<RegisterForm {...buildProps()} />);
+      expect(screen.getByPlaceholderText("Enter your username")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Enter your email")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Create a strong password")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Confirm your password")).toBeInTheDocument();
+    });
+
+    it("renders the account type selector", () => {
+      render(<RegisterForm {...buildProps()} />);
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Regular User" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Professional" })).toBeInTheDocument();
+    });
+
+    it("renders the Create Account submit button", () => {
+      render(<RegisterForm {...buildProps()} />);
+      expect(screen.getByRole("button", { name: "Create Account" })).toBeInTheDocument();
+    });
+
+    it("shows 'Creating account...' and disables the button when isLoading is true", () => {
+      render(<RegisterForm {...buildProps({ isLoading: true })} />);
+      const btn = screen.getByRole("button", { name: "Creating account..." });
+      expect(btn).toBeDisabled();
+    });
+
+    it("renders the sign-in link button", () => {
+      render(<RegisterForm {...buildProps()} />);
+      expect(screen.getByRole("button", { name: /sign in here/i })).toBeInTheDocument();
+    });
+  });
+
+  describe("navigation callback", () => {
+    it("calls onLogin when sign-in link is clicked", async () => {
+      const user = userEvent.setup();
+      const props = buildProps();
+      render(<RegisterForm {...props} />);
+      await user.click(screen.getByRole("button", { name: /sign in here/i }));
+      expect(props.onLogin).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("form submission — happy path", () => {
+    it("calls onSubmit with all valid data", async () => {
+      const user = userEvent.setup();
+      const props = buildProps();
+      render(<RegisterForm {...props} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: "Create Account" }));
+
+      await waitFor(() => {
+        expect(props.onSubmit).toHaveBeenCalledWith({
+          username: "veganlover",
+          email: "vegan@example.com",
+          password: "Password1",
+          confirmPassword: "Password1",
+          role: "user",
+        });
+      });
+    });
+
+    it("calls onSubmit with role=professional when that option is selected", async () => {
+      const user = userEvent.setup();
+      const props = buildProps();
+      render(<RegisterForm {...props} />);
+
+      await user.type(screen.getByPlaceholderText("Enter your username"), "prouser");
+      await user.type(screen.getByPlaceholderText("Enter your email"), "pro@example.com");
+      await user.selectOptions(screen.getByRole("combobox"), "professional");
+      await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+      await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+      await user.click(screen.getByRole("button", { name: "Create Account" }));
+
+      await waitFor(() => {
+        expect(props.onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({ role: "professional" })
+        );
+      });
+    });
+  });
+
+  describe("form validation", () => {
+    const validationCases = [
+      {
+        name: "username is missing",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+        },
+      },
+      {
+        name: "email is invalid",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "not-an-email");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+        },
+      },
+      {
+        name: "passwords do not match",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password2");
+        },
+      },
+      {
+        name: "password is too short",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "P1a");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "P1a");
+        },
+      },
+      {
+        name: "empty placeholder option is selected",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+          await user.selectOptions(screen.getByRole("combobox"), "");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+        },
+      },
+    ];
+
+    test.each(validationCases)(
+      "does not call onSubmit when $name",
+      async ({ fill }) => {
+        const user = userEvent.setup();
+        const props = buildProps();
+        render(<RegisterForm {...props} />);
+        await fill(user);
+        await user.click(screen.getByRole("button", { name: "Create Account" }));
+        await expectValidationBlocked(props.onSubmit);
+      }
+    );
+
+    const errorMessageCases = [
+      {
+        name: "email is invalid",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "not-an-email");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password1");
+        },
+        message: "Please enter a valid email address",
+      },
+      {
+        name: "passwords do not match",
+        fill: async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.type(screen.getByPlaceholderText("Enter your username"), "veganlover");
+          await user.type(screen.getByPlaceholderText("Enter your email"), "vegan@example.com");
+          await user.selectOptions(screen.getByRole("combobox"), "user");
+          await user.type(screen.getByPlaceholderText("Create a strong password"), "Password1");
+          await user.type(screen.getByPlaceholderText("Confirm your password"), "Password2");
+        },
+        message: "Passwords don't match",
+      },
+    ];
+
+    test.each(errorMessageCases)(
+      "shows a validation error when $name",
+      async ({ fill, message }) => {
+        const user = userEvent.setup();
+        const props = buildProps();
+        render(<RegisterForm {...props} />);
+        await fill(user);
+        await user.click(screen.getByRole("button", { name: "Create Account" }));
+        await expectValidationMessage(message);
+      }
+    );
+  });
+
+  describe("error recovery", () => {
+    it("swallows the error thrown by onSubmit so the form does not crash", async () => {
+      const user = userEvent.setup();
+      const props = buildProps({
+        onSubmit: jest.fn().mockRejectedValue(new Error("Email already taken")),
+      });
+      render(<RegisterForm {...props} />);
+
+      await fillValidForm(user);
+      await expect(
+        user.click(screen.getByRole("button", { name: "Create Account" }))
+      ).resolves.not.toThrow();
+
+      await waitFor(() => {
+        expect(props.onSubmit).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+});

@@ -14,7 +14,6 @@ const customJestConfig = {
   collectCoverage: true,
   collectCoverageFrom: [
     // Hooks (tested)
-    "src/hooks/useApiToken.ts",
     "src/hooks/useAuth.ts",
     "src/hooks/useBusinesses.ts",
     "src/hooks/useCache.ts",
@@ -48,6 +47,9 @@ const customJestConfig = {
     "src/lib/seo/json-ld.tsx",
     "src/lib/config/maps.ts",
     // Components (tested)
+    "src/components/auth/login-form.tsx",
+    "src/components/auth/register-form.tsx",
+    "src/components/auth/logout-button.tsx",
     "src/components/ui/error-fallback.tsx",
     "src/components/features/restaurants/restaurant-card.tsx",
     "src/components/features/recipes/recipe-card.tsx",
