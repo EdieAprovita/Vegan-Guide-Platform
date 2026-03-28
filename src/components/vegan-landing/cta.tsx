@@ -10,7 +10,6 @@ export function CallToAction() {
         alt="Fresh vegetables background"
         className="absolute top-0 left-0 z-10 h-full w-full object-cover"
         fill
-        priority
       />
 
       {/* Overlay */}

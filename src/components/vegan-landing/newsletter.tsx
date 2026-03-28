@@ -11,7 +11,6 @@ export function Newsletter() {
         alt="Green vegetables background"
         className="absolute top-0 left-0 z-10 h-full w-full object-cover"
         fill
-        priority
       />
 
       {/* Footer background overlay */}
