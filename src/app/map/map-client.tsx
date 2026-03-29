@@ -166,6 +166,8 @@ export default function MapClient() {
 
     const stars = document.createElement("span");
     stars.style.cssText = "color: #f59e0b; font-size: 14px;";
+    stars.setAttribute("role", "img");
+    stars.setAttribute("aria-label", `Calificación: ${count} de 5 estrellas`);
     stars.textContent = "\u2605".repeat(count) + "\u2606".repeat(5 - count);
 
     const ratingNum = document.createElement("span");
@@ -329,7 +331,12 @@ export default function MapClient() {
                     <p className="text-xs text-gray-500">{marker.address}</p>
                     <div className="mt-1 flex items-center justify-between">
                       <span className="text-xs text-yellow-500">
-                        {"★".repeat(safeStarCount(marker.rating))}
+                        <span
+                          role="img"
+                          aria-label={`Calificación: ${safeStarCount(marker.rating)} de 5 estrellas`}
+                        >
+                          <span aria-hidden="true">{"★".repeat(safeStarCount(marker.rating))}</span>
+                        </span>
                         <span className="ml-1 text-gray-500">
                           {(typeof marker.rating === "number" ? marker.rating : 0).toFixed(1)}
                         </span>

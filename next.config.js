@@ -68,7 +68,6 @@ const nextConfig = {
   },
   // Configuración de PWA
   async headers() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
     return [
       {
         source: "/manifest.json",
@@ -105,20 +104,6 @@ const nextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(self)",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
-              "font-src 'self'",
-              `connect-src 'self' ${apiUrl}`,
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
           },
         ],
       },

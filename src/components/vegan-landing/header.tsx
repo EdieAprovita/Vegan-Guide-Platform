@@ -139,7 +139,7 @@ export function Header() {
                 <li className="flex-shrink-0">
                   <RegisterModal
                     trigger={
-                      <Button className="bg-primary font-brand-serif text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 transform rounded-full px-6 py-2 text-sm font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-[3px] focus-visible:outline-none">
+                      <Button className="font-brand-serif rounded-full px-6 text-sm font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl">
                         {t("nav.joinUs")}
                       </Button>
                     }
@@ -154,7 +154,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="border-border font-brand-serif text-foreground hover:border-foreground hover:bg-foreground hover:text-background focus-visible:ring-ring/50 rounded-full px-6 py-2 text-sm font-medium transition-all duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
+                  className="font-brand-serif rounded-full px-6 text-sm font-medium transition-all duration-200 hover:border-foreground hover:bg-foreground hover:text-background"
                 >
                   {t("nav.signOut")}
                 </Button>
@@ -242,7 +242,7 @@ export function Header() {
                 <li className="border-border/50 border-b">
                   <RegisterModal
                     trigger={
-                      <Button className="bg-primary font-brand-serif text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 w-full transform rounded-lg py-3 text-base font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:outline-none">
+                      <Button className="font-brand-serif focus-visible:ring-ring/50 w-full transform rounded-lg py-3 text-base font-medium shadow-lg transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:outline-none">
                         {t("nav.joinUs")}
                       </Button>
                     }
@@ -254,7 +254,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="border-border font-brand-serif text-foreground hover:bg-foreground hover:text-background focus-visible:ring-ring/50 w-full rounded-lg py-3 font-medium transition-all duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
+                  className="border-border font-brand-serif text-foreground hover:bg-foreground hover:text-background w-full rounded-lg py-3 font-medium transition-all duration-200"
                 >
                   {t("nav.signOut")}
                 </Button>

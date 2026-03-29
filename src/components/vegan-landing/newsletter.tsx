@@ -54,7 +54,10 @@ export function Newsletter() {
             placeholder="Enter your email"
             className="flex-1 border-none bg-transparent px-4 py-4 font-['Playfair_Display'] text-base font-normal text-gray-600 placeholder-gray-400 outline-none sm:px-6 sm:text-lg md:text-xl"
           />
-          <Button className="m-0 h-12 w-full touch-manipulation rounded-none border-0 bg-green-500 py-4 font-['Playfair_Display'] text-lg font-bold text-green-800 shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] hover:bg-green-600 sm:h-auto sm:w-auto sm:min-w-[137px] sm:rounded-r-lg sm:py-0 sm:text-xl lg:text-[22px]">
+          <Button
+            size="xl"
+            className="w-full touch-manipulation rounded-none font-['Playfair_Display'] font-bold sm:w-auto sm:min-w-[137px] sm:rounded-l-none sm:rounded-r-md"
+          >
             Subscribe
           </Button>
         </div>
