@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle, User, Calendar, Tag } from "lucide-react";
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { likePost } from "@/lib/api/posts";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -19,8 +19,9 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, showActions = true, onLikeChange }: PostCardProps) {
-  const { user } = useAuthStore();
-  const [isLiked, setIsLiked] = useState(post.likes.includes(user?._id || ""));
+  const { data: session } = useSession();
+  const user = session?.user;
+  const [isLiked, setIsLiked] = useState(post.likes.includes(user?.id || ""));
   const [likeCount, setLikeCount] = useState(post.likes.length);
 
   const handleLike = async () => {

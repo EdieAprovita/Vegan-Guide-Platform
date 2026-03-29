@@ -29,7 +29,7 @@ interface ReviewWithResource extends Review {
 }
 
 export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) => {
-  // const { user, isAuthenticated } = useAuthStore(); // TODO: Use auth state when needed
+  // TODO: Use session?.user when auth-gated review actions are implemented
   const [reviews, setReviews] = useState<ReviewWithResource[]>([]);
   const [filteredReviews, setFilteredReviews] = useState<ReviewWithResource[]>([]);
   const [loading, setLoading] = useState(true);

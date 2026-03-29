@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Star, MoreVertical, Edit, Trash2, Flag } from "lucide-react";
 import { Review } from "@/lib/api/reviews";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -57,11 +57,13 @@ export const ReviewCard = ({
   showActions = true,
   compact = false,
 }: ReviewCardProps) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = status === "authenticated";
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const canEditReview = user && (user._id === review.user._id || user.role === "admin");
-  const canDeleteReview = user && (user._id === review.user._id || user.role === "admin");
+  const canEditReview = user && (user.id === review.user._id || user.role === "admin");
+  const canDeleteReview = user && (user.id === review.user._id || user.role === "admin");
   const canModerateReview = user && user.role === "admin";
 
   const handleEditReview = () => {
@@ -109,8 +111,8 @@ export const ReviewCard = ({
     // Update the review's helpful count in the parent component
     review.helpfulCount = newCount;
     review.helpful = isHelpful
-      ? [...(review.helpful || []), user?._id || ""]
-      : (review.helpful || []).filter((id) => id !== user?._id);
+      ? [...(review.helpful || []), user?.id || ""]
+      : (review.helpful || []).filter((id) => id !== user?.id);
     onReviewUpdate?.();
   };
 
@@ -192,7 +194,7 @@ export const ReviewCard = ({
                   <h3 className="truncate font-semibold text-foreground">{review.user.username}</h3>
                   {user?.role === "admin" && (
                     <Badge variant="outline" className="text-xs">
-                      {user.role}
+                      {user?.role}
                     </Badge>
                   )}
                 </div>

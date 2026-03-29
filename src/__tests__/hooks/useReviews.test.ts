@@ -1,6 +1,5 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useReviews, useReview } from "@/hooks/useReviews";
-import { useAuthStore } from "@/lib/store/auth";
 import * as reviewsApi from "@/lib/api/reviews";
 
 jest.mock("@/lib/api/reviews", () => ({
@@ -14,12 +13,13 @@ jest.mock("@/lib/api/reviews", () => ({
   createRestaurantReview: jest.fn(),
 }));
 
-// Mock the auth store so we can control isAuthenticated as a simple value
-jest.mock("@/lib/store/auth", () => ({
-  useAuthStore: jest.fn(),
+// Mock next-auth/react so we can control isAuthenticated as a simple value
+jest.mock("next-auth/react", () => ({
+  useSession: jest.fn(),
 }));
 
-const useAuthStoreMock = useAuthStore as unknown as jest.Mock;
+import { useSession } from "next-auth/react";
+const useSessionMock = useSession as unknown as jest.Mock;
 
 const mockReview = {
   _id: "rev1",
@@ -43,11 +43,14 @@ const mockStats = {
 const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
 const setUnauthenticated = () => {
-  useAuthStoreMock.mockReturnValue({ token: null, isAuthenticated: false });
+  useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
 };
 
 const setAuthenticated = () => {
-  useAuthStoreMock.mockReturnValue({ token: "auth-token", isAuthenticated: true });
+  useSessionMock.mockReturnValue({
+    data: { user: { id: "user-1", name: "Test User", email: "test@example.com" } },
+    status: "authenticated",
+  });
 };
 
 beforeEach(() => {
@@ -310,7 +313,7 @@ describe("useReview", () => {
   });
 
   it("updateReview throws when not authenticated", async () => {
-    // useAuthStore is mocked globally; setUnauthenticated is already applied in beforeEach
+    // useSession is mocked globally; setUnauthenticated is already applied in beforeEach
     (reviewsApi.getReview as jest.Mock).mockResolvedValue({ data: mockReview });
 
     const { result } = renderHook(() => useReview("rev1"));
@@ -323,7 +326,7 @@ describe("useReview", () => {
   });
 
   it("deleteReview throws when not authenticated", async () => {
-    // useAuthStore is mocked globally; setUnauthenticated is already applied in beforeEach
+    // useSession is mocked globally; setUnauthenticated is already applied in beforeEach
     (reviewsApi.getReview as jest.Mock).mockResolvedValue({ data: mockReview });
 
     const { result } = renderHook(() => useReview("rev1"));

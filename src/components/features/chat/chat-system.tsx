@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MessageCircle, Paperclip } from "lucide-react";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 interface Message {
@@ -39,7 +39,8 @@ interface ChatSystemProps {
 }
 
 export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
-  const { user } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -62,7 +63,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
         {
           id: "2",
           content: "Hi Sarah! How's your vegan journey going?",
-          sender: { id: user?._id || "user1", username: user?.username || "You" },
+          sender: { id: user?.id || "user1", username: user?.name || "You" },
           timestamp: new Date(Date.now() - 1000 * 60 * 8),
           type: "text",
           isRead: true,
@@ -71,7 +72,7 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
 
       setMessages(mockMessages);
     }
-  }, [activeRoom, user?._id, user?.username]);
+  }, [activeRoom, user?.id, user?.name]);
 
   useEffect(() => {
     if (isOpen) {
@@ -129,9 +130,9 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
       id: Date.now().toString(),
       content: newMessage,
       sender: {
-        id: user._id,
-        username: user.username,
-        avatar: user.photo,
+        id: user.id ?? "",
+        username: user.name ?? "",
+        avatar: user.image ?? undefined,
       },
       timestamp: new Date(),
       type: "text",
@@ -261,10 +262,10 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                       <div
                         key={message.id}
                         className={`flex gap-3 ${
-                          message.sender.id === user?._id ? "justify-end" : "justify-start"
+                          message.sender.id === user?.id ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {message.sender.id !== user?._id && (
+                        {message.sender.id !== user?.id && (
                           <Avatar className="h-8 w-8 flex-shrink-0">
                             <AvatarFallback>
                               {message.sender.username.charAt(0).toUpperCase()}
@@ -273,12 +274,12 @@ export function ChatSystem({ isOpen, onClose }: ChatSystemProps) {
                         )}
                         <div
                           className={`max-w-xs lg:max-w-md ${
-                            message.sender.id === user?._id
+                            message.sender.id === user?.id
                               ? "bg-green-600 text-white"
                               : "bg-gray-100"
                           } rounded-lg p-3`}
                         >
-                          {message.sender.id !== user?._id && (
+                          {message.sender.id !== user?.id && (
                             <p className="mb-1 text-xs font-medium text-gray-600">
                               {message.sender.username}
                             </p>

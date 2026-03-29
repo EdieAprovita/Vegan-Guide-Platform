@@ -5,7 +5,7 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 interface Notification {
@@ -18,7 +18,8 @@ interface Notification {
 }
 
 export function NotificationBell() {
-  const { user } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 

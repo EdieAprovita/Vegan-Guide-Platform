@@ -7,14 +7,14 @@ import { createMockReview } from "@/__tests__/helpers/test-data-factories";
 // Module mocks
 // ---------------------------------------------------------------------------
 
-// Mock useAuthStore so we control the authenticated user
-const mockAuthStore = {
-  user: null as { _id: string; username: string; role?: string } | null,
-  isAuthenticated: false,
+// Mock useSession so we control the authenticated user
+const mockSession = {
+  data: null as { user: { id: string; name: string; role?: string } } | null,
+  status: "unauthenticated" as "authenticated" | "unauthenticated" | "loading",
 };
 
-jest.mock("@/lib/store/auth", () => ({
-  useAuthStore: () => mockAuthStore,
+jest.mock("next-auth/react", () => ({
+  useSession: () => mockSession,
 }));
 
 // Mock the HelpfulVotes sub-component to simplify testing
@@ -59,8 +59,8 @@ const defaultProps = {
 
 describe("ReviewCard (full view)", () => {
   beforeEach(() => {
-    mockAuthStore.user = null;
-    mockAuthStore.isAuthenticated = false;
+    mockSession.data = null;
+    mockSession.status = "unauthenticated";
   });
 
   it("renders the reviewer username", () => {
@@ -158,8 +158,8 @@ describe("ReviewCard (full view)", () => {
   });
 
   it("shows 'Reportar' option in dropdown when user is authenticated but not the author", () => {
-    mockAuthStore.user = { _id: "other-user-999", username: "otheruser" };
-    mockAuthStore.isAuthenticated = true;
+    mockSession.data = { user: { id: "other-user-999", name: "otheruser" } };
+    mockSession.status = "authenticated";
     render(<ReviewCard {...defaultProps} />);
     const items = screen.getAllByTestId("dropdown-item");
     const reportItem = items.find((el) => el.textContent?.includes("Reportar"));
@@ -167,8 +167,8 @@ describe("ReviewCard (full view)", () => {
   });
 
   it("shows 'Editar' and 'Eliminar' options when user is the review author", () => {
-    mockAuthStore.user = { _id: "user-001", username: "johndoe" };
-    mockAuthStore.isAuthenticated = true;
+    mockSession.data = { user: { id: "user-001", name: "johndoe" } };
+    mockSession.status = "authenticated";
     render(<ReviewCard {...defaultProps} />);
     const items = screen.getAllByTestId("dropdown-item");
     const editItem = items.find((el) => el.textContent?.includes("Editar"));
@@ -178,8 +178,8 @@ describe("ReviewCard (full view)", () => {
   });
 
   it("shows 'Moderar' option when user is admin", () => {
-    mockAuthStore.user = { _id: "admin-001", username: "adminuser", role: "admin" };
-    mockAuthStore.isAuthenticated = true;
+    mockSession.data = { user: { id: "admin-001", name: "adminuser", role: "admin" } };
+    mockSession.status = "authenticated";
     render(<ReviewCard {...defaultProps} />);
     const items = screen.getAllByTestId("dropdown-item");
     const moderateItem = items.find((el) => el.textContent?.includes("Moderar"));
@@ -200,8 +200,8 @@ describe("ReviewCard (full view)", () => {
 
 describe("ReviewCard (compact view)", () => {
   beforeEach(() => {
-    mockAuthStore.user = null;
-    mockAuthStore.isAuthenticated = false;
+    mockSession.data = null;
+    mockSession.status = "unauthenticated";
   });
 
   it("renders in compact mode without the full card structure", () => {

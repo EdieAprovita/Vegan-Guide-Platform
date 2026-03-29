@@ -41,12 +41,14 @@ const nextConfig = {
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Configuración de tamaños para mejorar rendimiento
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Tightened to reduce unique cache variants (CVE mitigation: GHSA-3x4c-7xq6-9pq8)
+    deviceSizes: [640, 750, 1080, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128],
     // Configuración de formato
     formats: ["image/webp", "image/avif"],
-    // Configuración de carga
-    minimumCacheTTL: 60,
+    // Increased TTL to maximise cache reuse and reduce unique variants written to disk
+    // (CVE mitigation: GHSA-3x4c-7xq6-9pq8 — unbounded disk cache)
+    minimumCacheTTL: 3600,
   },
   // Variables de entorno
   env: {

@@ -16,7 +16,7 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from "lucide-react";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 interface Recommendation {
@@ -42,7 +42,8 @@ interface UserPreferences {
 }
 
 export function RecommendationEngine() {
-  const { user } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [userPreferences] = useState<UserPreferences>({
     dietaryRestrictions: ["vegan"],

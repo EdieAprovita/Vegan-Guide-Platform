@@ -23,7 +23,7 @@ import {
   Stethoscope,
   ShoppingBag,
 } from "lucide-react";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 /** Format a number with locale separators or return a fallback string when zero. */
@@ -111,7 +111,8 @@ function DashboardSkeleton() {
 // ---------------------------------------------------------------------------
 
 export function AnalyticsDashboard() {
-  const { user } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [timeRange, setTimeRange] = useState("30d");
   const { data, isLoading, error, refetch } = useAnalytics(timeRange);
 
