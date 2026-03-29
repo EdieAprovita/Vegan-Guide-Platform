@@ -160,7 +160,7 @@ export function Features() {
               <Button
                 variant="outline"
                 size="lg"
-                className="rounded-full border-white font-['Playfair_Display'] font-bold text-white hover:bg-white hover:text-primary"
+                className="rounded-full border-white bg-transparent font-['Playfair_Display'] font-bold text-white hover:bg-white hover:text-primary"
               >
                 Ver Demo
               </Button>
