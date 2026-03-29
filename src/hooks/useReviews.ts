@@ -1,4 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+"use client";
+
+import { useCallback } from "react";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import {
   Review,
@@ -14,6 +17,48 @@ import {
   createRestaurantReview,
 } from "@/lib/api/reviews";
 
+// ---------------------------------------------------------------------------
+// Query key factory — keeps cache keys consistent across the module
+// ---------------------------------------------------------------------------
+export const reviewKeys = {
+  all: ["reviews"] as const,
+  list: (resourceType: string, resourceId: string) =>
+    ["reviews", "list", resourceType, resourceId] as const,
+  stats: (resourceType: string, resourceId: string) =>
+    ["reviews", "stats", resourceType, resourceId] as const,
+  detail: (reviewId: string) => ["reviews", "detail", reviewId] as const,
+};
+
+// ---------------------------------------------------------------------------
+// Shared stats-derivation helper (non-restaurant resource types fall back to
+// a client-side calculation because no dedicated stats endpoint exists yet)
+// ---------------------------------------------------------------------------
+function deriveStats(resourceType: string, reviews: Review[]): ReviewStats | null {
+  if (reviews.length === 0) return null;
+
+  if (resourceType === "restaurant") {
+    // Restaurant stats come from the server via the stats query — not derived here
+    return null;
+  }
+
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+
+  const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach((review) => {
+    distribution[review.rating] = (distribution[review.rating] ?? 0) + 1;
+  });
+
+  return {
+    averageRating,
+    totalReviews: reviews.length,
+    ratingDistribution: distribution,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Interfaces
+// ---------------------------------------------------------------------------
 interface UseReviewsParams {
   resourceType: string;
   resourceId: string;
@@ -37,135 +82,149 @@ interface UseReviewsReturn {
   toggleHelpful: (reviewId: string, isHelpful: boolean) => Promise<boolean>;
 }
 
+// ---------------------------------------------------------------------------
+// useReviews — list with pagination (infinite scroll / load-more)
+// ---------------------------------------------------------------------------
 export function useReviews({
   resourceType,
   resourceId,
-  page = 1,
+  page: _page = 1,
   limit = 10,
   autoFetch = true,
 }: UseReviewsParams): UseReviewsReturn {
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalReviews, setTotalReviews] = useState(0);
-  const [currentPage, setCurrentPage] = useState(page);
+  const queryClient = useQueryClient();
 
-  const fetchReviews = useCallback(
-    async (pageNum: number = 1, append: boolean = false) => {
-      if (!resourceId) return;
+  // ------------------------------------------------------------------
+  // Infinite list query
+  // ------------------------------------------------------------------
+  const listQueryKey = reviewKeys.list(resourceType, resourceId);
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Currently all resource types use the same endpoint
-        // TODO: Implement specific endpoints when APIs become available for other resource types
-        const response = await getRestaurantReviews(resourceId, { page: pageNum, limit });
-
-        const newReviews = response.data || [];
-
-        if (append) {
-          setReviews((prev) => [...prev, ...newReviews]);
-        } else {
-          setReviews(newReviews);
-        }
-
-        setHasMore(newReviews.length === limit);
-        setCurrentPage(pageNum);
-
-        // Update total count if available - use data length as fallback
-        setTotalReviews(reviews.length);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al cargar las reviews");
-        console.error("Error fetching reviews:", err);
-      } finally {
-        setLoading(false);
-      }
+  const {
+    data: infiniteData,
+    isFetching,
+    error: listError,
+    refetch: refetchInfinite,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: listQueryKey,
+    queryFn: async ({ pageParam }) => {
+      const response = await getRestaurantReviews(resourceId, {
+        page: pageParam,
+        limit,
+      });
+      return response.data ?? [];
     },
-    [resourceId, limit, reviews.length]
-  );
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length === limit ? lastPageParam + 1 : undefined,
+    enabled: autoFetch && !!resourceId,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const fetchStats = useCallback(async () => {
-    if (!resourceId) return;
+  // Flatten pages into a single array
+  const reviews: Review[] = infiniteData?.pages.flat() ?? [];
+  const hasMore = hasNextPage ?? false;
 
-    try {
-      let response;
+  // ------------------------------------------------------------------
+  // Stats query (restaurant only — other types derived client-side)
+  // ------------------------------------------------------------------
+  const statsQueryKey = reviewKeys.stats(resourceType, resourceId);
 
-      // Fetch stats based on resource type
-      switch (resourceType) {
-        case "restaurant":
-          response = await getRestaurantReviewStats(resourceId);
-          break;
-        default:
-          // For other resource types, calculate stats from reviews
-          if (reviews.length > 0) {
-            const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-            const averageRating = totalRating / reviews.length;
+  const { data: serverStats } = useQuery({
+    queryKey: statsQueryKey,
+    queryFn: async () => {
+      const response = await getRestaurantReviewStats(resourceId);
+      return response.data ?? null;
+    },
+    enabled: autoFetch && !!resourceId && resourceType === "restaurant",
+    staleTime: 5 * 60 * 1000,
+  });
 
-            const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-            reviews.forEach((review) => {
-              distribution[review.rating as keyof typeof distribution]++;
-            });
+  // Resolve stats: server-provided for restaurants, derived for everything else
+  const stats: ReviewStats | null =
+    resourceType === "restaurant" ? (serverStats ?? null) : deriveStats(resourceType, reviews);
 
-            const calculatedStats: ReviewStats = {
-              averageRating,
-              totalReviews: reviews.length,
-              ratingDistribution: distribution,
-            };
+  // ------------------------------------------------------------------
+  // Public helpers that preserve the original synchronous-looking API
+  // ------------------------------------------------------------------
+  const refetch = useCallback(async () => {
+    // resetQueries clears the cache and re-fetches only page 1, matching the
+    // original fetchReviews(1, false) behaviour. refetch() on an infinite query
+    // would re-fetch all currently-cached pages instead.
+    await queryClient.resetQueries({ queryKey: listQueryKey });
+  }, [queryClient, listQueryKey]);
 
-            setStats(calculatedStats);
-            return;
-          }
-          return;
-      }
-
-      if (response?.data) {
-        setStats(response.data);
-      }
-    } catch (err: unknown) {
-      console.error("Error fetching review stats:", err);
-      // Don't set error for stats, as it's not critical
+  const loadMore = useCallback(async () => {
+    if (hasMore && !isFetching) {
+      await fetchNextPage();
     }
-  }, [resourceType, resourceId, reviews]);
+  }, [hasMore, isFetching, fetchNextPage]);
 
+  // ------------------------------------------------------------------
+  // Mutations
+  // ------------------------------------------------------------------
+  const addReviewMutation = useMutation({
+    mutationFn: (data: CreateReviewData) => createRestaurantReview(resourceId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: listQueryKey });
+      queryClient.invalidateQueries({ queryKey: statsQueryKey });
+    },
+  });
+
+  const updateReviewMutation = useMutation({
+    mutationFn: ({ reviewId, data }: { reviewId: string; data: Partial<CreateReviewData> }) =>
+      updateReviewApi(reviewId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: listQueryKey });
+      queryClient.invalidateQueries({ queryKey: statsQueryKey });
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: (reviewId: string) => deleteReviewApi(reviewId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: listQueryKey });
+      queryClient.invalidateQueries({ queryKey: statsQueryKey });
+    },
+  });
+
+  const toggleHelpfulMutation = useMutation({
+    mutationFn: ({ reviewId, isHelpful }: { reviewId: string; isHelpful: boolean }) =>
+      isHelpful ? markReviewHelpful(reviewId) : removeReviewHelpful(reviewId),
+    onSuccess: (response) => {
+      if (!response?.data) return;
+      const updatedReview = response.data;
+      // Optimistic-style cache update: patch the review in all cached pages
+      queryClient.setQueryData(
+        listQueryKey,
+        (old: { pages: Review[][]; pageParams: unknown[] } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) =>
+              page.map((r) => (r._id === updatedReview._id ? updatedReview : r))
+            ),
+          };
+        }
+      );
+    },
+  });
+
+  // ------------------------------------------------------------------
+  // Wrapper functions that keep the original thrown-error contract
+  // ------------------------------------------------------------------
   const addReview = useCallback(
     async (data: CreateReviewData): Promise<Review | null> => {
       if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para crear una review");
       }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Currently all resource types use the same endpoint
-        // TODO: Implement specific endpoints when APIs become available for other resource types
-        const response = await createRestaurantReview(resourceId, data);
-
-        if (response?.data) {
-          const newReview = response.data;
-          setReviews((prev) => [newReview, ...prev]);
-          setTotalReviews((prev) => prev + 1);
-
-          // Refresh stats
-          await fetchStats();
-
-          return newReview;
-        }
-
-        return null;
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al crear la review");
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+      const response = await addReviewMutation.mutateAsync(data);
+      return response?.data ?? null;
     },
-    [resourceId, isAuthenticated, fetchStats]
+    [isAuthenticated, addReviewMutation]
   );
 
   const updateReview = useCallback(
@@ -173,34 +232,10 @@ export function useReviews({
       if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para actualizar una review");
       }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await updateReviewApi(reviewId, data);
-
-        if (response?.data) {
-          const updatedReview = response.data;
-          setReviews((prev) =>
-            prev.map((review) => (review._id === reviewId ? updatedReview : review))
-          );
-
-          // Refresh stats
-          await fetchStats();
-
-          return updatedReview;
-        }
-
-        return null;
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al actualizar la review");
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+      const response = await updateReviewMutation.mutateAsync({ reviewId, data });
+      return response?.data ?? null;
     },
-    [isAuthenticated, fetchStats]
+    [isAuthenticated, updateReviewMutation]
   );
 
   const deleteReview = useCallback(
@@ -208,29 +243,10 @@ export function useReviews({
       if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para eliminar una review");
       }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        await deleteReviewApi(reviewId);
-
-        // Remove from local state
-        setReviews((prev) => prev.filter((review) => review._id !== reviewId));
-        setTotalReviews((prev) => Math.max(0, prev - 1));
-
-        // Refresh stats
-        await fetchStats();
-
-        return true;
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al eliminar la review");
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+      await deleteReviewMutation.mutateAsync(reviewId);
+      return true;
     },
-    [isAuthenticated, fetchStats]
+    [isAuthenticated, deleteReviewMutation]
   );
 
   const toggleHelpful = useCallback(
@@ -238,65 +254,36 @@ export function useReviews({
       if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para votar");
       }
-
       try {
-        let response;
-
-        if (isHelpful) {
-          response = await markReviewHelpful(reviewId);
-        } else {
-          response = await removeReviewHelpful(reviewId);
-        }
-
-        if (response?.data) {
-          const updatedReview = response.data;
-          setReviews((prev) =>
-            prev.map((review) => (review._id === reviewId ? updatedReview : review))
-          );
-
-          return true;
-        }
-
-        return false;
-      } catch (err: unknown) {
-        console.error("Error toggling helpful vote:", err);
+        const response = await toggleHelpfulMutation.mutateAsync({ reviewId, isHelpful });
+        return !!response?.data;
+      } catch {
         return false;
       }
     },
-    [isAuthenticated]
+    [isAuthenticated, toggleHelpfulMutation]
   );
 
-  const refetch = useCallback(async () => {
-    await fetchReviews(1, false);
-  }, [fetchReviews]);
+  // ------------------------------------------------------------------
+  // Compose error string from any active mutation or the list query
+  // ------------------------------------------------------------------
+  const mutationError =
+    addReviewMutation.error ?? updateReviewMutation.error ?? deleteReviewMutation.error ?? null;
 
-  const loadMore = useCallback(async () => {
-    if (hasMore && !loading) {
-      await fetchReviews(currentPage + 1, true);
-    }
-  }, [hasMore, loading, currentPage, fetchReviews]);
-
-  // Auto-fetch on mount and when dependencies change
-  useEffect(() => {
-    if (autoFetch && resourceId) {
-      fetchReviews(1, false);
-    }
-  }, [autoFetch, resourceId, fetchReviews]);
-
-  // Fetch stats when reviews change
-  useEffect(() => {
-    if (reviews.length > 0) {
-      fetchStats();
-    }
-  }, [reviews, fetchStats]);
+  const error: string | null =
+    mutationError instanceof Error
+      ? mutationError.message
+      : listError instanceof Error
+        ? listError.message
+        : null;
 
   return {
     reviews,
     stats,
-    loading,
+    loading: isFetching,
     error,
     hasMore,
-    totalReviews,
+    totalReviews: reviews.length,
     refetch,
     loadMore,
     addReview,
@@ -306,90 +293,77 @@ export function useReviews({
   };
 }
 
-// Hook for managing a single review
+// ---------------------------------------------------------------------------
+// useReview — single review by ID
+// ---------------------------------------------------------------------------
 export function useReview(reviewId: string) {
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
-  const [review, setReview] = useState<Review | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!reviewId) {
-      setLoading(false);
-      return;
-    }
+  const detailQueryKey = reviewKeys.detail(reviewId);
 
-    const fetchReview = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const {
+    data: review,
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: detailQueryKey,
+    queryFn: async () => {
+      const response = await getReview(reviewId);
+      return response.data ?? null;
+    },
+    enabled: !!reviewId,
+    staleTime: 5 * 60 * 1000,
+  });
 
-        const response = await getReview(reviewId);
-        setReview(response.data);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al cargar la review");
-        console.error("Error fetching review:", err);
-      } finally {
-        setLoading(false);
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<CreateReviewData>) => updateReviewApi(reviewId, data),
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(detailQueryKey, response.data);
       }
-    };
+    },
+  });
 
-    fetchReview();
-  }, [reviewId]);
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteReviewApi(reviewId),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: detailQueryKey });
+    },
+  });
 
   const updateReviewLocal = useCallback(
     async (data: Partial<CreateReviewData>) => {
       if (!isAuthenticated) {
         throw new Error("Debes iniciar sesión para actualizar una review");
       }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await updateReviewApi(reviewId, data);
-
-        if (response?.data) {
-          setReview(response.data);
-          return response.data;
-        }
-
-        return null;
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al actualizar la review");
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+      const response = await updateMutation.mutateAsync(data);
+      return response?.data ?? null;
     },
-    [reviewId, isAuthenticated]
+    [isAuthenticated, updateMutation]
   );
 
   const deleteReviewLocal = useCallback(async () => {
     if (!isAuthenticated) {
       throw new Error("Debes iniciar sesión para eliminar una review");
     }
+    await deleteMutation.mutateAsync();
+    return true;
+  }, [isAuthenticated, deleteMutation]);
 
-    try {
-      setLoading(true);
-      setError(null);
+  const mutationError = updateMutation.error ?? deleteMutation.error ?? null;
 
-      await deleteReviewApi(reviewId);
-      setReview(null);
-
-      return true;
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al eliminar la review");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [reviewId, isAuthenticated]);
+  const error: string | null =
+    mutationError instanceof Error
+      ? mutationError.message
+      : queryError instanceof Error
+        ? queryError.message
+        : null;
 
   return {
-    review,
-    loading,
+    review: review ?? null,
+    loading: isLoading,
     error,
     updateReview: updateReviewLocal,
     deleteReview: deleteReviewLocal,

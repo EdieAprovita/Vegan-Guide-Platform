@@ -86,6 +86,7 @@ const customJestConfig = {
     // Phase-1 refactoring: centralised mock setup and data factories
     "<rootDir>/src/__tests__/setup/mock-components\\.tsx$",
     "<rootDir>/src/__tests__/helpers/test-data-factories\\.ts$",
+    "<rootDir>/src/__tests__/helpers/testing-library-with-query\\.tsx$",
   ],
 };
 

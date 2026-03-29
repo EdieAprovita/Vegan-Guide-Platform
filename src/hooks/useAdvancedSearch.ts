@@ -3,9 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDebounce } from "use-debounce";
 import {
+  useInfiniteQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
+import {
   SearchFilters,
   SearchResponse,
-  SearchState,
   ResourceType,
   SortOption,
   Coordinates,
@@ -20,6 +26,10 @@ import {
 import { useSession } from "next-auth/react";
 import { getCurrentLocation } from "@/lib/utils/geospatial";
 
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
 const DEFAULT_FILTERS: SearchFilters = {
   query: "",
   resourceTypes: [],
@@ -29,225 +39,210 @@ const DEFAULT_FILTERS: SearchFilters = {
   sortBy: "relevance",
 };
 
+const PAGE_SIZE = 12;
+
+// ---------------------------------------------------------------------------
+// Query key factory — keeps keys consistent and refactorable
+// ---------------------------------------------------------------------------
+
+export const searchKeys = {
+  all: ["search"] as const,
+  results: (filters: SearchFilters) => ["search", "results", filters] as const,
+  suggestions: (query: string) => ["search", "suggestions", query] as const,
+  aggregations: (
+    filters: Pick<SearchFilters, "resourceTypes" | "location" | "radius" | "coordinates">
+  ) => ["search", "aggregations", filters] as const,
+} as const;
+
+// ---------------------------------------------------------------------------
+// useAdvancedSearch
+// ---------------------------------------------------------------------------
+
 export function useAdvancedSearch() {
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const queryClient = useQueryClient();
 
-  const [searchState, setSearchState] = useState<SearchState>({
-    isSearching: false,
-    filters: DEFAULT_FILTERS,
-    results: [],
-    total: 0,
-    currentPage: 1,
-    totalPages: 0,
-    error: null,
+  // ------------------------------------------------------------------
+  // UI state — filter values and input-level concerns stay as useState
+  // ------------------------------------------------------------------
+
+  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Debounced query drives the suggestions fetch (300 ms matches original)
+  const [debouncedQuery] = useDebounce(filters.query, 300);
+
+  // ------------------------------------------------------------------
+  // Server state — search results (infinite / paginated)
+  // ------------------------------------------------------------------
+
+  const searchQuery = useInfiniteQuery({
+    queryKey: searchKeys.results(filters),
+    queryFn: async ({ pageParam = 1 }) => {
+      const page = pageParam as number;
+
+      const response =
+        filters.resourceTypes.length === 1
+          ? await searchByResourceType(filters.resourceTypes[0], {
+              page,
+              limit: PAGE_SIZE,
+              filters,
+            })
+          : await searchUnified({ page, limit: PAGE_SIZE, filters });
+
+      return response.data as SearchResponse;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.page + 1 : undefined),
+    enabled: false, // search is user-triggered, not automatic
+    placeholderData: keepPreviousData,
+    staleTime: 0, // search results should always be fresh on re-fetch
   });
 
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [aggregations, setAggregations] = useState<{
-    resourceTypes: Record<ResourceType, number>;
-    locations: Array<{ name: string; count: number }>;
-    priceRanges: Array<{ range: string; count: number }>;
-    ratings: Record<number, number>;
-  } | null>(null);
+  // Flatten pages into a single results array (mirrors the old append logic)
+  const results = searchQuery.data?.pages.flatMap((p) => p.results) ?? [];
+  const lastPage = searchQuery.data?.pages.at(-1);
+  const total = lastPage?.total ?? 0;
+  const currentPage = lastPage?.page ?? 1;
+  const totalPages = lastPage?.totalPages ?? 0;
 
-  // Debounced query for suggestions
-  const [debouncedQuery] = useDebounce(searchState.filters.query, 300);
+  // ------------------------------------------------------------------
+  // Server state — suggestions
+  // ------------------------------------------------------------------
 
-  // Load suggestions when query changes
-  useEffect(() => {
-    if (debouncedQuery && debouncedQuery.length >= 2) {
-      loadSuggestions(debouncedQuery);
-    } else {
-      setSuggestions([]);
-    }
-  }, [debouncedQuery]);
+  const suggestionsQuery = useQuery({
+    queryKey: searchKeys.suggestions(debouncedQuery),
+    queryFn: async () => {
+      const response = await getSearchSuggestions(debouncedQuery);
+      return response.data ?? [];
+    },
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 60 * 1000, // suggestions are cheap to cache for 1 minute
+    placeholderData: keepPreviousData,
+    // When the query is too short, TanStack Query returns stale cached data
+    // from a previous longer query. Force empty array in that case so the UI
+    // never shows suggestions for an input that no longer warrants them.
+    select: (data) => (debouncedQuery.length < 2 ? [] : data),
+  });
 
-  // Load aggregations when filters change (excluding query)
-  useEffect(() => {
-    loadAggregations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchState.filters.resourceTypes,
-    searchState.filters.location,
-    searchState.filters.radius,
-    searchState.filters.coordinates,
-  ]);
+  // ------------------------------------------------------------------
+  // Server state — aggregations (depends on location/type filters only)
+  // ------------------------------------------------------------------
 
-  const loadSuggestions = async (query: string) => {
-    try {
-      const response = await getSearchSuggestions(query);
-      setSuggestions(response.data || []);
-    } catch (error) {
-      console.error("Error loading suggestions:", error);
-      setSuggestions([]);
-    }
+  const aggregationFilters = {
+    resourceTypes: filters.resourceTypes,
+    location: filters.location,
+    radius: filters.radius,
+    coordinates: filters.coordinates,
   };
 
-  const loadAggregations = async () => {
-    try {
-      const response = await getSearchAggregations(searchState.filters);
-      setAggregations(response.data || null);
-    } catch (error) {
-      console.error("Error loading aggregations:", error);
-      setAggregations(null);
+  const aggregationsQuery = useQuery({
+    queryKey: searchKeys.aggregations(aggregationFilters),
+    queryFn: async () => {
+      const response = await getSearchAggregations(filters);
+      return response.data ?? null;
+    },
+    staleTime: 2 * 60 * 1000, // aggregation counts change less frequently
+    placeholderData: keepPreviousData,
+  });
+
+  // ------------------------------------------------------------------
+  // Mutation — analytics (fire-and-forget, no cache invalidation needed)
+  // ------------------------------------------------------------------
+
+  const saveAnalyticsMutation = useMutation({
+    mutationFn: ({ query, resourceType }: { query: string; resourceType?: ResourceType }) =>
+      saveSearchQuery(query, resourceType),
+    onError: () => {
+      // Analytics failure must never surface to the user
+    },
+  });
+
+  // ------------------------------------------------------------------
+  // Actions
+  // ------------------------------------------------------------------
+
+  const search = useCallback(async () => {
+    // resetQueries clears the cache and re-fetches only page 1, ensuring new
+    // searches always start from the beginning. refetch() on an infinite query
+    // would re-fetch all currently-cached pages instead.
+    await queryClient.resetQueries({ queryKey: searchKeys.results(filters) });
+
+    // Save analytics after the reset triggers a fresh fetch
+    if (filters.query && isAuthenticated) {
+      const resourceType =
+        filters.resourceTypes.length === 1 ? filters.resourceTypes[0] : undefined;
+      saveAnalyticsMutation.mutate({ query: filters.query, resourceType });
     }
-  };
+  }, [queryClient, filters, isAuthenticated, saveAnalyticsMutation]);
+
+  const loadMore = useCallback(() => {
+    if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage) {
+      searchQuery.fetchNextPage();
+    }
+  }, [searchQuery]);
 
   const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
-    setSearchState((prev) => ({
-      ...prev,
-      filters: { ...prev.filters, ...updates },
-      currentPage: 1, // Reset to first page when filters change
-    }));
+    setFilters((prev) => ({ ...prev, ...updates }));
   }, []);
 
   const clearFilters = useCallback(() => {
-    setSearchState((prev) => ({
-      ...prev,
-      filters: DEFAULT_FILTERS,
-      results: [],
-      total: 0,
-      currentPage: 1,
-      totalPages: 0,
-      error: null,
-    }));
-    setSuggestions([]);
+    setFilters(DEFAULT_FILTERS);
+    setLocationError(null);
   }, []);
 
-  const search = useCallback(
-    async (page = 1) => {
-      setSearchState((prev) => ({ ...prev, isSearching: true, error: null }));
-
-      try {
-        let response: { data: SearchResponse };
-
-        if (searchState.filters.resourceTypes.length === 1) {
-          // Search within single resource type
-          response = await searchByResourceType(searchState.filters.resourceTypes[0], {
-            page,
-            limit: 12,
-            filters: searchState.filters,
-          });
-        } else {
-          // Unified search across all types
-          response = await searchUnified({
-            page,
-            limit: 12,
-            filters: searchState.filters,
-          });
-        }
-
-        const searchData = response.data;
-
-        setSearchState((prev) => ({
-          ...prev,
-          isSearching: false,
-          results: page === 1 ? searchData.results : [...prev.results, ...searchData.results],
-          total: searchData.total,
-          currentPage: searchData.page,
-          totalPages: searchData.totalPages,
-        }));
-
-        // Save search analytics (server handles auth via HttpOnly cookie)
-        if (searchState.filters.query && isAuthenticated) {
-          try {
-            const resourceType =
-              searchState.filters.resourceTypes.length === 1
-                ? searchState.filters.resourceTypes[0]
-                : undefined;
-            await saveSearchQuery(searchState.filters.query, resourceType);
-          } catch (error) {
-            console.warn("Error saving search analytics:", error);
-          }
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Error en la búsqueda";
-        setSearchState((prev) => ({
-          ...prev,
-          isSearching: false,
-          error: errorMessage,
-        }));
-        console.error("Search error:", error);
-      }
-    },
-    [searchState.filters, isAuthenticated]
-  );
-
-  const loadMore = useCallback(() => {
-    if (searchState.currentPage < searchState.totalPages && !searchState.isSearching) {
-      search(searchState.currentPage + 1);
-    }
-  }, [search, searchState.currentPage, searchState.totalPages, searchState.isSearching]);
-
   const getUserLocation = useCallback(async () => {
+    setLocationError(null);
     try {
       const coordinates = await getCurrentLocation();
-      // Convert to search coordinates format
-      const searchCoords = {
+      const searchCoords: Coordinates = {
         latitude: coordinates.lat,
         longitude: coordinates.lng,
       };
       updateFilters({ coordinates: searchCoords });
       return searchCoords;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Error obteniendo ubicación";
-      setSearchState((prev) => ({ ...prev, error: errorMessage }));
+      const message = error instanceof Error ? error.message : "Error obteniendo ubicación";
+      setLocationError(message);
       throw error;
     }
   }, [updateFilters]);
 
-  const setSortBy = useCallback(
-    (sortBy: SortOption) => {
-      updateFilters({ sortBy });
-    },
-    [updateFilters]
-  );
+  // Specific filter setters (unchanged public API)
+
+  const setQuery = useCallback((query: string) => updateFilters({ query }), [updateFilters]);
+
+  const setSortBy = useCallback((sortBy: SortOption) => updateFilters({ sortBy }), [updateFilters]);
 
   const setResourceTypes = useCallback(
-    (resourceTypes: ResourceType[]) => {
-      updateFilters({ resourceTypes });
-    },
+    (resourceTypes: ResourceType[]) => updateFilters({ resourceTypes }),
     [updateFilters]
   );
 
   const setLocation = useCallback(
-    (location: string, coordinates?: Coordinates) => {
-      updateFilters({ location, coordinates });
-    },
+    (location: string, coordinates?: Coordinates) => updateFilters({ location, coordinates }),
     [updateFilters]
   );
 
-  const setRadius = useCallback(
-    (radius: number) => {
-      updateFilters({ radius });
-    },
-    [updateFilters]
-  );
+  const setRadius = useCallback((radius: number) => updateFilters({ radius }), [updateFilters]);
 
   const setMinRating = useCallback(
-    (minRating: number) => {
-      updateFilters({ minRating });
-    },
+    (minRating: number) => updateFilters({ minRating }),
     [updateFilters]
   );
 
   const setBudgetRange = useCallback(
-    (min?: number, max?: number) => {
-      updateFilters({ budget: { min, max } });
-    },
+    (min?: number, max?: number) => updateFilters({ budget: { min, max } }),
     [updateFilters]
   );
 
-  const setQuery = useCallback(
-    (query: string) => {
-      updateFilters({ query });
-    },
-    [updateFilters]
-  );
+  // ------------------------------------------------------------------
+  // Derived utilities
+  // ------------------------------------------------------------------
 
-  const hasActiveFilters = useCallback(() => {
-    const { query, resourceTypes, location, minRating, budget } = searchState.filters;
+  const hasActiveFilters = useCallback((): boolean => {
+    const { query, resourceTypes, location, minRating, budget } = filters;
     return !!(
       query ||
       resourceTypes.length > 0 ||
@@ -256,26 +251,43 @@ export function useAdvancedSearch() {
       budget?.min ||
       budget?.max
     );
-  }, [searchState.filters]);
+  }, [filters]);
 
-  const getActiveFiltersCount = useCallback(() => {
+  const getActiveFiltersCount = useCallback((): number => {
     let count = 0;
-    const { query, resourceTypes, location, minRating, budget } = searchState.filters;
-
+    const { query, resourceTypes, location, minRating, budget } = filters;
     if (query) count++;
     if (resourceTypes.length > 0) count++;
     if (location) count++;
     if (minRating > 0) count++;
     if (budget?.min || budget?.max) count++;
-
     return count;
-  }, [searchState.filters]);
+  }, [filters]);
+
+  // ------------------------------------------------------------------
+  // Compose the original SearchState shape so consumer components don't
+  // need to change any of their references.
+  // ------------------------------------------------------------------
+
+  const isSearching = searchQuery.isFetching || searchQuery.isFetchingNextPage;
+  const searchError =
+    searchQuery.error instanceof Error ? searchQuery.error.message : locationError;
+
+  const searchState = {
+    isSearching,
+    filters,
+    results,
+    total,
+    currentPage,
+    totalPages,
+    error: searchError,
+  };
 
   return {
     // State
     searchState,
-    suggestions,
-    aggregations,
+    suggestions: suggestionsQuery.data ?? [],
+    aggregations: aggregationsQuery.data ?? null,
 
     // Actions
     search,
@@ -298,11 +310,16 @@ export function useAdvancedSearch() {
     getActiveFiltersCount,
 
     // Computed state
-    canLoadMore: searchState.currentPage < searchState.totalPages,
-    hasResults: searchState.results.length > 0,
-    isEmpty: !searchState.isSearching && searchState.results.length === 0 && hasActiveFilters(),
+    canLoadMore: searchQuery.hasNextPage ?? false,
+    hasResults: results.length > 0,
+    isEmpty: !isSearching && results.length === 0 && hasActiveFilters(),
   };
 }
+
+// ---------------------------------------------------------------------------
+// useGeolocation — no server state; no changes needed beyond keeping the
+// existing implementation intact.
+// ---------------------------------------------------------------------------
 
 export function useGeolocation() {
   const [state, setState] = useState<{
@@ -324,8 +341,7 @@ export function useGeolocation() {
 
     try {
       const coordinates = await getCurrentLocation();
-      // Convert to search coordinates format for state
-      const searchCoords = {
+      const searchCoords: Coordinates = {
         latitude: coordinates.lat,
         longitude: coordinates.lng,
       };
