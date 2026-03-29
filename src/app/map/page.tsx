@@ -1,14 +1,5 @@
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-const MapClient = dynamic(() => import("./map-client"), {
-  loading: () => (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-green-600" />
-    </div>
-  ),
-  ssr: false,
-});
+import { MapClient } from "./_map-loader";
 
 export const metadata: Metadata = {
   title: "Mapa Vegano | Verde Guide",

@@ -1,25 +1,220 @@
 name: CI
 
+# Triggers:
+# - Every PR targeting main (feature branches, fix branches, etc.)
+# - Direct pushes to main (post-merge verification)
 on:
   pull_request:
     branches: ["main"]
+  push:
+    branches: ["main"]
+
+# Cancel in-flight runs for the same PR/branch to save runner minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  # ─────────────────────────────────────────────
+  # JOB 1 — Quality checks (fast, fully parallel)
+  # Lint, type-check, formatting, and dependency audit.
+  # All gates are blocking except the npm audit summary,
+  # which is informational at the "moderate" level but
+  # blocks on "high" and above.
+  # ─────────────────────────────────────────────
+  quality:
+    name: Quality Checks
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
           cache: "npm"
-      - run: npm ci
+
+      # --prefer-offline speeds up installs on cache hits.
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      # ESLint: --max-warnings=0 means any warning is a build failure.
       - name: Lint
         run: npm run lint -- --max-warnings=0
+
+      # tsc --noEmit: catches type errors without emitting JS.
       - name: Type Check
         run: npm run type-check
-      - name: Run Unit Tests (no coverage gate)
-        run: npm test -- --coverage=false --runInBand
-      - name: Coverage Report (non-blocking)
-        run: npm run test:coverage -- --runInBand
-        continue-on-error: true
+
+      # Prettier: check entire project (matches the format:check script).
+      # Using the package.json script keeps CI and local tooling in sync.
+      - name: Format Check
+        run: npm run format:check
+
+      # Security audit — block on high/critical vulnerabilities.
+      # "moderate" and below are reported but do not fail the job.
+      # Rationale: moderate findings often require upstream fixes and
+      # should not block all merges indefinitely.
+      - name: Security Audit (high+)
+        run: npm audit --audit-level=high
+
+  # ─────────────────────────────────────────────
+  # JOB 2 — Unit tests + coverage gate
+  # Runs after quality to avoid wasting test time on broken code.
+  # Coverage thresholds are defined in jest.config.js
+  # (branches: 65, functions: 75, lines: 80, statements: 80).
+  # This job is fully blocking — a coverage regression fails the PR.
+  # ─────────────────────────────────────────────
+  test:
+    name: Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: [quality]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      # Run tests with coverage enforcement. Jest reads thresholds from
+      # jest.config.js. --runInBand forces serial execution on CI to
+      # prevent memory exhaustion from concurrent jsdom environments.
+      # NOTE: --coverage=false override from the old pipeline is removed.
+      # Tests and coverage now run in a single pass.
+      - name: Run Tests with Coverage Gate
+        run: npm run test:coverage -- --runInBand --ci
+
+      # Upload the coverage report as an artifact for review in the
+      # GitHub Actions UI without needing a third-party service.
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # JOB 3 — Production build verification
+  # Runs after quality to catch build-time errors (missing env vars
+  # with defaults, invalid imports, broken RSC boundaries, etc.)
+  # before the code reaches Vercel. This is the most critical gate
+  # that was missing from the original pipeline.
+  # ─────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: [quality]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      # NEXT_PUBLIC_* vars must be present at build time for Next.js to
+      # inline them. We provide placeholder values so the build succeeds
+      # in CI without real infrastructure. Runtime behaviour is tested
+      # separately in E2E with mocked responses.
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          # Suppress Next.js telemetry in CI.
+          NEXT_TELEMETRY_DISABLED: 1
+          # Placeholder values satisfy Next.js env validation at build time.
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+
+      # Upload the .next build output so the E2E job can reuse it
+      # without rebuilding (saves ~60-90s per run).
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 1
+
+  # ─────────────────────────────────────────────
+  # JOB 4 — E2E tests (Playwright / Chromium)
+  # Runs only on PRs to main — not on direct pushes — because
+  # E2E suites are slow (~3-5 min) and post-merge runs on main
+  # are already covered by Vercel's preview deployments.
+  #
+  # This job reuses the build artifact from Job 3 to start a
+  # production server (npm start) instead of the dev server,
+  # giving tests higher fidelity without an extra build step.
+  #
+  # continue-on-error: true during initial rollout so that
+  # flaky/incomplete specs do not block merges while the suite
+  # is being stabilised. Change to false once the suite is green
+  # for 5+ consecutive runs.
+  # ─────────────────────────────────────────────
+  e2e:
+    name: E2E Tests (Chromium)
+    runs-on: ubuntu-latest
+    needs: [build]
+    # Run E2E only on pull requests (not on push to main).
+    if: github.event_name == 'pull_request'
+    # Remove this once the E2E suite is consistently green.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      # Download the pre-built .next directory from the build job.
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+
+      # Install only the Chromium browser and its system dependencies.
+      # Skipping Firefox/WebKit keeps install time under 30s.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Run the Chromium project only. The playwright.config.ts already
+      # sets workers=1 and retries=2 when CI=true.
+      # We start a production server (npm start) instead of dev for
+      # accurate routing and middleware behaviour.
+      - name: Run E2E tests
+        run: npx playwright test --project=chromium
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+          # Override webServer command to use production build.
+          # playwright.config.ts reads this to decide server startup.
+          CI: true
+
+      # Always upload traces/screenshots so failures are debuggable
+      # even when continue-on-error swallows the exit code.
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            e2e-results.xml
+          retention-days: 7

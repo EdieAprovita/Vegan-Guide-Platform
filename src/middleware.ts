@@ -2,7 +2,16 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-function buildCsp(): string {
+/**
+ * Generate a cryptographically random nonce for CSP.
+ * Uses crypto.randomUUID() which is available in Edge Runtime (middleware).
+ * The nonce is base64-safe (no special chars) after stripping hyphens.
+ */
+function generateNonce(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+function buildCsp(nonce: string): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
   let apiOrigin = apiUrl;
   try {
@@ -13,7 +22,7 @@ function buildCsp(): string {
   }
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self'",
@@ -25,34 +34,29 @@ function buildCsp(): string {
   return directives.join("; ");
 }
 
-function applySecurityHeaders(response: NextResponse): NextResponse {
+function applySecurityHeaders(response: NextResponse, nonce: string): NextResponse {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-DNS-Prefetch-Control", "on");
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload",
-  );
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(self)",
-  );
-  response.headers.set("Content-Security-Policy", buildCsp());
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+  response.headers.set("Content-Security-Policy", buildCsp(nonce));
   response.headers.delete("X-Powered-By");
   return response;
 }
 
 export async function middleware(request: NextRequest) {
+  // Generate a fresh nonce for every request — used in CSP script-src
+  const nonce = generateNonce();
+
   let session;
   try {
     session = await auth();
   } catch (error) {
     // Auth provider failed — log for observability, redirect without callbackUrl to avoid loops
     console.error("[middleware] auth() failed:", error);
-    return applySecurityHeaders(
-      NextResponse.redirect(new URL("/login", request.url)),
-    );
+    return applySecurityHeaders(NextResponse.redirect(new URL("/login", request.url)), nonce);
   }
 
   const { pathname } = request.nextUrl;
@@ -90,27 +94,32 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("callbackUrl", safeCallbackPath);
     }
 
-    return applySecurityHeaders(NextResponse.redirect(url));
+    return applySecurityHeaders(NextResponse.redirect(url), nonce);
   }
 
   // If user is authenticated and trying to access auth pages
   if (session && isAuthPage) {
-    return applySecurityHeaders(
-      NextResponse.redirect(new URL("/profile", request.url)),
-    );
+    return applySecurityHeaders(NextResponse.redirect(new URL("/profile", request.url)), nonce);
   }
 
   // Role-based protection: only admins can access /admin routes
   if (pathname.startsWith("/admin")) {
     const userRole = (session?.user as { role?: string } | undefined)?.role;
     if (userRole !== "admin") {
-      return applySecurityHeaders(
-        NextResponse.redirect(new URL("/", request.url)),
-      );
+      return applySecurityHeaders(NextResponse.redirect(new URL("/", request.url)), nonce);
     }
   }
 
-  return applySecurityHeaders(NextResponse.next());
+  // Forward the nonce to server components via a request header.
+  // Next.js propagates request headers set in middleware to headers() in RSC.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  return applySecurityHeaders(response, nonce);
 }
 
 export const config = {
