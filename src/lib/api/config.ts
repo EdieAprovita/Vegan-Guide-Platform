@@ -77,13 +77,20 @@ export class ApiError extends Error {
 }
 
 // Generates a short unique ID for distributed request tracing.
-// Uses crypto.randomUUID() when available (Node 14.17+, all modern browsers),
-// falls back to a timestamp+random composite that is unique enough for correlation.
+// Generates a unique correlation ID using crypto.randomUUID() (available in
+// all modern browsers and Node 14.17+). Falls back to crypto.getRandomValues()
+// which is cryptographically secure and avoids Math.random() PRNG concerns.
 export function generateCorrelationId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  // Last resort: timestamp-based (no PRNG, monotonic only)
+  return `${Date.now().toString(36)}-${performance.now().toString(36).replace(".", "")}`;
 }
 
 // Headers comunes para las requests
