@@ -67,8 +67,8 @@ export function Image({
           hasError && "opacity-50",
           className
         )}
-        width={fill ? undefined : width}
-        height={fill ? undefined : height}
+        width={fill ? undefined : width || 200}
+        height={fill ? undefined : height || 200}
         fill={fill}
         sizes={sizes}
         quality={quality}

@@ -122,9 +122,13 @@ export function useAuthWithRouter() {
     }
   };
 
-  const logout = () => {
-    signOut({ redirect: false });
-    toast.success("Logged out successfully!");
+  const logout = async () => {
+    try {
+      await signOut({ redirect: false });
+      toast.success("Logged out successfully!");
+    } catch {
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return {
