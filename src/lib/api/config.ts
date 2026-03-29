@@ -76,6 +76,16 @@ export class ApiError extends Error {
   }
 }
 
+// Generates a short unique ID for distributed request tracing.
+// Uses crypto.randomUUID() when available (Node 14.17+, all modern browsers),
+// falls back to a timestamp+random composite that is unique enough for correlation.
+export function generateCorrelationId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 // Headers comunes para las requests
 export const getApiHeaders = (token?: string): Record<string, string> => {
   const headers: Record<string, string> = {
@@ -114,6 +124,8 @@ export const handleApiError = (error: unknown): string => {
 
 // Función helper para hacer requests con manejo de errores consistente
 export const apiRequest = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+  const correlationId = generateCorrelationId();
+  const method = (options.method ?? "GET").toUpperCase();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
@@ -125,6 +137,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "X-Correlation-ID": correlationId,
         ...options.headers,
       },
     });
@@ -142,6 +155,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
 
       const errorMessage =
         errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, errorMessage);
       throw new ApiError(response.status, errorMessage);
     }
 
@@ -154,7 +168,11 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");
       throw new Error("Request timeout");
+    }
+    if (!(error instanceof ApiError)) {
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, error);
     }
     throw error;
   }
