@@ -133,6 +133,10 @@ jobs:
           # Suppress Next.js telemetry in CI.
           NEXT_TELEMETRY_DISABLED: 1
           # Placeholder values satisfy Next.js env validation at build time.
+          # AUTH_SECRET must match the value used in the E2E job so session
+          # tokens signed during tests are verifiable by the running server.
+          AUTH_URL: http://localhost:3000
+          AUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXT_PUBLIC_API_URL: http://localhost:8000
@@ -217,7 +221,13 @@ jobs:
         run: npx playwright test --project=chromium
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          # AUTH_URL is the Auth.js v5 canonical env var (replaces NEXTAUTH_URL).
+          # Both are set for compatibility with any v4 paths still in the bundle.
+          AUTH_URL: http://localhost:3000
           NEXTAUTH_URL: http://localhost:3000
+          # AUTH_SECRET / NEXTAUTH_SECRET must match the value used at build time
+          # (baked into the .next/ artifact by the build job).
+          AUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXT_PUBLIC_API_URL: http://localhost:8000
           CI: true
