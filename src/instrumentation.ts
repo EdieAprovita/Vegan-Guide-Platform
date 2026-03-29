@@ -49,7 +49,7 @@ export async function register() {
         })
       : new NodeSDK({ resource, instrumentations });
 
-    sdk.start();
+    await sdk.start();
 
     process.on("SIGTERM", () => {
       sdk
