@@ -25,9 +25,16 @@ type MockUser = {
 /**
  * Inject a NextAuth session cookie and mock auth-related API endpoints
  * so that the app believes the user is logged in.
+ *
+ * This function intercepts requests at the page level and mocks:
+ * - NextAuth session/CSRF/provider endpoints (frontend router)
+ * - Backend API endpoints for user profile, reviews, etc. (external localhost:8000)
+ *
+ * All requests are mocked to prevent the E2E tests from hitting a real backend
+ * that may not exist in CI or may be in an unknown state.
  */
 async function setupAuthSession(page: Page, user: MockUser) {
-  // Mock the NextAuth session endpoint that the client checks
+  // NextAuth session endpoint (called by useSession() hook)
   await page.route("**/api/auth/session", (route) =>
     route.fulfill({
       status: 200,
@@ -46,7 +53,7 @@ async function setupAuthSession(page: Page, user: MockUser) {
     })
   );
 
-  // Mock CSRF token endpoint
+  // NextAuth CSRF token endpoint
   await page.route("**/api/auth/csrf", (route) =>
     route.fulfill({
       status: 200,
@@ -55,7 +62,7 @@ async function setupAuthSession(page: Page, user: MockUser) {
     })
   );
 
-  // Mock providers endpoint
+  // NextAuth providers endpoint
   await page.route("**/api/auth/providers", (route) =>
     route.fulfill({
       status: 200,
@@ -66,10 +73,9 @@ async function setupAuthSession(page: Page, user: MockUser) {
     })
   );
 
-  // Mock user profile endpoint
-  await page.route(`${API}/users/${user._id}`, (route) => route.fulfill(jsonResponse(user)));
-
-  await page.route(`${API}/users/profile/${user._id}`, (route) => {
+  // Backend user profile endpoint (localhost:8000/api/v1/users/profile/:id)
+  // Intercept both GET (fetch) and PUT (update) operations
+  await page.route("**/api/v1/users/profile/**", (route) => {
     if (route.request().method() === "GET") {
       return route.fulfill(jsonResponse(user));
     }
@@ -79,6 +85,51 @@ async function setupAuthSession(page: Page, user: MockUser) {
       );
     }
     return route.continue();
+  });
+
+  // Backend user by ID endpoint (localhost:8000/api/v1/users/:id)
+  await page.route(`**/api/v1/users/${user._id}**`, (route) => route.fulfill(jsonResponse(user)));
+
+  // Catch-all for other backend endpoints (localhost:8000/api/v1/**)
+  // Return a reasonable mock response or 404 to prevent timeouts waiting for
+  // a backend server that doesn't exist in CI.
+  await page.route("**/api/v1/**", (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    // Recipes, restaurants, markets, doctors: return empty array
+    if (
+      url.includes("/recipes") ||
+      url.includes("/restaurants") ||
+      url.includes("/markets") ||
+      url.includes("/doctors")
+    ) {
+      if (method === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [] }),
+        });
+      }
+    }
+
+    // Tags endpoint: return empty array
+    if (url.includes("/tags")) {
+      if (method === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true, data: [] }),
+        });
+      }
+    }
+
+    // Default: 404 for unmatched backend endpoints
+    return route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ success: false, error: "Mock endpoint not found" }),
+    });
   });
 
   // Navigate to home to establish the authenticated session.
