@@ -139,12 +139,15 @@ jobs:
 
       # Upload the .next build output so the E2E job can reuse it
       # without rebuilding (saves ~60-90s per run).
+      # include-hidden-files: true is required because .next/ starts with a
+      # dot and upload-artifact@v4 skips hidden paths by default.
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: nextjs-build
           path: .next/
           retention-days: 1
+          include-hidden-files: true
 
   # ─────────────────────────────────────────────
   # JOB 4 — E2E tests (Playwright / Chromium)
@@ -152,9 +155,13 @@ jobs:
   # E2E suites are slow (~3-5 min) and post-merge runs on main
   # are already covered by Vercel's preview deployments.
   #
-  # This job reuses the build artifact from Job 3 to start a
-  # production server (npm start) instead of the dev server,
-  # giving tests higher fidelity without an extra build step.
+  # Self-contained: installs deps, starts the Next.js dev server
+  # via playwright.config.ts webServer, and runs Chromium tests.
+  # No artifact download needed — playwright.config.ts uses
+  # "npm run dev" unconditionally, so downloading a production
+  # build would be unused. If the suite is later migrated to
+  # "npm start" (production server), restore the needs: [build]
+  # dependency and the download-artifact step at that time.
   #
   # continue-on-error: true during initial rollout so that
   # flaky/incomplete specs do not block merges while the suite
@@ -164,7 +171,9 @@ jobs:
   e2e:
     name: E2E Tests (Chromium)
     runs-on: ubuntu-latest
-    needs: [build]
+    # Depend on quality only — no longer coupled to the build artifact.
+    # This lets E2E run in parallel with the build job, saving wall time.
+    needs: [quality]
     # Run E2E only on pull requests (not on push to main).
     if: github.event_name == 'pull_request'
     # Remove this once the E2E suite is consistently green.
@@ -181,22 +190,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      # Download the pre-built .next directory from the build job.
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: nextjs-build
-          path: .next/
-
       # Install only the Chromium browser and its system dependencies.
       # Skipping Firefox/WebKit keeps install time under 30s.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # Run the Chromium project only. The playwright.config.ts already
-      # sets workers=1 and retries=2 when CI=true.
-      # We start a production server (npm start) instead of dev for
-      # accurate routing and middleware behaviour.
+      # playwright.config.ts webServer starts "npm run dev" automatically.
+      # workers=1 and retries=2 are applied when CI=true (set by runner).
       - name: Run E2E tests
         run: npx playwright test --project=chromium
         env:
@@ -204,8 +204,6 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXT_PUBLIC_API_URL: http://localhost:8000
-          # Override webServer command to use production build.
-          # playwright.config.ts reads this to decide server startup.
           CI: true
 
       # Always upload traces/screenshots so failures are debuggable
