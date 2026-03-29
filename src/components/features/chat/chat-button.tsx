@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
-import { ChatSystem } from "./chat-system";
+import dynamic from "next/dynamic";
+
+const ChatSystem = dynamic(() => import("./chat-system").then((m) => ({ default: m.ChatSystem })), {
+  ssr: false,
+});
 
 export function ChatButton() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -37,7 +41,7 @@ export function ChatButton() {
         )}
       </Button>
 
-      <ChatSystem isOpen={isChatOpen} onClose={handleCloseChat} />
+      {isChatOpen && <ChatSystem isOpen={isChatOpen} onClose={handleCloseChat} />}
     </>
   );
 }
