@@ -285,7 +285,7 @@ authedTest.describe("Recipes: Authenticated Actions", () => {
   authedTest(
     "authenticated user can view recipe detail",
     async ({ recipePage }) => {
-      await recipePage.goto("/recipes/rec-001", { waitUntil: "networkidle" });
+      await recipePage.goto("/recipes/rec-001", { waitUntil: "domcontentloaded" });
       await waitForHydration(recipePage);
 
       // Content must be meaningful

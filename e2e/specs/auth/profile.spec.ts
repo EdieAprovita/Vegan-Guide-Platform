@@ -365,7 +365,7 @@ test.describe("Auth: Profile Update", () => {
 
     // Changes should be reverted
     // Note: Depending on implementation, this might reload or reset form
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const currentValue = await profilePage.getFieldValue("firstNameInput");
     expect(currentValue).toBe("OriginalName");
   });

@@ -241,7 +241,7 @@ authedTest.describe("Markets: Authenticated Actions", () => {
   authedTest(
     "authenticated user can view market detail",
     async ({ marketPage }) => {
-      await marketPage.goto("/markets/mkt-001", { waitUntil: "networkidle" });
+      await marketPage.goto("/markets/mkt-001", { waitUntil: "domcontentloaded" });
       await waitForHydration(marketPage);
 
       // Content must be meaningful

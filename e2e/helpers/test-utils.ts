@@ -31,11 +31,18 @@ export const BENIGN_ERRORS = [
 ];
 
 /**
- * Wait for the page to be fully loaded and ready.
- * Waits for network activity to settle and ensures the body element is visible.
+ * Wait for the page to be fully loaded and ready for interaction.
+ *
+ * We intentionally use "domcontentloaded" rather than "networkidle" here.
+ * Next.js dev server keeps a persistent HMR WebSocket open at /_next/webpack-hmr,
+ * which means "networkidle" never resolves — it waits the full test timeout (30s)
+ * before giving up. "domcontentloaded" fires as soon as the HTML is parsed and
+ * all deferred scripts have run, which is the correct signal that React has
+ * hydrated. For tests that genuinely need to wait for async data to appear,
+ * use an explicit waitForSelector or expect(...).toBeVisible() assertion instead.
  */
 export async function waitForHydration(page: Page) {
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.waitForSelector("body", { state: "visible", timeout: 5000 });
 }
 
@@ -141,7 +148,7 @@ export async function assertNoInfiniteRedirect(page: Page, path: string) {
   });
 
   await page.goto(path, { waitUntil: "domcontentloaded" });
-  await waitForHydration(page);
+  await page.waitForSelector("body", { state: "visible", timeout: 5000 });
 
   expect(navigationCount).toBeLessThan(10);
 }

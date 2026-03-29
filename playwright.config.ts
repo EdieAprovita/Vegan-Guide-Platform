@@ -55,9 +55,21 @@ export default defineConfig({
     },
   ],
 
-  /* Auto-start Next.js dev server before tests */
+  /* Auto-start Next.js server before tests.
+   *
+   * In CI we run against the production build ("npm start") so that:
+   * - There is no HMR WebSocket — "networkidle" and "domcontentloaded" both
+   *   settle predictably and pages load 5–10x faster than the dev server.
+   * - OTel instrumentation module-not-found warnings are suppressed (no HMR
+   *   recompile loop).
+   * - The build artifact uploaded by the build job is reused (no double build).
+   *
+   * Locally, "npm run dev" is kept for fast iteration with hot reload.
+   * The build job must run first and download the .next artifact before this
+   * job starts (see ci.yml: needs: [build]).
+   */
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "npm start" : "npm run dev",
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

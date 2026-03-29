@@ -81,10 +81,12 @@ async function setupAuthSession(page: Page, user: MockUser) {
     return route.continue();
   });
 
-  // Navigate to home to establish the authenticated session
-  // This ensures the session check is intercepted and our mock is applied
+  // Navigate to home to establish the authenticated session.
+  // "domcontentloaded" is used instead of "networkidle" because the dev server
+  // keeps the HMR WebSocket open and the app calls an external API on load —
+  // both prevent "networkidle" from ever resolving in CI, burning the full timeout.
   try {
-    await page.goto("/", { waitUntil: "networkidle", timeout: 10000 });
+    await page.goto("/", { waitUntil: "domcontentloaded", timeout: 10000 });
   } catch {
     // Navigation might fail, but routes are set up
   }

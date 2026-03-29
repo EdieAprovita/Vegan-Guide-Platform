@@ -171,11 +171,17 @@ jobs:
   e2e:
     name: E2E Tests (Chromium)
     runs-on: ubuntu-latest
-    # Depend on quality only — no longer coupled to the build artifact.
-    # This lets E2E run in parallel with the build job, saving wall time.
-    needs: [quality]
+    # Depend on build so the .next/ artifact is available for "npm start".
+    # The build job already depends on quality, so the quality gate is still
+    # enforced transitively. Wall time is not materially affected because the
+    # build job finishes in ~90s, well before Playwright browser install completes.
+    needs: [build]
     # Run E2E only on pull requests (not on push to main).
     if: github.event_name == 'pull_request'
+    # Hard ceiling: the suite should complete in under 15 minutes on a
+    # production build with 1 worker. 20 minutes gives a comfortable margin
+    # without letting a hung job consume the full 6-hour GitHub default.
+    timeout-minutes: 20
     # Remove this once the E2E suite is consistently green.
     continue-on-error: true
 
@@ -190,12 +196,22 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
+      # Download the pre-built .next/ artifact from the build job.
+      # This allows "npm start" (production server) to run without rebuilding,
+      # saving ~90s and eliminating the HMR WebSocket that caused networkidle
+      # to time out on every test.
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+
       # Install only the Chromium browser and its system dependencies.
       # Skipping Firefox/WebKit keeps install time under 30s.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # playwright.config.ts webServer starts "npm run dev" automatically.
+      # playwright.config.ts webServer starts "npm start" in CI automatically.
       # workers=1 and retries=2 are applied when CI=true (set by runner).
       - name: Run E2E tests
         run: npx playwright test --project=chromium

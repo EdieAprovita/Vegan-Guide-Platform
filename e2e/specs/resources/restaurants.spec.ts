@@ -241,7 +241,7 @@ authedTest.describe("Restaurants: Authenticated Actions", () => {
   authedTest(
     "authenticated user can view restaurant detail",
     async ({ restaurantPage }) => {
-      await restaurantPage.goto("/restaurants/rest-001", { waitUntil: "networkidle" });
+      await restaurantPage.goto("/restaurants/rest-001", { waitUntil: "domcontentloaded" });
       await waitForHydration(restaurantPage);
 
       // Content must be meaningful
