@@ -40,10 +40,6 @@ function reportMetric(metric: VitalMetric): void {
   if (process.env.NODE_ENV === "development") {
     // eslint-disable-next-line no-console
     console.log("[WebVitals]", structuredLog);
-  } else {
-    // Structured JSON log for production log aggregators (e.g. CloudWatch, Datadog)
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify(structuredLog));
   }
 
   // Threshold alert — fires in all environments so degradations surface during QA too
