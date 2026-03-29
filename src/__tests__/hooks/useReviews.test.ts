@@ -1,12 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { useReviews, useReview, reviewKeys } from "@/hooks/useReviews";
 import * as reviewsApi from "@/lib/api/reviews";
-import {
-  useInfiniteQuery,
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -101,15 +96,21 @@ function stubMutations() {
   const invalidateQueries = jest.fn();
   const setQueryData = jest.fn();
   const removeQueries = jest.fn();
+  const resetQueries = jest.fn().mockResolvedValue(undefined);
 
-  useQueryClientMock.mockReturnValue({ invalidateQueries, setQueryData, removeQueries });
+  useQueryClientMock.mockReturnValue({
+    invalidateQueries,
+    setQueryData,
+    removeQueries,
+    resetQueries,
+  });
 
   useMutationMock.mockImplementation((config: { mutationFn: (...a: unknown[]) => unknown }) => ({
     mutateAsync: (...args: unknown[]) => config.mutationFn(...args),
     error: null,
   }));
 
-  return { invalidateQueries, setQueryData, removeQueries };
+  return { invalidateQueries, setQueryData, removeQueries, resetQueries };
 }
 
 const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -174,17 +175,13 @@ describe("useReviews", () => {
   it("sets enabled=false when autoFetch is false", () => {
     renderHook(() => useReviews({ ...defaultParams, autoFetch: false }));
 
-    expect(useInfiniteQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false })
-    );
+    expect(useInfiniteQueryMock).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 
   it("sets enabled=false when resourceId is empty", () => {
     renderHook(() => useReviews({ resourceType: "restaurant", resourceId: "" }));
 
-    expect(useInfiniteQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false })
-    );
+    expect(useInfiniteQueryMock).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 
   it("configures the stats query only for restaurant resource type", () => {
@@ -192,8 +189,7 @@ describe("useReviews", () => {
 
     const statsCall = useQueryMock.mock.calls.find(
       ([config]: [{ queryKey: string[] }]) =>
-        JSON.stringify(config.queryKey) ===
-        JSON.stringify(reviewKeys.stats("restaurant", "rest1"))
+        JSON.stringify(config.queryKey) === JSON.stringify(reviewKeys.stats("restaurant", "rest1"))
     );
     expect(statsCall).toBeDefined();
     expect(statsCall[0].enabled).toBe(true);
@@ -203,8 +199,7 @@ describe("useReviews", () => {
     renderHook(() => useReviews({ resourceType: "recipe", resourceId: "rec1" }));
 
     const statsCall = useQueryMock.mock.calls.find(
-      ([cfg]: [{ enabled: boolean; queryKey: string[] }]) =>
-        cfg.queryKey?.[1] === "stats"
+      ([cfg]: [{ enabled: boolean; queryKey: string[] }]) => cfg.queryKey?.[1] === "stats"
     );
     expect(statsCall?.[0].enabled).toBe(false);
   });
@@ -298,15 +293,15 @@ describe("useReviews", () => {
   });
 
   it("derives stats client-side for non-restaurant resource types", () => {
-    stubInfiniteQuery([[
-      { ...mockReview, rating: 5 },
-      { ...mockReview, _id: "rev2", rating: 3 },
-    ]]);
+    stubInfiniteQuery([
+      [
+        { ...mockReview, rating: 5 },
+        { ...mockReview, _id: "rev2", rating: 3 },
+      ],
+    ]);
     useQueryMock.mockReturnValue({ data: null, isLoading: false, error: null });
 
-    const { result } = renderHook(() =>
-      useReviews({ resourceType: "recipe", resourceId: "rec1" })
-    );
+    const { result } = renderHook(() => useReviews({ resourceType: "recipe", resourceId: "rec1" }));
 
     expect(result.current.stats?.averageRating).toBe(4); // (5+3)/2
     expect(result.current.stats?.totalReviews).toBe(2);
@@ -324,30 +319,24 @@ describe("useReviews", () => {
       hasNextPage: false,
     });
 
-    const { result } = renderHook(() =>
-      useReviews({ resourceType: "recipe", resourceId: "rec1" })
-    );
+    const { result } = renderHook(() => useReviews({ resourceType: "recipe", resourceId: "rec1" }));
     expect(result.current.stats).toBeNull();
   });
 
   // -------------------------------------------------------------------------
   // refetch / loadMore
   // -------------------------------------------------------------------------
-  it("refetch delegates to the TanStack refetch function", async () => {
-    const refetchFn = jest.fn().mockResolvedValue(undefined);
-    useInfiniteQueryMock.mockReturnValue({
-      data: { pages: [[mockReview]], pageParams: [1] },
-      isFetching: false,
-      error: null,
-      refetch: refetchFn,
-      fetchNextPage: jest.fn(),
-      hasNextPage: false,
-    });
+  it("refetch resets the query to page 1 via queryClient.resetQueries", async () => {
+    const { resetQueries } = stubMutations();
 
     const { result } = renderHook(() => useReviews(defaultParams));
-    await act(async () => { await result.current.refetch(); });
+    await act(async () => {
+      await result.current.refetch();
+    });
 
-    expect(refetchFn).toHaveBeenCalled();
+    expect(resetQueries).toHaveBeenCalledWith({
+      queryKey: reviewKeys.list(defaultParams.resourceType, defaultParams.resourceId),
+    });
   });
 
   it("loadMore calls fetchNextPage when hasMore is true and not fetching", async () => {
@@ -362,7 +351,9 @@ describe("useReviews", () => {
     });
 
     const { result } = renderHook(() => useReviews(defaultParams));
-    await act(async () => { await result.current.loadMore(); });
+    await act(async () => {
+      await result.current.loadMore();
+    });
 
     expect(fetchNextPage).toHaveBeenCalled();
   });
@@ -379,7 +370,9 @@ describe("useReviews", () => {
     });
 
     const { result } = renderHook(() => useReviews(defaultParams));
-    await act(async () => { await result.current.loadMore(); });
+    await act(async () => {
+      await result.current.loadMore();
+    });
 
     expect(fetchNextPage).not.toHaveBeenCalled();
   });
@@ -396,7 +389,9 @@ describe("useReviews", () => {
     });
 
     const { result } = renderHook(() => useReviews(defaultParams));
-    await act(async () => { await result.current.loadMore(); });
+    await act(async () => {
+      await result.current.loadMore();
+    });
 
     expect(fetchNextPage).not.toHaveBeenCalled();
   });
@@ -405,9 +400,7 @@ describe("useReviews", () => {
   // addReview
   // -------------------------------------------------------------------------
   it("addReview throws when not authenticated", async () => {
-    const { result } = renderHook(() =>
-      useReviews({ ...defaultParams, autoFetch: false })
-    );
+    const { result } = renderHook(() => useReviews({ ...defaultParams, autoFetch: false }));
 
     await expect(result.current.addReview({ rating: 5, comment: "Great!" })).rejects.toThrow(
       "Debes iniciar sesión para crear una review"
@@ -437,7 +430,9 @@ describe("useReviews", () => {
 
     const { result } = renderHook(() => useReviews(defaultParams));
     await expect(
-      act(async () => { await result.current.addReview({ rating: 4, comment: "test" }); })
+      act(async () => {
+        await result.current.addReview({ rating: 4, comment: "test" });
+      })
     ).rejects.toThrow("create error");
   });
 
@@ -445,9 +440,7 @@ describe("useReviews", () => {
   // updateReview
   // -------------------------------------------------------------------------
   it("updateReview throws when not authenticated", async () => {
-    const { result } = renderHook(() =>
-      useReviews({ ...defaultParams, autoFetch: false })
-    );
+    const { result } = renderHook(() => useReviews({ ...defaultParams, autoFetch: false }));
 
     await expect(result.current.updateReview("rev1", { comment: "updated" })).rejects.toThrow(
       "Debes iniciar sesión para actualizar una review"
@@ -473,9 +466,7 @@ describe("useReviews", () => {
   // deleteReview
   // -------------------------------------------------------------------------
   it("deleteReview throws when not authenticated", async () => {
-    const { result } = renderHook(() =>
-      useReviews({ ...defaultParams, autoFetch: false })
-    );
+    const { result } = renderHook(() => useReviews({ ...defaultParams, autoFetch: false }));
 
     await expect(result.current.deleteReview("rev1")).rejects.toThrow(
       "Debes iniciar sesión para eliminar una review"
@@ -500,9 +491,7 @@ describe("useReviews", () => {
   // toggleHelpful
   // -------------------------------------------------------------------------
   it("toggleHelpful throws when not authenticated", async () => {
-    const { result } = renderHook(() =>
-      useReviews({ ...defaultParams, autoFetch: false })
-    );
+    const { result } = renderHook(() => useReviews({ ...defaultParams, autoFetch: false }));
 
     await expect(result.current.toggleHelpful("rev1", true)).rejects.toThrow(
       "Debes iniciar sesión para votar"
@@ -635,9 +624,7 @@ describe("useReview", () => {
   it("sets enabled=false when reviewId is empty", () => {
     renderHook(() => useReview(""));
 
-    expect(useQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false })
-    );
+    expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 
   it("returns the review from query data", () => {

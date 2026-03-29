@@ -10,7 +10,6 @@ const customJestConfig = {
   testEnvironment: "jest-environment-jsdom",
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@testing-library/react$": "<rootDir>/src/__tests__/helpers/testing-library-with-query.tsx",
   },
   collectCoverage: true,
   collectCoverageFrom: [

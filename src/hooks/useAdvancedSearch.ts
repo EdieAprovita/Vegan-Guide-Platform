@@ -6,6 +6,7 @@ import {
   useInfiniteQuery,
   useQuery,
   useMutation,
+  useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
 import {
@@ -48,8 +49,9 @@ export const searchKeys = {
   all: ["search"] as const,
   results: (filters: SearchFilters) => ["search", "results", filters] as const,
   suggestions: (query: string) => ["search", "suggestions", query] as const,
-  aggregations: (filters: Pick<SearchFilters, "resourceTypes" | "location" | "radius" | "coordinates">) =>
-    ["search", "aggregations", filters] as const,
+  aggregations: (
+    filters: Pick<SearchFilters, "resourceTypes" | "location" | "radius" | "coordinates">
+  ) => ["search", "aggregations", filters] as const,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -59,6 +61,7 @@ export const searchKeys = {
 export function useAdvancedSearch() {
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const queryClient = useQueryClient();
 
   // ------------------------------------------------------------------
   // UI state — filter values and input-level concerns stay as useState
@@ -91,8 +94,7 @@ export function useAdvancedSearch() {
       return response.data as SearchResponse;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.hasNext ? lastPage.page + 1 : undefined,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.page + 1 : undefined),
     enabled: false, // search is user-triggered, not automatic
     placeholderData: keepPreviousData,
     staleTime: 0, // search results should always be fresh on re-fetch
@@ -118,6 +120,10 @@ export function useAdvancedSearch() {
     enabled: debouncedQuery.length >= 2,
     staleTime: 60 * 1000, // suggestions are cheap to cache for 1 minute
     placeholderData: keepPreviousData,
+    // When the query is too short, TanStack Query returns stale cached data
+    // from a previous longer query. Force empty array in that case so the UI
+    // never shows suggestions for an input that no longer warrants them.
+    select: (data) => (debouncedQuery.length < 2 ? [] : data),
   });
 
   // ------------------------------------------------------------------
@@ -146,13 +152,8 @@ export function useAdvancedSearch() {
   // ------------------------------------------------------------------
 
   const saveAnalyticsMutation = useMutation({
-    mutationFn: ({
-      query,
-      resourceType,
-    }: {
-      query: string;
-      resourceType?: ResourceType;
-    }) => saveSearchQuery(query, resourceType),
+    mutationFn: ({ query, resourceType }: { query: string; resourceType?: ResourceType }) =>
+      saveSearchQuery(query, resourceType),
     onError: () => {
       // Analytics failure must never surface to the user
     },
@@ -163,17 +164,18 @@ export function useAdvancedSearch() {
   // ------------------------------------------------------------------
 
   const search = useCallback(async () => {
-    // Reset to first page by triggering a fresh fetch from page 1.
-    // refetch() on an infinite query always re-fetches from the first page.
-    await searchQuery.refetch();
+    // resetQueries clears the cache and re-fetches only page 1, ensuring new
+    // searches always start from the beginning. refetch() on an infinite query
+    // would re-fetch all currently-cached pages instead.
+    await queryClient.resetQueries({ queryKey: searchKeys.results(filters) });
 
-    // Save analytics after a successful fetch
+    // Save analytics after the reset triggers a fresh fetch
     if (filters.query && isAuthenticated) {
       const resourceType =
         filters.resourceTypes.length === 1 ? filters.resourceTypes[0] : undefined;
       saveAnalyticsMutation.mutate({ query: filters.query, resourceType });
     }
-  }, [searchQuery, filters, isAuthenticated, saveAnalyticsMutation]);
+  }, [queryClient, filters, isAuthenticated, saveAnalyticsMutation]);
 
   const loadMore = useCallback(() => {
     if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage) {
@@ -209,39 +211,30 @@ export function useAdvancedSearch() {
 
   // Specific filter setters (unchanged public API)
 
-  const setQuery = useCallback(
-    (query: string) => updateFilters({ query }),
-    [updateFilters],
-  );
+  const setQuery = useCallback((query: string) => updateFilters({ query }), [updateFilters]);
 
-  const setSortBy = useCallback(
-    (sortBy: SortOption) => updateFilters({ sortBy }),
-    [updateFilters],
-  );
+  const setSortBy = useCallback((sortBy: SortOption) => updateFilters({ sortBy }), [updateFilters]);
 
   const setResourceTypes = useCallback(
     (resourceTypes: ResourceType[]) => updateFilters({ resourceTypes }),
-    [updateFilters],
+    [updateFilters]
   );
 
   const setLocation = useCallback(
     (location: string, coordinates?: Coordinates) => updateFilters({ location, coordinates }),
-    [updateFilters],
+    [updateFilters]
   );
 
-  const setRadius = useCallback(
-    (radius: number) => updateFilters({ radius }),
-    [updateFilters],
-  );
+  const setRadius = useCallback((radius: number) => updateFilters({ radius }), [updateFilters]);
 
   const setMinRating = useCallback(
     (minRating: number) => updateFilters({ minRating }),
-    [updateFilters],
+    [updateFilters]
   );
 
   const setBudgetRange = useCallback(
     (min?: number, max?: number) => updateFilters({ budget: { min, max } }),
-    [updateFilters],
+    [updateFilters]
   );
 
   // ------------------------------------------------------------------
@@ -278,9 +271,7 @@ export function useAdvancedSearch() {
 
   const isSearching = searchQuery.isFetching || searchQuery.isFetchingNextPage;
   const searchError =
-    searchQuery.error instanceof Error
-      ? searchQuery.error.message
-      : locationError;
+    searchQuery.error instanceof Error ? searchQuery.error.message : locationError;
 
   const searchState = {
     isSearching,

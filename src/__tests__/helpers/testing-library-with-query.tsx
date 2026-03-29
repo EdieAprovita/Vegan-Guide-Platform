@@ -10,30 +10,20 @@
  *
  * Referenced via moduleNameMapper in jest.config.js.
  */
+/* eslint-disable */
 import React from "react";
 
-// Load the REAL @testing-library/react via its resolved path on disk,
-// bypassing the moduleNameMapper redirect that would cause infinite recursion.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-const realTL: typeof import("@testing-library/react") = require(
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  "/Users/EACM/Developer/Vegan-Guide-Platform/node_modules/@testing-library/react/dist/index.js"
-) as typeof import("@testing-library/react");
+const realTLPath = require.resolve("@testing-library/react/pure");
+const realTL = require(realTLPath) as typeof import("@testing-library/react");
 
 const { renderHook: originalRenderHook } = realTL;
 
-// Re-export everything from the real module unchanged so that all
-// screen, render, fireEvent, waitFor, act, etc. remain available.
-// @ts-expect-error — absolute path bypasses TS module resolution but works at runtime
-export * from "/Users/EACM/Developer/Vegan-Guide-Platform/node_modules/@testing-library/react/dist/index.js";
+export * from "@testing-library/react/pure";
 
-function tryCreateQueryWrapper(): React.ComponentType<{ children: React.ReactNode }> | undefined {
+function QueryWrapper({ children }: { children: React.ReactNode }) {
   try {
-    // Dynamically require so that if @tanstack/react-query is jest.mock()'ed
-    // and QueryClient is not a constructor, we gracefully fall back.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { QueryClient, QueryClientProvider } = require("@tanstack/react-query");
-    if (typeof QueryClient !== "function") return undefined;
+    if (typeof QueryClient !== "function") return <>{children}</>;
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -42,8 +32,18 @@ function tryCreateQueryWrapper(): React.ComponentType<{ children: React.ReactNod
       },
     });
 
-    return ({ children }: { children: React.ReactNode }) =>
-      React.createElement(QueryClientProvider, { client: queryClient }, children);
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  } catch {
+    return <>{children}</>;
+  }
+}
+QueryWrapper.displayName = "QueryWrapper";
+
+function tryCreateQueryWrapper(): React.ComponentType<{ children: React.ReactNode }> | undefined {
+  try {
+    const { QueryClient } = require("@tanstack/react-query");
+    if (typeof QueryClient !== "function") return undefined;
+    return QueryWrapper;
   } catch {
     return undefined;
   }
@@ -53,9 +53,6 @@ export function renderHook<Result, Props>(
   renderCallback: (props: Props) => Result,
   options?: Parameters<typeof originalRenderHook>[1]
 ): ReturnType<typeof originalRenderHook<Result, Props>> {
-  // If the caller already provides a wrapper, respect it.
-  // Otherwise try to inject a QueryClientProvider; if that's not possible
-  // (e.g., @tanstack/react-query is mocked without QueryClient), run as-is.
   const wrapper = options?.wrapper ?? tryCreateQueryWrapper();
   return originalRenderHook(renderCallback, {
     ...(options as object),

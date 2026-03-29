@@ -151,8 +151,11 @@ export function useReviews({
   // Public helpers that preserve the original synchronous-looking API
   // ------------------------------------------------------------------
   const refetch = useCallback(async () => {
-    await refetchInfinite();
-  }, [refetchInfinite]);
+    // resetQueries clears the cache and re-fetches only page 1, matching the
+    // original fetchReviews(1, false) behaviour. refetch() on an infinite query
+    // would re-fetch all currently-cached pages instead.
+    await queryClient.resetQueries({ queryKey: listQueryKey });
+  }, [queryClient, listQueryKey]);
 
   const loadMore = useCallback(async () => {
     if (hasMore && !isFetching) {
@@ -197,11 +200,7 @@ export function useReviews({
       // Optimistic-style cache update: patch the review in all cached pages
       queryClient.setQueryData(
         listQueryKey,
-        (
-          old:
-            | { pages: Review[][]; pageParams: unknown[] }
-            | undefined
-        ) => {
+        (old: { pages: Review[][]; pageParams: unknown[] } | undefined) => {
           if (!old) return old;
           return {
             ...old,
@@ -269,10 +268,7 @@ export function useReviews({
   // Compose error string from any active mutation or the list query
   // ------------------------------------------------------------------
   const mutationError =
-    addReviewMutation.error ??
-    updateReviewMutation.error ??
-    deleteReviewMutation.error ??
-    null;
+    addReviewMutation.error ?? updateReviewMutation.error ?? deleteReviewMutation.error ?? null;
 
   const error: string | null =
     mutationError instanceof Error

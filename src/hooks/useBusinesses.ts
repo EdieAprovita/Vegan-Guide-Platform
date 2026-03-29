@@ -79,7 +79,8 @@ export function useBusinesses(
   return {
     businesses: query.data ?? [],
     loading: query.isLoading,
-    error: query.error ? (query.error as Error).message : null,
+    error:
+      query.error instanceof Error ? query.error.message : query.error ? "An error occurred" : null,
     totalCount: query.data?.length ?? 0,
     refetch: query.refetch,
   };
@@ -103,7 +104,8 @@ export function useBusiness(id?: string) {
   return {
     business: query.data ?? null,
     loading: query.isLoading,
-    error: query.error ? (query.error as Error).message : null,
+    error:
+      query.error instanceof Error ? query.error.message : query.error ? "An error occurred" : null,
   };
 }
 

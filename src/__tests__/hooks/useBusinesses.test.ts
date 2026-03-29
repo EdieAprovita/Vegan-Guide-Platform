@@ -1,4 +1,6 @@
+import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   useBusinesses,
   useBusiness,
@@ -8,6 +10,18 @@ import {
 } from "@/hooks/useBusinesses";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import * as businessesApi from "@/lib/api/businesses";
+
+function createQueryWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+  return function QueryWrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  };
+}
 
 jest.mock("@/hooks/useGeolocation", () => ({
   useUserLocation: jest.fn(),
@@ -64,7 +78,7 @@ describe("useBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useBusinesses());
+    const { result } = renderHook(() => useBusinesses(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -82,7 +96,7 @@ describe("useBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useBusinesses({ useUserLocation: true, radius: 5 }));
+    const { result } = renderHook(() => useBusinesses({ useUserLocation: true, radius: 5 }), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -97,7 +111,7 @@ describe("useBusinesses", () => {
       data: [],
     });
 
-    const { result } = renderHook(() => useBusinesses({ useUserLocation: true }));
+    const { result } = renderHook(() => useBusinesses({ useUserLocation: true }), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -107,7 +121,7 @@ describe("useBusinesses", () => {
   });
 
   it("skips auto-fetch when autoFetch is false", async () => {
-    const { result } = renderHook(() => useBusinesses({ autoFetch: false }));
+    const { result } = renderHook(() => useBusinesses({ autoFetch: false }), { wrapper: createQueryWrapper() });
 
     await act(async () => {});
 
@@ -118,7 +132,7 @@ describe("useBusinesses", () => {
   it("sets error state when fetch fails", async () => {
     (businessesApi.getBusinesses as jest.Mock).mockRejectedValue(new Error("fetch failed"));
 
-    const { result } = renderHook(() => useBusinesses());
+    const { result } = renderHook(() => useBusinesses(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -132,7 +146,7 @@ describe("useBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useBusinesses());
+    const { result } = renderHook(() => useBusinesses(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -148,7 +162,7 @@ describe("useBusiness", () => {
   it("fetches a single business by id", async () => {
     (businessesApi.getBusiness as jest.Mock).mockResolvedValue({ data: mockBusiness });
 
-    const { result } = renderHook(() => useBusiness("b1"));
+    const { result } = renderHook(() => useBusiness("b1"), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -158,7 +172,7 @@ describe("useBusiness", () => {
   });
 
   it("does not fetch when no id is provided", async () => {
-    const { result } = renderHook(() => useBusiness(undefined));
+    const { result } = renderHook(() => useBusiness(undefined), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -169,7 +183,7 @@ describe("useBusiness", () => {
   it("sets error when fetch fails", async () => {
     (businessesApi.getBusiness as jest.Mock).mockRejectedValue(new Error("not found"));
 
-    const { result } = renderHook(() => useBusiness("b99"));
+    const { result } = renderHook(() => useBusiness("b99"), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -184,7 +198,7 @@ describe("useNearbyBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useNearbyBusinesses(5));
+    const { result } = renderHook(() => useNearbyBusinesses(5), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.searchNearby();
@@ -199,7 +213,7 @@ describe("useNearbyBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useNearbyBusinesses(8));
+    const { result } = renderHook(() => useNearbyBusinesses(8), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.searchNearby({ lat: 50, lng: 60 });
@@ -212,7 +226,7 @@ describe("useNearbyBusinesses", () => {
     const getCurrentPosition = jest.fn().mockResolvedValue(undefined);
     locationMock.mockReturnValue({ userCoords: null, getCurrentPosition });
 
-    const { result } = renderHook(() => useNearbyBusinesses());
+    const { result } = renderHook(() => useNearbyBusinesses(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.searchNearby();
@@ -226,7 +240,7 @@ describe("useNearbyBusinesses", () => {
     const getCurrentPosition = jest.fn().mockRejectedValue(new Error("denied"));
     locationMock.mockReturnValue({ userCoords: null, getCurrentPosition });
 
-    const { result } = renderHook(() => useNearbyBusinesses());
+    const { result } = renderHook(() => useNearbyBusinesses(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.searchNearby();
@@ -240,7 +254,7 @@ describe("useNearbyBusinesses", () => {
       new Error("proximity error")
     );
 
-    const { result } = renderHook(() => useNearbyBusinesses());
+    const { result } = renderHook(() => useNearbyBusinesses(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.searchNearby();
@@ -254,7 +268,7 @@ describe("useBusinessSearch", () => {
   it("returns search results for a given query", async () => {
     (businessesApi.searchBusinesses as jest.Mock).mockResolvedValue({ data: [mockBusiness] });
 
-    const { result } = renderHook(() => useBusinessSearch());
+    const { result } = renderHook(() => useBusinessSearch(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.search("vegan cafe");
@@ -266,7 +280,7 @@ describe("useBusinessSearch", () => {
   });
 
   it("does not search when query is blank", async () => {
-    const { result } = renderHook(() => useBusinessSearch());
+    const { result } = renderHook(() => useBusinessSearch(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.search("  ");
@@ -279,7 +293,7 @@ describe("useBusinessSearch", () => {
   it("sets error when search fails", async () => {
     (businessesApi.searchBusinesses as jest.Mock).mockRejectedValue(new Error("search error"));
 
-    const { result } = renderHook(() => useBusinessSearch());
+    const { result } = renderHook(() => useBusinessSearch(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.search("cafe");
@@ -291,7 +305,7 @@ describe("useBusinessSearch", () => {
   it("clearResults resets state", async () => {
     (businessesApi.searchBusinesses as jest.Mock).mockResolvedValue({ data: [mockBusiness] });
 
-    const { result } = renderHook(() => useBusinessSearch());
+    const { result } = renderHook(() => useBusinessSearch(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.search("vegan");
@@ -312,7 +326,7 @@ describe("useBusinessMutations", () => {
   it("creates a business", async () => {
     (businessesApi.createBusiness as jest.Mock).mockResolvedValue({ data: mockBusiness });
 
-    const { result } = renderHook(() => useBusinessMutations());
+    const { result } = renderHook(() => useBusinessMutations(), { wrapper: createQueryWrapper() });
 
     let created: unknown;
     await act(async () => {
@@ -338,7 +352,7 @@ describe("useBusinessMutations", () => {
     const updated = { ...mockBusiness, namePlace: "Updated Cafe" };
     (businessesApi.updateBusiness as jest.Mock).mockResolvedValue({ data: updated });
 
-    const { result } = renderHook(() => useBusinessMutations());
+    const { result } = renderHook(() => useBusinessMutations(), { wrapper: createQueryWrapper() });
 
     let updatedResult: unknown;
     await act(async () => {
@@ -352,7 +366,7 @@ describe("useBusinessMutations", () => {
   it("deletes a business", async () => {
     (businessesApi.deleteBusiness as jest.Mock).mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useBusinessMutations());
+    const { result } = renderHook(() => useBusinessMutations(), { wrapper: createQueryWrapper() });
 
     await act(async () => {
       await result.current.deleteBusiness("b1");
@@ -365,7 +379,7 @@ describe("useBusinessMutations", () => {
   it("adds a review to a business", async () => {
     (businessesApi.addBusinessReview as jest.Mock).mockResolvedValue({ data: mockBusiness });
 
-    const { result } = renderHook(() => useBusinessMutations());
+    const { result } = renderHook(() => useBusinessMutations(), { wrapper: createQueryWrapper() });
 
     let reviewResult: unknown;
     await act(async () => {
@@ -385,7 +399,7 @@ describe("useBusinessMutations", () => {
   it("propagates errors from createBusiness", async () => {
     (businessesApi.createBusiness as jest.Mock).mockRejectedValue(new Error("create failed"));
 
-    const { result } = renderHook(() => useBusinessMutations());
+    const { result } = renderHook(() => useBusinessMutations(), { wrapper: createQueryWrapper() });
 
     await expect(
       result.current.createBusiness({
