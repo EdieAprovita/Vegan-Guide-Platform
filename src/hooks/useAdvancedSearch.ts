@@ -17,7 +17,7 @@ import {
   getSearchAggregations,
   saveSearchQuery,
 } from "@/lib/api/search";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { getCurrentLocation } from "@/lib/utils/geospatial";
 
 const DEFAULT_FILTERS: SearchFilters = {
@@ -30,7 +30,8 @@ const DEFAULT_FILTERS: SearchFilters = {
 };
 
 export function useAdvancedSearch() {
-  const { isAuthenticated } = useAuthStore();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   const [searchState, setSearchState] = useState<SearchState>({
     isSearching: false,

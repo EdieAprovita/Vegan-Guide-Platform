@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ThumbsUp, ThumbsDown, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 interface HelpfulVotesProps {
@@ -22,12 +22,14 @@ export const HelpfulVotes = ({
   onVoteChange,
   disabled = false,
 }: HelpfulVotesProps) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = status === "authenticated";
   const [isVoting, setIsVoting] = useState(false);
   const [localHelpfulCount, setLocalHelpfulCount] = useState(helpfulCount);
   const [localHelpfulUsers, setLocalHelpfulUsers] = useState<string[]>(helpfulUsers);
 
-  const userHasVoted = user ? localHelpfulUsers.includes(user._id) : false;
+  const userHasVoted = user ? localHelpfulUsers.includes(user.id ?? "") : false;
 
   const handleVote = async (voteType: "helpful" | "not-helpful") => {
     if (!isAuthenticated) {
@@ -47,14 +49,14 @@ export const HelpfulVotes = ({
       if (voteType === "helpful") {
         if (userHasVoted) {
           // Remove helpful vote
-          const userIndex = newHelpfulUsers.indexOf(user!._id);
+          const userIndex = newHelpfulUsers.indexOf(user?.id ?? "");
           if (userIndex > -1) {
             newHelpfulUsers.splice(userIndex, 1);
             setLocalHelpfulCount(newHelpfulCount - 1);
           }
         } else {
           // Add helpful vote
-          newHelpfulUsers.push(user!._id);
+          newHelpfulUsers.push(user?.id ?? "");
           setLocalHelpfulCount(newHelpfulCount + 1);
         }
       }

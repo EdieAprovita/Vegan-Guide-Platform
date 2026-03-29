@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 export function useAuthWithRouter() {
   const { data: session, status } = useSession();
   const {
-    setUser,
     isLoggingIn,
     setIsLoggingIn,
     isRegistering,
@@ -57,8 +56,7 @@ export function useAuthWithRouter() {
   const register = async (data: RegisterFormData) => {
     setIsRegistering(true);
     try {
-      const userData = await authApi.register(data);
-      setUser(userData);
+      await authApi.register(data);
       toast.success("Registration successful!");
       setAuthModalOpen(false);
     } catch (error) {
@@ -114,8 +112,7 @@ export function useAuthWithRouter() {
         throw new Error(errorData.message || "Failed to update profile");
       }
 
-      const updatedUser = await response.json();
-      setUser(updatedUser);
+      await response.json();
       toast.success("Profile updated successfully!");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update profile");
@@ -127,7 +124,6 @@ export function useAuthWithRouter() {
 
   const logout = () => {
     signOut({ redirect: false });
-    setUser(null);
     toast.success("Logged out successfully!");
   };
 

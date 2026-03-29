@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Review } from "@/lib/api/reviews";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewForm } from "./review-form";
@@ -33,7 +33,9 @@ export const EnhancedReviewSystem = ({
   onReviewSubmit,
   isSubmitting = false,
 }: EnhancedReviewSystemProps) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = status === "authenticated";
   const [localShowForm, setLocalShowForm] = useState(showForm);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
 
@@ -69,7 +71,7 @@ export const EnhancedReviewSystem = ({
 
   const stats = hookStats || calculateStats();
   const userHasReviewed =
-    isAuthenticated && reviews.some((review) => review.user._id === user?._id);
+    isAuthenticated && reviews.some((review) => review.user._id === user?.id);
 
   const handleAddReview = async (reviewData: { rating: number; comment: string }) => {
     if (onReviewSubmit) {
@@ -85,7 +87,7 @@ export const EnhancedReviewSystem = ({
   };
 
   const canEditReview = (review: Review) => {
-    return user && (user._id === review.user._id || user.role === "admin");
+    return user && (user.id === review.user._id || user.role === "admin");
   };
 
   if (statsLoading) {

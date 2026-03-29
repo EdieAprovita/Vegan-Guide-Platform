@@ -5,7 +5,7 @@ import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit } from 
 import { Review } from "@/lib/api/reviews";
 import Link from "next/link";
 import { useBusiness, useBusinessMutations } from "@/hooks/useBusinesses";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,9 @@ interface BusinessDetailClientProps {
 export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) => {
   const { business, loading, error } = useBusiness(businessId);
   const { addReview, loading: mutationLoading } = useBusinessMutations();
-  const { user, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = status === "authenticated";
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const handleAddReview = async (reviewData: { rating: number; comment: string }) => {
@@ -49,7 +51,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
     return "Lunes a Viernes: 9:00 AM - 6:00 PM"; // Simplified - implement proper formatting
   };
 
-  const canEditBusiness = user?.role === "admin" || business?.author._id === user?._id;
+  const canEditBusiness = user?.role === "admin" || business?.author._id === user?.id;
 
   // Convert BusinessReview to Review format
   const adaptedReviews: Review[] =

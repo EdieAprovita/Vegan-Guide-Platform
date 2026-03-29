@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Star, Heart, ChefHat, MapPin, Users, Award, Zap } from "lucide-react";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 interface Achievement {
@@ -32,7 +32,8 @@ interface UserStats {
 }
 
 export function AchievementSystem() {
-  const { user } = useAuthStore();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userStats, setUserStats] = useState<UserStats>({
     totalPoints: 0,

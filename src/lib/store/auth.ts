@@ -1,9 +1,11 @@
 import { create } from "zustand";
-import { User } from "@/types";
 
-type AuthState = {
-  user: User | null;
-  isAuthenticated: boolean;
+/**
+ * UI-only auth store — tracks loading states and modal visibility.
+ * Session identity (user, isAuthenticated) is owned exclusively by NextAuth's
+ * useSession() to prevent divergence between the two auth sources.
+ */
+type AuthUIState = {
   isLoggingIn: boolean;
   isRegistering: boolean;
   isSendingResetEmail: boolean;
@@ -12,9 +14,7 @@ type AuthState = {
   authModalView: "login" | "register" | "forgot-password";
 };
 
-type AuthActions = {
-  setUser: (user: User | null) => void;
-  clearUser: () => void;
+type AuthUIActions = {
   setIsLoggingIn: (value: boolean) => void;
   setIsRegistering: (value: boolean) => void;
   setIsSendingResetEmail: (value: boolean) => void;
@@ -23,17 +23,13 @@ type AuthActions = {
   setAuthModalView: (view: "login" | "register" | "forgot-password") => void;
 };
 
-export const useAuthStore = create<AuthState & AuthActions>((set) => ({
-  user: null,
-  isAuthenticated: false,
+export const useAuthStore = create<AuthUIState & AuthUIActions>((set) => ({
   isLoggingIn: false,
   isRegistering: false,
   isSendingResetEmail: false,
   isUpdatingProfile: false,
   authModalOpen: false,
   authModalView: "login",
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
-  clearUser: () => set({ user: null, isAuthenticated: false }),
   setIsLoggingIn: (value) => set({ isLoggingIn: value }),
   setIsRegistering: (value) => set({ isRegistering: value }),
   setIsSendingResetEmail: (value) => set({ isSendingResetEmail: value }),

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Star, ThumbsUp, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Review } from "@/lib/api/reviews";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,7 +40,9 @@ export const ReviewSystem = ({
   onReviewSubmit,
   isSubmitting = false,
 }: ReviewSystemProps) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const isAuthenticated = status === "authenticated";
   const [editingReview, setEditingReview] = useState<Review | null>(null);
 
   const calculateStats = () => {
@@ -70,7 +72,7 @@ export const ReviewSystem = ({
   };
 
   const canEditReview = (review: Review) => {
-    return user && (user._id === review.user._id || user.role === "admin");
+    return user && (user.id === review.user._id || user.role === "admin");
   };
 
   const handleEditReview = (review: Review) => {
@@ -266,10 +268,10 @@ export const ReviewSystem = ({
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        handleHelpfulClick(review._id, review.helpful?.includes(user?._id || ""))
+                        handleHelpfulClick(review._id, review.helpful?.includes(user?.id || ""))
                       }
                       className={`flex items-center gap-1 ${
-                        review.helpful?.includes(user?._id || "")
+                        review.helpful?.includes(user?.id || "")
                           ? "bg-green-50 text-green-600"
                           : ""
                       }`}

@@ -1,33 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useAuthStore } from "@/lib/store/auth";
+import React from "react";
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * AuthProvider is kept as a passthrough wrapper for structural compatibility.
+ * Session identity is managed exclusively by NextAuth's SessionProvider +
+ * useSession(). The previous Zustand-sync logic has been removed to eliminate
+ * the dual-source-of-truth bug.
+ */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { data: session, status } = useSession();
-  const { setUser } = useAuthStore();
-
-  useEffect(() => {
-    // Sync NextAuth session with Zustand store
-    if (session?.user) {
-      setUser({
-        _id: session.user.id,
-        username: session.user.name || "",
-        email: session.user.email || "",
-        role: session.user.role as "user" | "professional" | "admin",
-        photo: session.user.image,
-        createdAt: new Date().toISOString(), // Default value since NextAuth doesn't provide this
-        isAdmin: session.user.role === "admin", // Now this should work correctly
-      });
-    } else if (status === "unauthenticated") {
-      setUser(null);
-    }
-  }, [session, status, setUser]);
-
   return <>{children}</>;
 }

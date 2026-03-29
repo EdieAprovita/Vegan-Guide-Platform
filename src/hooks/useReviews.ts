@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuthStore } from "@/lib/store/auth";
+import { useSession } from "next-auth/react";
 import {
   Review,
   CreateReviewData,
@@ -44,7 +44,8 @@ export function useReviews({
   limit = 10,
   autoFetch = true,
 }: UseReviewsParams): UseReviewsReturn {
-  const { isAuthenticated } = useAuthStore();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -307,7 +308,8 @@ export function useReviews({
 
 // Hook for managing a single review
 export function useReview(reviewId: string) {
-  const { isAuthenticated } = useAuthStore();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
