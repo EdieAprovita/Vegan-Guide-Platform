@@ -15,9 +15,17 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[GlobalError]", error);
-    }
+    const errorReport = {
+      timestamp: new Date().toISOString(),
+      digest: error.digest,
+      message: error.message,
+      path: typeof window !== "undefined" ? window.location.pathname : "unknown",
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+    };
+    console.error("[GlobalError]", JSON.stringify(errorReport));
+
+    // Future: send to error tracking service
+    // reportError(errorReport);
   }, [error]);
 
   return (

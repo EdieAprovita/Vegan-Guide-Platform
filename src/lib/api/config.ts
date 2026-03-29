@@ -76,6 +76,23 @@ export class ApiError extends Error {
   }
 }
 
+// Generates a short unique ID for distributed request tracing.
+// Generates a unique correlation ID using crypto.randomUUID() (available in
+// all modern browsers and Node 14.17+). Falls back to crypto.getRandomValues()
+// which is cryptographically secure and avoids Math.random() PRNG concerns.
+export function generateCorrelationId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  // Last resort: timestamp-based (no PRNG, monotonic only)
+  return `${Date.now().toString(36)}-${performance.now().toString(36).replace(".", "")}`;
+}
+
 // Headers comunes para las requests
 export const getApiHeaders = (token?: string): Record<string, string> => {
   const headers: Record<string, string> = {
@@ -114,6 +131,8 @@ export const handleApiError = (error: unknown): string => {
 
 // Función helper para hacer requests con manejo de errores consistente
 export const apiRequest = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+  const correlationId = generateCorrelationId();
+  const method = (options.method ?? "GET").toUpperCase();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
@@ -125,6 +144,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "X-Correlation-ID": correlationId,
         ...options.headers,
       },
     });
@@ -142,6 +162,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
 
       const errorMessage =
         errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, errorMessage);
       throw new ApiError(response.status, errorMessage);
     }
 
@@ -154,7 +175,11 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");
       throw new Error("Request timeout");
+    }
+    if (!(error instanceof ApiError)) {
+      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, error);
     }
     throw error;
   }

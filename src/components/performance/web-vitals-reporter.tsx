@@ -16,26 +16,49 @@ interface VitalMetric {
   rating?: "good" | "needs-improvement" | "poor";
 }
 
+/** Thresholds above which a metric is considered degraded (same units as metric.value). */
+const POOR_THRESHOLDS: Partial<Record<string, number>> = {
+  LCP: 2500,
+  FID: 200,
+  INP: 200,
+  CLS: 0.1,
+  TTFB: 800,
+};
+
 function reportMetric(metric: VitalMetric): void {
-  const entry = {
-    name: metric.name,
+  const structuredLog = {
+    type: "web-vital",
+    metric: metric.name,
     value: metric.value,
-    id: metric.id,
-    delta: metric.delta,
     rating: metric.rating,
+    delta: metric.delta,
+    id: metric.id,
+    path: typeof window !== "undefined" ? window.location.pathname : "unknown",
+    timestamp: new Date().toISOString(),
   };
 
   if (process.env.NODE_ENV === "development") {
     // eslint-disable-next-line no-console
-    console.log("[WebVitals]", entry);
-    return;
+    console.log("[WebVitals]", structuredLog);
   }
 
-  // Only report in production if an analytics endpoint is configured
+  // Threshold alert — fires in all environments so degradations surface during QA too
+  const threshold = POOR_THRESHOLDS[metric.name];
+  if (threshold !== undefined && metric.value > threshold) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[WebVitals] ${metric.name} exceeded threshold: ${metric.value} > ${threshold}`,
+      structuredLog,
+    );
+  }
+
+  // Only send to analytics endpoint in production when one is configured
+  if (process.env.NODE_ENV !== "production") return;
+
   const endpoint = process.env.NEXT_PUBLIC_WEB_VITALS_ENDPOINT;
   if (!endpoint) return;
 
-  const body = JSON.stringify(entry);
+  const body = JSON.stringify(structuredLog);
 
   if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
     navigator.sendBeacon(endpoint, new Blob([body], { type: "application/json" }));
