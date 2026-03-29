@@ -1,184 +1,150 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserLocation } from "./useGeolocation";
 import { processBackendResponse } from "@/lib/api/config";
-import {
-  getBusinesses,
-  getBusiness,
-  getBusinessesByProximity,
-  searchBusinesses,
-  createBusiness,
-  updateBusiness,
-  deleteBusiness,
-  addBusinessReview,
+import * as businessesApi from "@/lib/api/businesses";
+import type {
   Business,
   CreateBusinessData,
   BusinessReview,
   BusinessFilters,
 } from "@/lib/api/businesses";
 
-// Hook principal para listar businesses con filtros avanzados
+// ---------------------------------------------------------------------------
+// Query key factory
+// ---------------------------------------------------------------------------
+
+export const businessKeys = {
+  all: ["businesses"] as const,
+  lists: () => [...businessKeys.all, "list"] as const,
+  list: (filters: BusinessFilters & { useUserLocation?: boolean } = {}) =>
+    [...businessKeys.lists(), filters] as const,
+  details: () => [...businessKeys.all, "detail"] as const,
+  detail: (id: string) => [...businessKeys.details(), id] as const,
+  nearby: (lat: number, lng: number, radius: number) =>
+    [...businessKeys.all, "nearby", lat, lng, radius] as const,
+  search: (query: string, filters: BusinessFilters = {}) =>
+    [...businessKeys.all, "search", query, filters] as const,
+};
+
+// ---------------------------------------------------------------------------
+// useBusinesses — list with optional geolocation injection
+// ---------------------------------------------------------------------------
+
 export function useBusinesses(
   filters?: BusinessFilters & {
     useUserLocation?: boolean;
     autoFetch?: boolean;
   }
 ) {
-  const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
   const { userCoords } = useUserLocation();
-  const userLat = userCoords?.lat;
-  const userLng = userCoords?.lng;
 
-  const autoFetch = filters?.autoFetch;
+  // Build the effective query params so the query key tracks them accurately
+  const resolvedFilters: BusinessFilters = (() => {
+    const base: BusinessFilters = { ...filters };
+    delete (base as Record<string, unknown>).useUserLocation;
+    delete (base as Record<string, unknown>).autoFetch;
 
-  // Stabilize filters reference by memoizing on individual primitive values.
-  // This prevents unnecessary re-renders when parent passes new object reference
-  // with same filter values. Dependencies list tracks primitives to catch actual changes.
-  // Note: eslint-disable is intentional for this pattern; alternatives (JSON.stringify,
-  // deep equality) would be more expensive and have same result.
-  const stableFilters = useMemo(
-    () => filters,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      filters?.page,
-      filters?.limit,
-      filters?.search,
-      filters?.typeBusiness,
-      filters?.rating,
-      filters?.location,
-      filters?.budget,
-      filters?.lat,
-      filters?.lng,
-      filters?.radius,
-      filters?.useUserLocation,
-      autoFetch,
-    ]
-  );
-
-  const fetchBusinesses = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      let params = { ...stableFilters };
-
-      // Si se solicita usar ubicación del usuario y está disponible
-      if (stableFilters?.useUserLocation && userLat !== undefined && userLng !== undefined) {
-        params = {
-          ...params,
-          lat: userLat,
-          lng: userLng,
-          radius: params.radius || 10, // Default 10km
-        };
-      }
-
-      const response = await getBusinesses(params);
-
-      // Use the universal backend response processor
-      const businessesData = processBackendResponse<Business>(response) as Business[];
-
-      setBusinesses(Array.isArray(businessesData) ? businessesData : []);
-      setTotalCount(Array.isArray(businessesData) ? businessesData.length : 0);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Error al cargar negocios";
-      setError(errorMessage);
-      console.error("Error fetching businesses:", err);
-    } finally {
-      setLoading(false);
+    if (
+      filters?.useUserLocation &&
+      userCoords?.lat !== undefined &&
+      userCoords?.lng !== undefined
+    ) {
+      return {
+        ...base,
+        lat: userCoords.lat,
+        lng: userCoords.lng,
+        radius: base.radius ?? 10,
+      };
     }
-  }, [stableFilters, userLat, userLng]);
 
-  // Auto-fetch cuando cambien los filtros o la ubicación del usuario
-  useEffect(() => {
-    if (autoFetch !== false) {
-      fetchBusinesses();
-    }
-  }, [fetchBusinesses, autoFetch]);
+    return base;
+  })();
+
+  const queryKey = businessKeys.list(resolvedFilters);
+
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const response = await businessesApi.getBusinesses(resolvedFilters);
+      const data = processBackendResponse<Business>(response);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: filters?.autoFetch !== false,
+    staleTime: 5 * 60 * 1000,
+  });
 
   return {
-    businesses,
-    loading,
-    error,
-    totalCount,
-    refetch: fetchBusinesses,
+    businesses: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+    totalCount: query.data?.length ?? 0,
+    refetch: query.refetch,
   };
 }
 
+// ---------------------------------------------------------------------------
+// useBusiness — single item
+// ---------------------------------------------------------------------------
+
 export function useBusiness(id?: string) {
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: businessKeys.detail(id ?? ""),
+    queryFn: async () => {
+      const response = await businessesApi.getBusiness(id!);
+      return processBackendResponse<Business>(response) as Business;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchBusiness = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await getBusiness(id);
-        setBusiness(response.data);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Error al cargar el negocio";
-        setError(errorMessage);
-        console.error("Error fetching business:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBusiness();
-  }, [id]);
-
-  return { business, loading, error };
+  return {
+    business: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+  };
 }
 
-// Hook para búsquedas por proximidad
+// ---------------------------------------------------------------------------
+// useNearbyBusinesses — imperative proximity search (local state)
+// These hooks are triggered imperatively on demand and do not benefit from
+// TanStack Query's caching model, so local state is used intentionally.
+// ---------------------------------------------------------------------------
+
 export function useNearbyBusinesses(radius: number = 5) {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { userCoords, getCurrentPosition } = useUserLocation();
 
-  const searchNearby = useCallback(
-    async (customCoords?: { lat: number; lng: number }) => {
-      const coords = customCoords || userCoords;
+  const searchNearby = async (customCoords?: { lat: number; lng: number }) => {
+    const coords = customCoords ?? userCoords;
 
-      if (!coords) {
-        try {
-          await getCurrentPosition();
-          return;
-        } catch (err) {
-          setError("No se pudo obtener la ubicación");
-          return;
-        }
-      }
-
+    if (!coords) {
       try {
-        setLoading(true);
-        setError(null);
-
-        const response = await getBusinessesByProximity(coords.lat, coords.lng, radius);
-        const data = Array.isArray(response.data) ? response.data : [response.data];
-
-        setBusinesses(data);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Error en búsqueda por proximidad";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+        await getCurrentPosition();
+        return;
+      } catch {
+        setError("No se pudo obtener la ubicación");
+        return;
       }
-    },
-    [userCoords, radius, getCurrentPosition]
-  );
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await businessesApi.getBusinessesByProximity(coords.lat, coords.lng, radius);
+      const data = Array.isArray(response.data) ? response.data : [response.data];
+      setBusinesses(data as Business[]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error en búsqueda por proximidad");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     businesses,
@@ -189,13 +155,16 @@ export function useNearbyBusinesses(radius: number = 5) {
   };
 }
 
-// Hook para búsquedas avanzadas
+// ---------------------------------------------------------------------------
+// useBusinessSearch — imperative advanced search (local state)
+// ---------------------------------------------------------------------------
+
 export function useBusinessSearch() {
   const [results, setResults] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(async (query: string, filters: BusinessFilters = {}) => {
+  const search = async (query: string, filters: BusinessFilters = {}) => {
     if (!query.trim()) {
       setResults([]);
       return;
@@ -205,22 +174,20 @@ export function useBusinessSearch() {
       setLoading(true);
       setError(null);
 
-      const response = await searchBusinesses(query, filters);
+      const response = await businessesApi.searchBusinesses(query, filters);
       const data = Array.isArray(response.data) ? response.data : [response.data];
-
-      setResults(data);
+      setResults(data as Business[]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Error en la búsqueda";
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : "Error en la búsqueda");
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const clearResults = useCallback(() => {
+  const clearResults = () => {
     setResults([]);
     setError(null);
-  }, []);
+  };
 
   return {
     results,
@@ -231,66 +198,104 @@ export function useBusinessSearch() {
   };
 }
 
-// Hook para mutaciones (crear, actualizar, eliminar)
+// ---------------------------------------------------------------------------
+// useBusinessMutations — create / update / delete / review
+// ---------------------------------------------------------------------------
+
 export function useBusinessMutations() {
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const createBusinessMutation = async (data: CreateBusinessData) => {
-    try {
-      setLoading(true);
-      const response = await createBusiness(data);
-      return response.data;
-    } catch (error) {
-      console.error("Error creating business:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: businessKeys.all });
   };
 
-  const updateBusinessMutation = async (id: string, data: Partial<CreateBusinessData>) => {
-    try {
-      setLoading(true);
-      const response = await updateBusiness(id, data);
-      return response.data;
-    } catch (error) {
-      console.error("Error updating business:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const createMutation = useMutation({
+    mutationFn: ({ data, token }: { data: CreateBusinessData; token?: string }) =>
+      token ? businessesApi.createBusiness(data, token) : businessesApi.createBusiness(data),
+    onSuccess: invalidateAll,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+      token,
+    }: {
+      id: string;
+      data: Partial<CreateBusinessData>;
+      token?: string;
+    }) =>
+      token
+        ? businessesApi.updateBusiness(id, data, token)
+        : businessesApi.updateBusiness(id, data),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: businessKeys.detail(id) });
+      invalidateAll();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({ id, token }: { id: string; token?: string }) =>
+      token ? businessesApi.deleteBusiness(id, token) : businessesApi.deleteBusiness(id),
+    onSuccess: invalidateAll,
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: ({ id, review, token }: { id: string; review: BusinessReview; token?: string }) =>
+      token
+        ? businessesApi.addBusinessReview(id, review, token)
+        : businessesApi.addBusinessReview(id, review),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: businessKeys.detail(id) });
+      invalidateAll();
+    },
+  });
+
+  // Preserve the original imperative call signatures so consumers don't break:
+  //   createBusiness(data)  → returns Business
+  //   updateBusiness(id, data) → returns Business
+  //   deleteBusiness(id)    → void
+  //   addReview(id, review) → returns Business
+  // The `loading` flag is true when any mutation is in-flight.
+
+  const createBusiness = async (data: CreateBusinessData, token?: string): Promise<Business> => {
+    const response = await createMutation.mutateAsync({ data, token });
+    return response.data;
   };
 
-  const deleteBusinessMutation = async (id: string) => {
-    try {
-      setLoading(true);
-      await deleteBusiness(id);
-    } catch (error) {
-      console.error("Error deleting business:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const updateBusiness = async (
+    id: string,
+    data: Partial<CreateBusinessData>,
+    token?: string
+  ): Promise<Business> => {
+    const response = await updateMutation.mutateAsync({ id, data, token });
+    return response.data;
   };
 
-  const addReviewMutation = async (id: string, review: BusinessReview) => {
-    try {
-      setLoading(true);
-      const response = await addBusinessReview(id, review);
-      return response.data;
-    } catch (error) {
-      console.error("Error adding business review:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  const deleteBusiness = async (id: string, token?: string): Promise<void> => {
+    await deleteMutation.mutateAsync({ id, token });
   };
+
+  const addReview = async (
+    id: string,
+    review: BusinessReview,
+    token?: string
+  ): Promise<Business> => {
+    const response = await reviewMutation.mutateAsync({ id, review, token });
+    return response.data;
+  };
+
+  const loading =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending ||
+    reviewMutation.isPending;
 
   return {
-    createBusiness: createBusinessMutation,
-    updateBusiness: updateBusinessMutation,
-    deleteBusiness: deleteBusinessMutation,
-    addReview: addReviewMutation,
+    createBusiness,
+    updateBusiness,
+    deleteBusiness,
+    addReview,
     loading,
   };
 }
