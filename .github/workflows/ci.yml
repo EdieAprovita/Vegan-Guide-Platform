@@ -38,9 +38,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      # ESLint: --max-warnings=0 means any warning is a build failure.
+      # ESLint: --max-warnings=0 is already in the lint script.
       - name: Lint
-        run: npm run lint -- --max-warnings=0
+        run: npm run lint
 
       # tsc --noEmit: catches type errors without emitting JS.
       - name: Type Check

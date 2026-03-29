@@ -16,15 +16,10 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { NodeSDK } = require("@opentelemetry/sdk-node");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getNodeAutoInstrumentations } = require("@opentelemetry/auto-instrumentations-node");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-http");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { resourceFromAttributes } = require("@opentelemetry/resources");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {
       ATTR_SERVICE_NAME,
       ATTR_SERVICE_VERSION,

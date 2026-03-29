@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "start:lan": "next start --hostname 0.0.0.0 -p 3000",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings=0",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
