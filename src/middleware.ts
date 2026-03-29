@@ -4,13 +4,20 @@ import type { NextRequest } from "next/server";
 
 function buildCsp(): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  let apiOrigin = apiUrl;
+  try {
+    const parsed = new URL(apiUrl);
+    apiOrigin = parsed.origin;
+  } catch {
+    // If URL parsing fails, use the raw value as fallback
+  }
   const directives = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self'",
-    `connect-src 'self' ${apiUrl}`,
+    `connect-src 'self' ${apiOrigin}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -31,15 +31,18 @@ function reportMetric(metric: VitalMetric): void {
     return;
   }
 
-  // Use sendBeacon/fetch instead of console.log — SWC strips console.* in production
+  // Only report in production if an analytics endpoint is configured
+  const endpoint = process.env.NEXT_PUBLIC_WEB_VITALS_ENDPOINT;
+  if (!endpoint) return;
+
   const body = JSON.stringify(entry);
 
   if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
-    navigator.sendBeacon("/api/analytics/web-vitals", new Blob([body], { type: "application/json" }));
+    navigator.sendBeacon(endpoint, new Blob([body], { type: "application/json" }));
     return;
   }
 
-  void fetch("/api/analytics/web-vitals", {
+  void fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,
