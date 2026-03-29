@@ -83,7 +83,10 @@ export function RecipeShowcase() {
               </div>
             </div>
 
-            <Button className="absolute bottom-4 left-1/2 h-12 w-[120px] -translate-x-1/2 transform touch-manipulation rounded-3xl border-0 bg-green-500 font-['Playfair_Display'] text-sm font-bold text-white shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] hover:bg-green-600 sm:w-[134px] sm:text-base">
+            <Button
+              size="lg"
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 touch-manipulation rounded-full font-['Playfair_Display'] font-bold shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)]"
+            >
               Try Recipe
             </Button>
           </div>

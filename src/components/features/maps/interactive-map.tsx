@@ -96,7 +96,9 @@ export function InteractiveMap({
               location.rating
                 ? `
               <div class="flex items-center gap-1">
-                <span class="text-yellow-400">★</span>
+                <span role="img" aria-label="Calificación: ${location.rating.toFixed(1)} de 5 estrellas">
+                  <span aria-hidden="true" class="text-yellow-400">★</span>
+                </span>
                 <span class="text-xs text-gray-600">${location.rating.toFixed(1)}</span>
               </div>
             `

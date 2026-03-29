@@ -49,12 +49,16 @@ export function CallToAction() {
         </div>
 
         <div className="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
-          <Button className="h-12 w-[140px] touch-manipulation rounded-3xl border-0 bg-green-500 font-['Playfair_Display'] text-sm font-bold text-white shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)] hover:bg-green-600 sm:w-[134px] sm:text-base">
+          <Button
+            size="xl"
+            className="touch-manipulation rounded-full font-['Playfair_Display'] font-bold shadow-[0px_6px_12px_0px_rgba(34,197,94,0.22)]"
+          >
             Crear Cuenta
           </Button>
           <Button
             variant="outline"
-            className="h-12 w-[140px] rounded-3xl border-2 border-white font-['Playfair_Display'] text-sm font-bold text-white hover:bg-white hover:text-green-600 sm:w-[134px] sm:text-base"
+            size="xl"
+            className="rounded-full border-2 border-white font-['Playfair_Display'] font-bold text-white hover:bg-white hover:text-primary"
           >
             Explorar
           </Button>
