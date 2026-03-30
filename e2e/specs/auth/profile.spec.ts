@@ -55,25 +55,24 @@ test.describe("Auth: Profile Update", () => {
   test("successful profile update shows confirmation", async ({ page }) => {
     const profilePage = new ProfilePage(page);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          id: "user-123",
-          email: "user@example.com",
-          username: "testuser",
-          firstName: "John",
-          lastName: "Doe",
-          bio: "Original bio",
-        }),
-      })
-    );
-
-    // Mock PUT endpoint
     let putCalled = false;
+
+    // Single handler that serves both GET and PUT
     await page.route("**/api/user/profile", async (route) => {
+      if (route.request().method() === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            username: "testuser",
+            firstName: "John",
+            lastName: "Doe",
+            bio: "Original bio",
+          }),
+        });
+      }
       if (route.request().method() === "PUT") {
         putCalled = true;
         const bodyText = route.request().postData() || "";
@@ -83,7 +82,7 @@ test.describe("Auth: Profile Update", () => {
         expect(body.firstName).toBe("Jane");
         expect(body.bio).toBe("Updated bio");
 
-        route.fulfill({
+        return route.fulfill({
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
@@ -95,9 +94,8 @@ test.describe("Auth: Profile Update", () => {
             bio: "Updated bio",
           }),
         });
-      } else {
-        route.continue();
       }
+      return route.continue();
     });
 
     await profilePage.goto();
@@ -142,8 +140,8 @@ test.describe("Auth: Profile Update", () => {
     await profilePage.emailInput.fill("not-an-email");
 
     // Client-side validation should mark field as invalid
-    const isInvalid = await profilePage.emailInput.evaluate((el) =>
-      (el as HTMLInputElement).validity.valid
+    const isInvalid = await profilePage.emailInput.evaluate(
+      (el) => (el as HTMLInputElement).validity.valid
     );
     expect(isInvalid).toBe(false);
   });
@@ -151,25 +149,23 @@ test.describe("Auth: Profile Update", () => {
   test("server validation error is displayed on invalid field", async ({ page }) => {
     const profilePage = new ProfilePage(page);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          id: "user-123",
-          email: "user@example.com",
-          username: "testuser",
-          firstName: "John",
-          lastName: "Doe",
-        }),
-      })
-    );
-
-    // Mock PUT endpoint to return validation error
+    // Single handler for both GET and PUT
     await page.route("**/api/user/profile", async (route) => {
+      if (route.request().method() === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            username: "testuser",
+            firstName: "John",
+            lastName: "Doe",
+          }),
+        });
+      }
       if (route.request().method() === "PUT") {
-        route.fulfill({
+        return route.fulfill({
           status: 400,
           contentType: "application/json",
           body: JSON.stringify({
@@ -183,16 +179,15 @@ test.describe("Auth: Profile Update", () => {
             ],
           }),
         });
-      } else {
-        route.continue();
       }
+      return route.continue();
     });
 
     await profilePage.goto();
     await waitForHydration(page);
 
-    // Submit with empty first name
-    await profilePage.updateProfile({ firstName: "" });
+    // Submit with empty first name (clear the field)
+    await profilePage.firstNameInput.clear();
     await profilePage.save();
 
     // Error message should be displayed
@@ -228,7 +223,7 @@ test.describe("Auth: Profile Update", () => {
     await profilePage.firstNameInput.clear();
     await profilePage.firstNameInput.fill(longName);
 
-    // HTML5 validation should prevent exceeding max
+    // HTML5 maxLength should prevent exceeding max
     const actualValue = await profilePage.getFieldValue("firstNameInput");
     expect(actualValue.length).toBeLessThanOrEqual(50);
   });
@@ -267,7 +262,9 @@ test.describe("Auth: Profile Update", () => {
   });
 
   test("unauthenticated users are redirected to login", async ({ page }) => {
-    // Don't mock session, user is not authenticated
+    // Clear the session cookie set by beforeEach so the user is unauthenticated
+    await page.context().clearCookies();
+
     await page.goto("/profile");
 
     // Should redirect to login
@@ -278,10 +275,11 @@ test.describe("Auth: Profile Update", () => {
   test("rate limiting returns 429 on excessive updates", async ({ page }) => {
     const profilePage = new ProfilePage(page);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) => {
+    // Mock PUT to return rate limit error on subsequent requests
+    let requestCount = 0;
+    await page.route("**/api/user/profile", async (route) => {
       if (route.request().method() === "GET") {
-        route.fulfill({
+        return route.fulfill({
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
@@ -291,15 +289,10 @@ test.describe("Auth: Profile Update", () => {
           }),
         });
       }
-    });
-
-    // Mock PUT to return rate limit error on subsequent requests
-    let requestCount = 0;
-    await page.route("**/api/user/profile", async (route) => {
       if (route.request().method() === "PUT") {
         requestCount++;
         if (requestCount > 5) {
-          route.fulfill({
+          return route.fulfill({
             status: 429,
             contentType: "application/json",
             body: JSON.stringify({
@@ -307,20 +300,18 @@ test.describe("Auth: Profile Update", () => {
               message: "Rate limit exceeded",
             }),
           });
-        } else {
-          route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify({
-              id: "user-123",
-              email: "user@example.com",
-              firstName: "John",
-            }),
-          });
         }
-      } else {
-        route.continue();
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            firstName: "John",
+          }),
+        });
       }
+      return route.continue();
     });
 
     await profilePage.goto();
@@ -350,6 +341,8 @@ test.describe("Auth: Profile Update", () => {
         body: JSON.stringify({
           id: "user-123",
           firstName: "OriginalName",
+          email: "user@example.com",
+          username: "testuser",
         }),
       })
     );
@@ -357,16 +350,16 @@ test.describe("Auth: Profile Update", () => {
     await profilePage.goto();
     await waitForHydration(page);
 
+    // Wait for profile to load and populate the form
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName");
+
     // Make changes
     await profilePage.updateProfile({ firstName: "NewName" });
 
     // Cancel
     await profilePage.cancel();
 
-    // Changes should be reverted
-    // Note: Depending on implementation, this might reload or reset form
-    await page.waitForLoadState("domcontentloaded");
-    const currentValue = await profilePage.getFieldValue("firstNameInput");
-    expect(currentValue).toBe("OriginalName");
+    // Changes should be reverted to the original loaded value
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName");
   });
 });
