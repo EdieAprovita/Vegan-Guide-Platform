@@ -182,10 +182,11 @@ jobs:
     needs: [build]
     # Run E2E only on pull requests (not on push to main).
     if: github.event_name == 'pull_request'
-    # Hard ceiling: the suite should complete in under 15 minutes on a
-    # production build with 1 worker. 20 minutes gives a comfortable margin
-    # without letting a hung job consume the full 6-hour GitHub default.
-    timeout-minutes: 20
+    # Hard ceiling: 351 tests at workers=2 complete in ~12 minutes, plus
+    # ~5 min CI overhead (npm ci, artifact download, Playwright install,
+    # server cold-start). 30 minutes gives a comfortable margin without
+    # letting a hung job consume the full 6-hour GitHub default.
+    timeout-minutes: 30
     # Remove this once the E2E suite is consistently green.
     continue-on-error: true
 

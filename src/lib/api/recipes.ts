@@ -62,8 +62,8 @@ export async function getRecipes(params?: {
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
-      const isApiError = (error as any)?.statusCode !== undefined;
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
       if (!isApiError) {
         console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
         return { success: true, data: [] };
@@ -79,8 +79,8 @@ export async function getRecipe(id: string) {
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
-      const isApiError = (error as any)?.statusCode !== undefined;
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
       if (!isApiError) {
         console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
         return { success: true, data: [] as unknown as Recipe };

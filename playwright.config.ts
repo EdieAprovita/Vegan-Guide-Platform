@@ -23,8 +23,10 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
-  /* Limit workers on CI to avoid OOM */
-  workers: process.env.CI ? 1 : undefined,
+  /* 2 workers on CI (ubuntu-latest has 2 vCPUs). Parallelises intentional
+   * delays (LCP timers, slow-API mocks) so they don't block the whole suite.
+   * Do NOT exceed 2 on a 2-vCPU runner — CPU contention makes tests flakier. */
+  workers: process.env.CI ? 2 : undefined,
 
   /* Reporters */
   reporter: [
