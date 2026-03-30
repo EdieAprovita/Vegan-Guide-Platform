@@ -1,5 +1,19 @@
 import { test as base, Page } from "@playwright/test";
+import { encode } from "@auth/core/jwt";
 import { mockUser, mockAdmin, jsonResponse } from "../helpers/api-mocks";
+
+// The secret must match the one used by the Next.js server (AUTH_SECRET env var).
+// In CI: "ci-placeholder-secret-not-used-in-production"
+// Locally: from .env.local
+const AUTH_SECRET =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "your-super-secret-key-here-change-this-in-production";
+
+// Cookie name mirrors SESSION_COOKIE_NAME from src/lib/auth.ts.
+// In CI (NODE_ENV=production && CI=true), it's "next-auth.session-token".
+// Locally (NODE_ENV=development), it's also "next-auth.session-token".
+const SESSION_COOKIE_NAME = "next-auth.session-token";
 
 /* ------------------------------------------------------------------ */
 /*  Auth fixtures — reusable logged-in sessions for E2E tests         */
@@ -23,6 +37,40 @@ type MockUser = {
 };
 
 /**
+ * Encode a real JWT and inject it as a session cookie so the Next.js
+ * middleware can verify the session server-side. Without this cookie,
+ * protected routes redirect to /login regardless of client-side mocks.
+ */
+async function injectSessionCookie(page: Page, user: MockUser) {
+  const token = await encode({
+    token: {
+      sub: user._id,
+      id: user._id,
+      name: user.username,
+      email: user.email,
+      role: user.role,
+      backendToken: user.token,
+      backendRefreshToken: user.refreshToken,
+      backendTokenExpiry: Date.now() + 14 * 60 * 1000,
+    },
+    secret: AUTH_SECRET,
+    salt: SESSION_COOKIE_NAME,
+  });
+
+  await page.context().addCookies([
+    {
+      name: SESSION_COOKIE_NAME,
+      value: token,
+      domain: "localhost",
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: false,
+    },
+  ]);
+}
+
+/**
  * Inject a NextAuth session cookie and mock auth-related API endpoints
  * so that the app believes the user is logged in.
  *
@@ -34,6 +82,10 @@ type MockUser = {
  * that may not exist in CI or may be in an unknown state.
  */
 async function setupAuthSession(page: Page, user: MockUser) {
+  // Inject a real JWT cookie so server-side middleware can verify the session.
+  // This must happen before navigation so the cookie is present on the first request.
+  await injectSessionCookie(page, user);
+
   // NextAuth session endpoint (called by useSession() hook)
   await page.route("**/api/auth/session", (route) =>
     route.fulfill({

@@ -41,7 +41,7 @@ export class ProfilePage {
    * Navigate to profile settings page
    */
   async goto() {
-    await this.page.goto("/settings/profile");
+    await this.page.goto("/profile");
   }
 
   /**

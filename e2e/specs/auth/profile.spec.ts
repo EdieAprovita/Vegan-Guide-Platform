@@ -268,7 +268,7 @@ test.describe("Auth: Profile Update", () => {
 
   test("unauthenticated users are redirected to login", async ({ page }) => {
     // Don't mock session, user is not authenticated
-    await page.goto("/settings/profile");
+    await page.goto("/profile");
 
     // Should redirect to login
     await page.waitForURL("**/login**");

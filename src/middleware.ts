@@ -22,7 +22,9 @@ function buildCsp(nonce: string): string {
   }
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // sha256 hash is for the Next.js App Router bootstrap script
+    // `(self.__next_f=self.__next_f||[]).push([0])` which cannot receive a nonce.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'sha256-n46vPwSWuMC0W703pBofImv82Z26xo4LXymv0E9caPk='`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self'",
