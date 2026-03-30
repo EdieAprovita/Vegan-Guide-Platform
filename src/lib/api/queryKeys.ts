@@ -1,6 +1,13 @@
 import type { Coordinates } from "@/lib/utils/geospatial";
 
-type QueryKeyPart = string | number | boolean | null | undefined | Record<string, unknown> | Coordinates;
+type QueryKeyPart =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | Coordinates;
 
 function createKey<T extends readonly QueryKeyPart[]>(...parts: T): T {
   return parts;
@@ -65,8 +72,7 @@ export const queryKeys = {
   },
 
   reviews: {
-    byEntity: (entityType: string, entityId: string) =>
-      createKey("reviews", entityType, entityId),
+    byEntity: (entityType: string, entityId: string) => createKey("reviews", entityType, entityId),
     detail: (id: string) => createKey("reviews", id),
   },
 

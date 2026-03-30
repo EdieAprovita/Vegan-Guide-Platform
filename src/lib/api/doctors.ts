@@ -89,12 +89,14 @@ export async function getDoctors(params?: DoctorSearchParams) {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (
-      (process.env.NODE_ENV === "development" || process.env.CI) &&
-      !(error instanceof ApiError)
-    ) {
-      console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-      return { success: true, data: [] };
+    if (process.env.NODE_ENV === "development" || process.env.CI) {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
+      const isApiError = (error as any)?.statusCode !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -104,12 +106,14 @@ export async function getDoctor(id: string) {
   try {
     return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`);
   } catch (error) {
-    if (
-      (process.env.NODE_ENV === "development" || process.env.CI) &&
-      !(error instanceof ApiError)
-    ) {
-      console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-      return { success: true, data: [] as unknown as Doctor };
+    if (process.env.NODE_ENV === "development" || process.env.CI) {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
+      const isApiError = (error as any)?.statusCode !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] as unknown as Doctor };
+      }
     }
     throw error;
   }
@@ -174,12 +178,14 @@ export async function getNearbyDoctors(params: {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (
-      (process.env.NODE_ENV === "development" || process.env.CI) &&
-      !(error instanceof ApiError)
-    ) {
-      console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-      return { success: true, data: [] };
+    if (process.env.NODE_ENV === "development" || process.env.CI) {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
+      const isApiError = (error as any)?.statusCode !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -212,12 +218,14 @@ export async function getDoctorsBySpecialty(
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (
-      (process.env.NODE_ENV === "development" || process.env.CI) &&
-      !(error instanceof ApiError)
-    ) {
-      console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-      return { success: true, data: [] };
+    if (process.env.NODE_ENV === "development" || process.env.CI) {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
+      const isApiError = (error as any)?.statusCode !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -254,12 +262,14 @@ export async function getAdvancedDoctors(params: {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (
-      (process.env.NODE_ENV === "development" || process.env.CI) &&
-      !(error instanceof ApiError)
-    ) {
-      console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-      return { success: true, data: [] };
+    if (process.env.NODE_ENV === "development" || process.env.CI) {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.statusCode
+      const isApiError = (error as any)?.statusCode !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
