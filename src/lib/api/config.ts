@@ -143,7 +143,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         "X-Correlation-ID": correlationId,
         ...options.headers,
       },
@@ -162,7 +162,11 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
 
       const errorMessage =
         errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, errorMessage);
+      // In CI, we expect the backend to be unavailable, so only log in production.
+      // The caller's try/catch will handle the error appropriately.
+      if (!process.env.CI) {
+        console.error(`[API Error] [${correlationId}] ${method} ${url}:`, errorMessage);
+      }
       throw new ApiError(response.status, errorMessage);
     }
 
@@ -175,11 +179,17 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
-      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");
+      // In CI, timeout errors are expected when backend is unavailable.
+      if (!process.env.CI) {
+        console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");
+      }
       throw new Error("Request timeout");
     }
     if (!(error instanceof ApiError)) {
-      console.error(`[API Error] [${correlationId}] ${method} ${url}:`, error);
+      // In CI, network errors are expected. In production, log them for debugging.
+      if (!process.env.CI) {
+        console.error(`[API Error] [${correlationId}] ${method} ${url}:`, error);
+      }
     }
     throw error;
   }
