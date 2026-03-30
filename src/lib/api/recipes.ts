@@ -60,7 +60,7 @@ export async function getRecipes(params?: {
   try {
     return await apiRequest<BackendListResponse<Recipe>>(`/recipes?${searchParams.toString()}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -77,7 +77,7 @@ export async function getRecipe(id: string) {
   try {
     return await apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;

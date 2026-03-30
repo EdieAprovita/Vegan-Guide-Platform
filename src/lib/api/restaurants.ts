@@ -93,7 +93,7 @@ export async function getRestaurants(params?: RestaurantSearchParams) {
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
     // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -288,7 +288,7 @@ export async function getNearbyRestaurants(params: {
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
     // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -332,7 +332,7 @@ export async function getRestaurantsByCuisine(
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
     // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -378,7 +378,7 @@ export async function getAdvancedRestaurants(params: {
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
     // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;

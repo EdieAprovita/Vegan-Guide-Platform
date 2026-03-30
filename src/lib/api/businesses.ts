@@ -90,7 +90,7 @@ export async function getBusinesses(filters?: BusinessFilters) {
   try {
     return await apiRequest<BackendResponse<Business[]>>(url);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -107,7 +107,7 @@ export async function getBusiness(id: string) {
   try {
     return await apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -172,7 +172,7 @@ export async function getBusinessReviews(
       `/businesses/${id}/reviews?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -192,7 +192,7 @@ export async function getBusinessesByProximity(lat: number, lng: number, radius:
       `/businesses/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -214,7 +214,7 @@ export async function searchBusinesses(query: string, filters: BusinessFilters =
       `/businesses/search?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;

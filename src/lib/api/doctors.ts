@@ -89,7 +89,7 @@ export async function getDoctors(params?: DoctorSearchParams) {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -106,7 +106,7 @@ export async function getDoctor(id: string) {
   try {
     return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -178,7 +178,7 @@ export async function getNearbyDoctors(params: {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -218,7 +218,7 @@ export async function getDoctorsBySpecialty(
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
@@ -262,7 +262,7 @@ export async function getAdvancedDoctors(params: {
   try {
     return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development" || process.env.CI) {
+    if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
       // ApiError extends Error, so if it's an ApiError it will have error.statusCode
       const isApiError = (error as any)?.statusCode !== undefined;
