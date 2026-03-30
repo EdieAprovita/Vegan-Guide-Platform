@@ -1,4 +1,11 @@
-import { loginSchema, registerSchema } from "@/lib/validations/auth";
+import {
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+  newPasswordSchema,
+  forgotPasswordSchema,
+  updateProfileSchema,
+} from "@/lib/validations/auth";
 
 describe("loginSchema", () => {
   const validData = { email: "test@example.com", password: "Password1" };
@@ -37,5 +44,57 @@ describe("registerSchema", () => {
     expect(() =>
       registerSchema.parse({ ...base, password: "weak", confirmPassword: "weak" })
     ).toThrow();
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  it("accepts a valid email", () => {
+    expect(resetPasswordSchema.parse({ email: "user@example.com" })).toEqual({
+      email: "user@example.com",
+    });
+  });
+
+  it("rejects an invalid email", () => {
+    expect(() => resetPasswordSchema.parse({ email: "not-an-email" })).toThrow();
+  });
+});
+
+describe("newPasswordSchema", () => {
+  it("accepts matching strong passwords", () => {
+    const data = { password: "Password1", confirmPassword: "Password1" };
+    expect(newPasswordSchema.parse(data)).toEqual(data);
+  });
+
+  it("rejects non-matching passwords", () => {
+    expect(() =>
+      newPasswordSchema.parse({ password: "Password1", confirmPassword: "Other123" })
+    ).toThrow();
+  });
+});
+
+describe("forgotPasswordSchema", () => {
+  it("accepts a valid email", () => {
+    expect(forgotPasswordSchema.parse({ email: "user@example.com" })).toEqual({
+      email: "user@example.com",
+    });
+  });
+
+  it("rejects missing email", () => {
+    expect(() => forgotPasswordSchema.parse({ email: "" })).toThrow();
+  });
+});
+
+describe("updateProfileSchema", () => {
+  it("accepts an empty object (all fields optional)", () => {
+    expect(updateProfileSchema.parse({})).toEqual({});
+  });
+
+  it("accepts valid optional fields", () => {
+    const data = {
+      username: "newuser",
+      email: "new@example.com",
+      photo: "https://example.com/photo.jpg",
+    };
+    expect(updateProfileSchema.parse(data)).toEqual(data);
   });
 });
