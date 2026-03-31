@@ -71,7 +71,9 @@ export default defineConfig({
    * job starts (see ci.yml: needs: [build]).
    */
   webServer: {
-    command: process.env.CI ? "npm start" : "npm run dev",
+    command: process.env.CI
+      ? "npm start"
+      : "NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1 npm run dev",
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

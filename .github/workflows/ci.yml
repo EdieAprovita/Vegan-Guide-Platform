@@ -139,7 +139,12 @@ jobs:
           AUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXTAUTH_URL: http://localhost:3000
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
-          NEXT_PUBLIC_API_URL: http://localhost:8000
+          # IMPORTANT: must be localhost:3000 (same origin as the Next.js server)
+          # so that NEXT_PUBLIC_API_URL is inlined into the bundle pointing at
+          # localhost:3000/api/v1. Playwright's page.route("**/api/v1/**") only
+          # intercepts same-origin requests — cross-origin calls to any other
+          # host bypass the interceptor entirely and cause 503 in tests.
+          NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
 
       # Upload the .next build output so the E2E job can reuse it
       # without rebuilding (saves ~60-90s per run).
@@ -230,7 +235,9 @@ jobs:
           # (baked into the .next/ artifact by the build job).
           AUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
-          NEXT_PUBLIC_API_URL: http://localhost:8000
+          # Must match the value baked into the bundle by the build job.
+          # page.route() intercepts localhost:3000 requests; any other host escapes.
+          NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
           CI: true
 
       # Always upload traces/screenshots so failures are debuggable
