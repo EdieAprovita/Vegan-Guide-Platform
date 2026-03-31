@@ -133,19 +133,17 @@ test.describe("User Journey: New User Onboarding", () => {
   });
 
   test("new user can browse home page content", async ({ page }) => {
-    await mockRestaurantList(page, 3);
-    await mockRecipeList(page, 3);
-
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     const body = await page.locator("body").textContent();
     expect((body ?? "").length).toBeGreaterThan(50);
 
-    // Should have navigation links to resources (may be hidden in mobile menu)
+    // Should have navigation links to resources
+    // Check for existing nav links (may be hidden in mobile menu)
     await tryOpenMobileMenu(page);
     const navLinks = page.locator(
-      'a[href="/restaurants"], a[href="/recipes"], a[href="/search"]',
+      'a[href="/restaurants"], a[href="/recipes"], a[href="/doctors"]',
     );
     const navCount = await navLinks.count();
     expect(navCount).toBeGreaterThan(0);
