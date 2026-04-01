@@ -5,6 +5,7 @@ import * as postsApi from "@/lib/api/posts";
 import type { Post, CreatePostData, CreateCommentData, PostSearchParams } from "@/lib/api/posts";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import { processBackendResponse } from "@/lib/api/config";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 interface Comment {
   _id: string;
@@ -20,7 +21,7 @@ interface Comment {
 // Base list query
 export function usePosts(params?: PostSearchParams) {
   return useQuery({
-    queryKey: ["posts", params],
+    queryKey: queryKeys.posts.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await postsApi.getPosts(params);
       const data = processBackendResponse<Post>(response);
@@ -33,7 +34,7 @@ export function usePosts(params?: PostSearchParams) {
 // Single post query
 export function usePost(id: string) {
   return useQuery({
-    queryKey: ["posts", id],
+    queryKey: queryKeys.posts.detail(id),
     queryFn: async () => {
       const response = await postsApi.getPost(id);
       return processBackendResponse<Post>(response) as Post;
@@ -54,7 +55,7 @@ export function useNearbyPosts(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["posts", "nearby", userCoords, params],
+    queryKey: queryKeys.posts.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
@@ -88,7 +89,7 @@ export function usePostsByTags(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["posts", "byTags", params, userCoords],
+    queryKey: queryKeys.posts.byTags(params as Record<string, unknown>, userCoords),
     queryFn: async () => {
       const searchParams: Parameters<typeof postsApi.getPostsByTags>[0] = {
         tags: params.tags,
@@ -126,7 +127,7 @@ export function useAdvancedPostSearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["posts", "advancedSearch", params, userCoords],
+    queryKey: queryKeys.posts.search(params as Record<string, unknown>, userCoords),
     queryFn: async () => {
       const searchParams: Parameters<typeof postsApi.getAdvancedPosts>[0] = {
         search: params.search,
@@ -156,13 +157,14 @@ export function useAdvancedPostSearch(params: {
 export function usePostMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+  };
+
   const createPost = useMutation({
     mutationFn: ({ data, token }: { data: CreatePostData; token?: string }) =>
       postsApi.createPost(data, token),
-    onSuccess: () => {
-      // Invalidate all posts queries
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updatePost = useMutation({
@@ -175,30 +177,22 @@ export function usePostMutations() {
       data: Partial<CreatePostData>;
       token?: string;
     }) => postsApi.updatePost(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deletePost = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) => postsApi.deletePost(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const likePost = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) => postsApi.likePost(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const unlikePost = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) => postsApi.unlikePost(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const addComment = useMutation({
@@ -211,9 +205,7 @@ export function usePostMutations() {
       comment: CreateCommentData;
       token?: string;
     }) => postsApi.addComment(id, comment, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {

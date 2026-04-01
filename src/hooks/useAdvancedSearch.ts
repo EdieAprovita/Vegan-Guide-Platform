@@ -25,6 +25,7 @@ import {
 } from "@/lib/api/search";
 import { useSession } from "next-auth/react";
 import { getCurrentLocation } from "@/lib/utils/geospatial";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -40,19 +41,6 @@ const DEFAULT_FILTERS: SearchFilters = {
 };
 
 const PAGE_SIZE = 12;
-
-// ---------------------------------------------------------------------------
-// Query key factory — keeps keys consistent and refactorable
-// ---------------------------------------------------------------------------
-
-export const searchKeys = {
-  all: ["search"] as const,
-  results: (filters: SearchFilters) => ["search", "results", filters] as const,
-  suggestions: (query: string) => ["search", "suggestions", query] as const,
-  aggregations: (
-    filters: Pick<SearchFilters, "resourceTypes" | "location" | "radius" | "coordinates">
-  ) => ["search", "aggregations", filters] as const,
-} as const;
 
 // ---------------------------------------------------------------------------
 // useAdvancedSearch
@@ -78,7 +66,7 @@ export function useAdvancedSearch() {
   // ------------------------------------------------------------------
 
   const searchQuery = useInfiniteQuery({
-    queryKey: searchKeys.results(filters),
+    queryKey: queryKeys.search.results(filters),
     queryFn: async ({ pageParam = 1 }) => {
       const page = pageParam as number;
 
@@ -112,7 +100,7 @@ export function useAdvancedSearch() {
   // ------------------------------------------------------------------
 
   const suggestionsQuery = useQuery({
-    queryKey: searchKeys.suggestions(debouncedQuery),
+    queryKey: queryKeys.search.suggestions(debouncedQuery),
     queryFn: async () => {
       const response = await getSearchSuggestions(debouncedQuery);
       return response.data ?? [];
@@ -138,7 +126,7 @@ export function useAdvancedSearch() {
   };
 
   const aggregationsQuery = useQuery({
-    queryKey: searchKeys.aggregations(aggregationFilters),
+    queryKey: queryKeys.search.aggregations(aggregationFilters as Record<string, unknown>),
     queryFn: async () => {
       const response = await getSearchAggregations(filters);
       return response.data ?? null;
@@ -167,7 +155,7 @@ export function useAdvancedSearch() {
     // resetQueries clears the cache and re-fetches only page 1, ensuring new
     // searches always start from the beginning. refetch() on an infinite query
     // would re-fetch all currently-cached pages instead.
-    await queryClient.resetQueries({ queryKey: searchKeys.results(filters) });
+    await queryClient.resetQueries({ queryKey: queryKeys.search.results(filters) });
 
     // Save analytics after the reset triggers a fresh fetch
     if (filters.query && isAuthenticated) {
