@@ -30,7 +30,7 @@ export class ProfilePage {
 
     // Action buttons
     this.saveButton = page.getByRole("button", { name: /save|update|submit/i });
-    this.cancelButton = page.getByRole("button", { name: /cancel|close/i });
+    this.cancelButton = page.getByRole("button", { name: /cancel|cancelar/i });
 
     // Messages — Sonner toasts + inline field errors
     this.successMessage = page
@@ -126,7 +126,9 @@ export class ProfilePage {
 
   /**
    * Get success message text.
-   * Tries Sonner toast selectors first, then falls back to role="alert".
+   * Only checks Sonner toast selectors — does NOT fall back to role="alert"
+   * because field validation errors also render as role="alert" elements and
+   * would produce false positives when the form has not yet loaded.
    */
   async getSuccessMessage(): Promise<string> {
     const toastSelectors = [
@@ -146,13 +148,7 @@ export class ProfilePage {
       }
     }
 
-    // Fallback: role="alert"
-    try {
-      await this.page.getByRole("alert").first().waitFor({ state: "visible", timeout: 1000 });
-      return (await this.page.getByRole("alert").first().textContent()) ?? "";
-    } catch {
-      return "";
-    }
+    return "";
   }
 
   /**

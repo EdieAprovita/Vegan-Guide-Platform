@@ -90,13 +90,12 @@ test.describe("Smoke: Home / Landing Page", () => {
   test("page has proper metadata", async ({ page }) => {
     await page.goto("/");
     await waitForHydration(page);
+    await page.waitForLoadState("load");
 
-    // Check page title exists
     const title = await page.title();
     expect(title).toBeTruthy();
     expect(title.length).toBeGreaterThan(5);
 
-    // Check for lang attribute
     const html = page.locator("html");
     const lang = await html.getAttribute("lang");
     expect(lang).toBeTruthy();

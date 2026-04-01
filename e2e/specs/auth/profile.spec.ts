@@ -59,6 +59,7 @@ test.describe("Auth: Profile Update", () => {
     const profilePage = new ProfilePage(authedPage);
 
     let putCalled = false;
+    let capturedBody: Record<string, string> | null = null;
 
     // Single handler that serves both GET and PUT
     await authedPage.route("**/api/user/profile", async (route) => {
@@ -79,11 +80,7 @@ test.describe("Auth: Profile Update", () => {
       if (route.request().method() === "PUT") {
         putCalled = true;
         const bodyText = route.request().postData() || "";
-        const body = JSON.parse(bodyText);
-
-        // Verify request contains updated data
-        expect(body.firstName).toBe("Jane");
-        expect(body.bio).toBe("Updated bio");
+        capturedBody = JSON.parse(bodyText);
 
         return route.fulfill({
           status: 200,
@@ -108,6 +105,13 @@ test.describe("Auth: Profile Update", () => {
       .first()
       .waitFor({ state: "visible", timeout: 10000 });
 
+    // Wait for async loadProfile() to populate the email field before interacting —
+    // handleUpdateProfile guards on `user` being non-null, so we must confirm the
+    // form is fully hydrated with server data before saving.
+    await expect(authedPage.locator('input[name="email"]')).toHaveValue("user@example.com", {
+      timeout: 5000,
+    });
+
     // Update profile
     await profilePage.updateProfile({
       firstName: "Jane",
@@ -119,6 +123,10 @@ test.describe("Auth: Profile Update", () => {
     const message = await profilePage.getSuccessMessage();
     expect(message).toBeTruthy();
     expect(putCalled).toBe(true);
+
+    // Verify PUT request body contained the expected updated data
+    expect(capturedBody?.firstName).toBe("Jane");
+    expect(capturedBody?.bio).toBe("Updated bio");
   });
 
   test("client validation prevents invalid email", async ({ authedPage }) => {
@@ -391,7 +399,11 @@ test.describe("Auth: Profile Update", () => {
     // Cancel
     await profilePage.cancel();
 
+    // Allow RHF's synchronous reset() call to propagate through React's
+    // re-render cycle before asserting the reverted value.
+    await authedPage.waitForTimeout(300);
+
     // Changes should be reverted to the original loaded value
-    await expect(profilePage.firstNameInput).toHaveValue("OriginalName");
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName", { timeout: 5000 });
   });
 });
