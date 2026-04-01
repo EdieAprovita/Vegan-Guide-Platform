@@ -38,7 +38,7 @@ export function GlobalSearch() {
   const searchInputId = "global-search";
   const resultsRegionId = useId();
 
-  const searchAll = async (searchQuery: string) => {
+  const searchAll = async (searchQuery: string, signal: AbortSignal) => {
     if (!searchQuery.trim()) {
       setResults([]);
       return;
@@ -119,26 +119,34 @@ export function GlobalSearch() {
         console.error("Error searching markets:", error);
       }
 
+      if (signal.aborted) return;
+
       // Sort results by rating (highest first)
       allResults.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       setResults(allResults);
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
       console.error("Search error:", error);
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       if (query.trim()) {
-        searchAll(query);
+        searchAll(query, controller.signal);
       } else {
         setResults([]);
+        setLoading(false);
       }
     }, 300);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [query]);
 
   const getTypeIcon = (type: string) => {
