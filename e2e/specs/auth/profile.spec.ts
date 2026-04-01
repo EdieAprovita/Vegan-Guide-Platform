@@ -59,7 +59,9 @@ test.describe("Auth: Profile Update", () => {
     const profilePage = new ProfilePage(authedPage);
 
     let putCalled = false;
-    let capturedBody: Record<string, string> | null = null;
+    // Object wrapper — TypeScript tracks property mutations through async closures,
+    // unlike plain `let` variables which it may narrow to their initializer type.
+    const capture = { body: null as { firstName?: string; bio?: string } | null };
 
     // Single handler that serves both GET and PUT
     await authedPage.route("**/api/user/profile", async (route) => {
@@ -80,7 +82,7 @@ test.describe("Auth: Profile Update", () => {
       if (route.request().method() === "PUT") {
         putCalled = true;
         const bodyText = route.request().postData() || "";
-        capturedBody = JSON.parse(bodyText);
+        capture.body = JSON.parse(bodyText) as { firstName?: string; bio?: string };
 
         return route.fulfill({
           status: 200,
@@ -125,8 +127,8 @@ test.describe("Auth: Profile Update", () => {
     expect(putCalled).toBe(true);
 
     // Verify PUT request body contained the expected updated data
-    expect(capturedBody?.firstName).toBe("Jane");
-    expect(capturedBody?.bio).toBe("Updated bio");
+    expect(capture.body?.firstName).toBe("Jane");
+    expect(capture.body?.bio).toBe("Updated bio");
   });
 
   test("client validation prevents invalid email", async ({ authedPage }) => {
