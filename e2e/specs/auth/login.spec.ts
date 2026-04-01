@@ -124,7 +124,15 @@ test.describe("Auth: Login", () => {
     await loginPage.emailInput.fill("test@verde.test");
     await loginPage.loginButton.click();
 
-    // Check validation
+    // React 18 schedules re-renders asynchronously after form submission.
+    // hasValidationErrors() uses locator.count() which is NOT auto-retrying,
+    // so we must wait for at least one [aria-invalid="true"] element to appear
+    // before calling it — otherwise the query fires before the validation
+    // state has been applied and returns false (flaky).
+    await expect(page.locator("[aria-invalid='true']").first()).toBeVisible({
+      timeout: 3000,
+    });
+
     const hasError = await loginPage.hasValidationErrors();
     expect(hasError).toBe(true);
   });

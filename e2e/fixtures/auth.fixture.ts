@@ -125,6 +125,41 @@ async function setupAuthSession(page: Page, user: MockUser) {
     })
   );
 
+  // Next.js BFF route for the profile form (src/app/api/user/profile/route.ts).
+  // The ProfileForm client component calls fetch("/api/user/profile") in its
+  // useEffect. With serviceWorkers:"block" in playwright.config.ts, this
+  // browser-side fetch goes through the normal network stack and page.route()
+  // CAN intercept it. Without this default mock, tests that don't register
+  // their own handler would hit the Route Handler, which in turn tries to
+  // reach the backend — unavailable in CI — and returns 500.
+  //
+  // Individual tests that need specific field values register their own
+  // page.route("**/api/user/profile") AFTER this fixture runs; due to
+  // Playwright's LIFO ordering, the test-specific handler takes precedence.
+  await page.route("**/api/user/profile", (route) => {
+    if (route.request().method() === "GET") {
+      return route.fulfill(
+        jsonResponse({
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          photo: user.photo || "",
+          firstName: "",
+          lastName: "",
+          bio: "",
+          phone: "",
+        })
+      );
+    }
+    if (route.request().method() === "PUT") {
+      return route.fulfill(
+        jsonResponse({ ...user, ...JSON.parse(route.request().postData() || "{}") })
+      );
+    }
+    return route.continue();
+  });
+
   // Backend user profile endpoint (localhost:8000/api/v1/users/profile/:id)
   // Intercept both GET (fetch) and PUT (update) operations
   await page.route("**/api/v1/users/profile/**", (route) => {

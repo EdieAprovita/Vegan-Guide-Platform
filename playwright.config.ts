@@ -43,6 +43,20 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    // Block service worker registration in all tests.
+    //
+    // The app registers public/sw.js which intercepts fetch() calls at the
+    // browser's Service Worker layer — ABOVE Playwright's page.route() layer.
+    // For routes excluded from SW caching (e.g. /api/user/*) the SW still
+    // processes the request and makes its own network fetch, which bypasses
+    // page.route() entirely. Without this setting, Playwright mocks for
+    // /api/user/profile are silently skipped, the requests reach the Next.js
+    // Route Handler, and that handler fails (no backend in CI) → 500.
+    //
+    // "block" tells Chromium to never activate registered service workers,
+    // so all browser fetches go through the normal network stack where
+    // page.route() can intercept them.
+    serviceWorkers: "block",
   },
 
   /* Browser projects */
