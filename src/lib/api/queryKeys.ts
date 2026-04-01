@@ -20,10 +20,13 @@ export const queryKeys = {
     list: (params?: Record<string, unknown>) => createKey("restaurants", params ?? null),
     detail: (id: string) => createKey("restaurants", id),
     topRated: (limit: number) => createKey("restaurants", "topRated", limit),
+    nearbyAll: createKey("nearbyRestaurants"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("nearbyRestaurants", coords ?? null, params ?? null),
+    byCuisineAll: createKey("restaurantsByCuisine"),
     byCuisine: (cuisine: string, coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("restaurantsByCuisine", cuisine, coords ?? null, params ?? null),
+    searchAll: createKey("advancedRestaurantSearch"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("advancedRestaurantSearch", coords ?? null, params ?? null),
   },
@@ -47,13 +50,16 @@ export const queryKeys = {
     all: createKey("markets"),
     list: (params?: Record<string, unknown>) => createKey("markets", params ?? null),
     detail: (id: string) => createKey("markets", id),
+    nearbyAll: createKey("nearbyMarkets"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("nearbyMarkets", coords ?? null, params ?? null),
+    byProductsAll: createKey("marketsByProducts"),
     byProducts: (
       products: string,
       coords?: Coordinates | null,
       params?: Record<string, unknown>,
     ) => createKey("marketsByProducts", products, coords ?? null, params ?? null),
+    searchAll: createKey("advancedMarketSearch"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("advancedMarketSearch", coords ?? null, params ?? null),
   },
@@ -70,13 +76,16 @@ export const queryKeys = {
     all: createKey("sanctuaries"),
     list: (params?: Record<string, unknown>) => createKey("sanctuaries", params ?? null),
     detail: (id: string) => createKey("sanctuaries", id),
+    nearbyAll: createKey("nearbySanctuaries"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("nearbySanctuaries", coords ?? null, params ?? null),
+    byTypeAll: createKey("sanctuariesByType"),
     byType: (
       typeofSanctuary: string,
       coords?: Coordinates | null,
       params?: Record<string, unknown>,
     ) => createKey("sanctuariesByType", typeofSanctuary, coords ?? null, params ?? null),
+    searchAll: createKey("advancedSanctuarySearch"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("advancedSanctuarySearch", coords ?? null, params ?? null),
   },
