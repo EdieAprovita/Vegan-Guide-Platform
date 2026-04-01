@@ -13,6 +13,7 @@ import type {
   ProfessionSearchParams,
   ProfessionalProfileSearchParams,
 } from "@/lib/api/professions";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // Professions hooks with geolocation
 export function useNearbyProfessions(params: {
@@ -25,7 +26,7 @@ export function useNearbyProfessions(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["professions", "nearby", userCoords, params],
+    queryKey: queryKeys.professions.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
@@ -59,7 +60,7 @@ export function useProfessionsByCategory(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["professions", "byCategory", params, userCoords],
+    queryKey: queryKeys.professions.byCategory(params as Record<string, unknown>, userCoords),
     queryFn: async () => {
       const searchParams: Parameters<typeof professionsApi.getProfessionsByCategory>[0] = {
         category: params.category,
@@ -84,7 +85,7 @@ export function useProfessionsByCategory(params: {
 
 export function useProfessions(params?: ProfessionSearchParams & { enabled?: boolean }) {
   return useQuery({
-    queryKey: ["professions", "list", params],
+    queryKey: queryKeys.professions.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await professionsApi.getProfessions(params);
       return processBackendResponse<Profession>(response) as Profession[];
@@ -97,7 +98,7 @@ export function useProfessions(params?: ProfessionSearchParams & { enabled?: boo
 
 export function useProfession(id: string, enabled: boolean = true) {
   return useQuery({
-    queryKey: ["professions", "detail", id],
+    queryKey: queryKeys.professions.detail(id),
     queryFn: async () => {
       const response = await professionsApi.getProfession(id);
       return processBackendResponse<Profession>(response) as Profession;
@@ -120,7 +121,7 @@ export function useNearbyProfessionalProfiles(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["professionalProfiles", "nearby", userCoords, params],
+    queryKey: queryKeys.professionalProfiles.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
@@ -159,7 +160,7 @@ export function useAdvancedProfessionalProfileSearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["professionalProfiles", "advancedSearch", params, userCoords],
+    queryKey: queryKeys.professionalProfiles.search(params as Record<string, unknown>, userCoords),
     queryFn: async () => {
       const searchParams: Parameters<typeof professionsApi.getAdvancedProfessionalProfiles>[0] = {
         search: params.search,
@@ -190,7 +191,7 @@ export function useProfessionalProfiles(
   params?: ProfessionalProfileSearchParams & { enabled?: boolean }
 ) {
   return useQuery({
-    queryKey: ["professionalProfiles", "list", params],
+    queryKey: queryKeys.professionalProfiles.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await professionsApi.getProfessionalProfiles(params);
       return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile[];
@@ -203,7 +204,7 @@ export function useProfessionalProfiles(
 
 export function useProfessionalProfile(id: string, enabled: boolean = true) {
   return useQuery({
-    queryKey: ["professionalProfiles", "detail", id],
+    queryKey: queryKeys.professionalProfiles.detail(id),
     queryFn: async () => {
       const response = await professionsApi.getProfessionalProfile(id);
       return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile;
@@ -218,12 +219,14 @@ export function useProfessionalProfile(id: string, enabled: boolean = true) {
 export function useProfessionMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.professions.all });
+  };
+
   const createProfession = useMutation({
     mutationFn: ({ data, token }: { data: CreateProfessionData; token?: string }) =>
       professionsApi.createProfession(data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professions"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updateProfession = useMutation({
@@ -236,25 +239,19 @@ export function useProfessionMutations() {
       data: Partial<CreateProfessionData>;
       token?: string;
     }) => professionsApi.updateProfession(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professions"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deleteProfession = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) =>
       professionsApi.deleteProfession(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professions"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const addProfessionReview = useMutation({
     mutationFn: ({ id, review, token }: { id: string; review: ProfessionReview; token?: string }) =>
       professionsApi.addProfessionReview(id, review, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professions"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {
@@ -268,12 +265,14 @@ export function useProfessionMutations() {
 export function useProfessionalProfileMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.professionalProfiles.all });
+  };
+
   const createProfessionalProfile = useMutation({
     mutationFn: ({ data, token }: { data: CreateProfessionalProfileData; token?: string }) =>
       professionsApi.createProfessionalProfile(data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professionalProfiles"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updateProfessionalProfile = useMutation({
@@ -286,17 +285,13 @@ export function useProfessionalProfileMutations() {
       data: Partial<CreateProfessionalProfileData>;
       token?: string;
     }) => professionsApi.updateProfessionalProfile(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professionalProfiles"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deleteProfessionalProfile = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) =>
       professionsApi.deleteProfessionalProfile(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["professionalProfiles"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {
