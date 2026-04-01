@@ -8,7 +8,7 @@ export interface MarkerData {
   id: string;
   position: { lat: number; lng: number };
   title: string;
-  content?: string;
+  content?: string | HTMLElement;
   type?: "restaurant" | "business" | "market" | "doctor" | "sanctuary" | "currentLocation";
   data?: Record<string, unknown>;
 }
