@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw, Home, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
     };
     console.error("[GlobalError]", JSON.stringify(errorReport));
-
-    // Future: send to error tracking service
-    // reportError(errorReport);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
