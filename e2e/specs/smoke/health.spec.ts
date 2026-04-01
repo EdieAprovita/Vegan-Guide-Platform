@@ -14,7 +14,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Smoke: Health Check", () => {
   test("homepage loads and renders core layout", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Page should have a title
     const title = await page.title();
@@ -52,7 +52,7 @@ test.describe("Smoke: Health Check", () => {
     });
 
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Filter out known benign errors (e.g. Google Maps key missing, API unreachable)
     const criticalErrors = jsErrors.filter(

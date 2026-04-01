@@ -98,26 +98,84 @@ export class RegisterPage {
   }
 
   /**
-   * Check for field-level validation errors
+   * Check for field-level validation errors.
+   *
+   * Shadcn FormMessage renders as <p> elements (not role="alert"), so we
+   * query by the explicit IDs set on each FormMessage and fall back to
+   * generic aria/class selectors for toast and other error surfaces.
+   *
+   * Waits up to 2s for any error element to appear (React async re-render)
+   * before collecting all errors.
    */
   async getFieldErrors(): Promise<string[]> {
-    const errorElements = this.page.locator("[role='alert'], .error, [class*='error']");
-    const count = await errorElements.count();
-    const errors: string[] = [];
+    // Wait for React to re-render with validation errors after submit
+    const waitSelectors = [
+      "#register-confirm-password-error",
+      "#register-password-error",
+      "#register-username-error",
+      "[role='alert']",
+      "[data-type='error']",
+    ];
 
-    for (let i = 0; i < count; i++) {
-      const text = await errorElements.nth(i).textContent();
-      if (text) errors.push(text.trim());
+    // Try to wait for at least one error element to appear
+    for (const sel of waitSelectors) {
+      try {
+        await this.page.locator(sel).first().waitFor({ state: "visible", timeout: 3000 });
+        break; // Found one — proceed to collect all
+      } catch {
+        // Not found yet — try next selector
+      }
+    }
+
+    const errorSelectors = [
+      // Shadcn FormMessage elements — matched by the id= props in register-form.tsx
+      "#register-username-error",
+      "#register-email-error",
+      "#register-password-error",
+      "#register-confirm-password-error",
+      "#register-role-error",
+      // ARIA live regions and alert roles (toast, server errors)
+      "[role='alert']",
+      "[aria-live='polite']",
+      // Sonner error toast
+      "[data-type='error']",
+      // Tailwind destructive / rose utility classes used by Shadcn
+      ".text-rose-500:not(span)",
+      ".text-destructive",
+    ];
+
+    const errors: string[] = [];
+    const seen = new Set<string>();
+
+    for (const selector of errorSelectors) {
+      try {
+        const elements = this.page.locator(selector);
+        const count = await elements.count();
+        for (let i = 0; i < count; i++) {
+          const text = await elements.nth(i).textContent().catch(() => "");
+          const trimmed = text?.trim() ?? "";
+          if (trimmed && !seen.has(trimmed)) {
+            seen.add(trimmed);
+            errors.push(trimmed);
+          }
+        }
+      } catch {
+        // Selector unsupported in this context — continue to next
+      }
     }
 
     return errors;
   }
 
   /**
-   * Check if register button is disabled
+   * Check if register button is disabled.
+   *
+   * The button is only disabled while the form is submitting (isLoading).
+   * After client-side validation errors it remains enabled, so we catch
+   * any locator errors and default to false.
    */
   async isRegisterButtonDisabled(): Promise<boolean> {
-    return await this.registerButton.isDisabled();
+    return await this.registerButton.isDisabled().catch(() => false);
   }
 
   /**

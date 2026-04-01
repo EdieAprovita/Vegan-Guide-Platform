@@ -1,86 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-}
 
 export function NotificationBell() {
   const { data: session } = useSession();
   const user = session?.user;
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      loadRecentNotifications();
-    }
-  }, [user]);
-
-  const loadRecentNotifications = async () => {
-    try {
-      // Mock recent notifications
-      const mockNotifications: Notification[] = [
-        {
-          id: "1",
-          type: "like",
-          title: "New like on your post",
-          message: "Sarah liked your recipe 'Vegan Buddha Bowl'",
-          timestamp: "2024-01-15T10:30:00Z",
-          read: false,
-        },
-        {
-          id: "2",
-          type: "comment",
-          title: "New comment on your post",
-          message: "Mike commented: 'This looks amazing!'",
-          timestamp: "2024-01-15T09:15:00Z",
-          read: false,
-        },
-        {
-          id: "3",
-          type: "follow",
-          title: "New follower",
-          message: "Emma started following you",
-          timestamp: "2024-01-14T16:45:00Z",
-          read: true,
-        },
-      ];
-
-      setNotifications(mockNotifications);
-    } catch (error) {
-      console.error("Failed to load notifications:", error);
-    }
-  };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) {
-      return "Just now";
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
-    }
-  };
 
   if (!user) {
     return null;
@@ -91,70 +20,19 @@ export function NotificationBell() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
           <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
-            >
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </Badge>
-          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="border-b p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
-            {unreadCount > 0 && <Badge variant="destructive">{unreadCount} unread</Badge>}
           </div>
         </div>
-        <div className="max-h-96 overflow-y-auto">
-          {notifications.length === 0 ? (
-            <div className="text-muted-foreground p-4 text-center">
-              <Bell className="text-muted-foreground/60 mx-auto mb-2 h-8 w-8" />
-              <p className="text-sm">No notifications</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {notifications.slice(0, 5).map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 transition-colors hover:bg-muted ${
-                    !notification.read ? "bg-blue-50 dark:bg-blue-950/40" : ""
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-foreground mb-1 text-sm font-medium">
-                        {notification.title}
-                      </h4>
-                      <p className="text-muted-foreground mb-1 line-clamp-2 text-sm">
-                        {notification.message}
-                      </p>
-                      <p className="text-muted-foreground/60 text-xs">
-                        {formatTimestamp(notification.timestamp)}
-                      </p>
-                    </div>
-                    {!notification.read && (
-                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <Bell className="text-muted-foreground/60 mx-auto mb-4 h-8 w-8 opacity-50" />
+          <h3 className="mb-1 text-sm font-semibold">Próximamente</h3>
+          <p className="text-muted-foreground text-xs">Esta función estará disponible pronto.</p>
         </div>
-        {notifications.length > 0 && (
-          <div className="border-t p-4">
-            <Link
-              href="/notifications"
-              className="text-primary hover:text-primary/80 text-sm font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              View all notifications
-            </Link>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );

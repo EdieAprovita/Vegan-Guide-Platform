@@ -137,6 +137,18 @@ describe("ResourceList – pre-mount skeleton", () => {
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBe(6);
   });
+
+  it("renders one skeleton per filter when filters are provided and not mounted", () => {
+    setMockState({ mounted: false });
+    const filters: FilterConfig[] = [
+      { key: "cuisine", placeholder: "All Cuisines", options: [] },
+      { key: "rating", placeholder: "All Ratings", options: [] },
+    ];
+    render(<ResourceList {...defaultProps} showFilters filters={filters} />);
+    const skeletons = document.querySelectorAll(".animate-pulse");
+    // 6 card skeletons + 1 search skeleton + 2 filter skeletons = 9
+    expect(skeletons.length).toBe(9);
+  });
 });
 
 describe("ResourceList – mounted, empty state", () => {

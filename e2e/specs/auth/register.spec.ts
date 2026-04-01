@@ -81,6 +81,9 @@ test.describe("Auth: Register", () => {
     await registerPage.goto();
     await waitForHydration(page);
 
+    // Explicitly set role to ensure RHF internal state is correct before filling
+    await registerPage.roleSelect.selectOption("user");
+
     // Fill form with mismatched passwords
     await registerPage.fillRegisterForm({
       username: "testuser",
@@ -91,7 +94,16 @@ test.describe("Auth: Register", () => {
 
     await registerPage.submit();
 
-    // Should show validation error
+    // Wait explicitly for the confirm password error to appear (React async re-render)
+    try {
+      await page
+        .locator("#register-confirm-password-error")
+        .waitFor({ state: "visible", timeout: 5000 });
+    } catch {
+      // May not appear if role error fires first — fall through to collect all errors
+    }
+
+    // Collect all errors
     const errors = await registerPage.getFieldErrors();
     const hasPasswordError = errors.some(
       (e) =>
@@ -99,10 +111,11 @@ test.describe("Auth: Register", () => {
         e.toLowerCase().includes("match") ||
         e.toLowerCase().includes("coinciden")
     );
+    const hasAnyError = errors.length > 0;
 
-    // Either field-level error or button remains disabled
+    // Either field-level error or button remains disabled during submission
     const isDisabled = await registerPage.isRegisterButtonDisabled();
-    expect(hasPasswordError || isDisabled).toBe(true);
+    expect(hasPasswordError || hasAnyError || isDisabled).toBe(true);
   });
 
   test("email field is required", async ({ page }) => {

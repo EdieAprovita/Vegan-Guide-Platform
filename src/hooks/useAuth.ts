@@ -10,7 +10,7 @@ import {
 import * as authApi from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/auth";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export function useAuthWithRouter() {
   const { data: session, status } = useSession();
@@ -122,9 +122,13 @@ export function useAuthWithRouter() {
     }
   };
 
-  const logout = () => {
-    signOut({ redirect: false });
-    toast.success("Logged out successfully!");
+  const logout = async () => {
+    try {
+      await signOut({ redirect: false });
+      toast.success("Logged out successfully!");
+    } catch {
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return {

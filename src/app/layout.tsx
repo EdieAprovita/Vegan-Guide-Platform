@@ -1,19 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, JetBrains_Mono, Clicker_Script, Playfair_Display } from "next/font/google";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import { Providers } from "./providers";
 import { InstallPrompt } from "@/components/features/pwa/install-prompt";
 import { DebugInfo } from "@/components/ui/debug-info";
 import { Header } from "@/components/vegan-landing/header";
-
-const WebVitalsReporter = dynamic(
-  () =>
-    import("@/components/performance/web-vitals-reporter").then(
-      (mod) => mod.WebVitalsReporter
-    ),
-  { ssr: false }
-);
+import { WebVitalsReporter } from "@/components/performance/_web-vitals-loader";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -107,11 +100,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
     <html lang="es" suppressHydrationWarning>
       <head>

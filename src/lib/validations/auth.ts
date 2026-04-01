@@ -58,7 +58,19 @@ export const updateProfileSchema = z.object({
     .max(50, "Username must be less than 50 characters")
     .optional(),
   email: z.string().email("Please enter a valid email address").optional(),
-  photo: z.string().url("Please enter a valid URL").optional(),
+  photo: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  firstName: z
+    .string()
+    .min(1, "First name must not be empty")
+    .max(50, "First name must be less than 50 characters")
+    .optional(),
+  lastName: z
+    .string()
+    .min(1, "Last name must not be empty")
+    .max(50, "Last name must be less than 50 characters")
+    .optional(),
+  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+  phone: z.string().optional(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

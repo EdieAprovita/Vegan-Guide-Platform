@@ -9,6 +9,16 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript")];
+const eslintConfig = [
+  { ignores: ["e2e/**"] },
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      "react-hooks/exhaustive-deps": "warn",
+      "jsx-a11y/alt-text": "error",
+      "@next/next/no-img-element": "warn",
+    },
+  },
+];
 
 export default eslintConfig;

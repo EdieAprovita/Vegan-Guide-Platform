@@ -7,8 +7,10 @@ import { refreshAccessToken } from "./api/tokenRefresh";
 export type UserRole = "user" | "professional" | "admin";
 
 /** Single source of truth for the NextAuth session cookie name. */
+// In CI, NODE_ENV=production but we run on HTTP (localhost:3000).
+// The __Secure- prefix requires HTTPS, so we skip it in CI to allow cookies to flow.
 export const SESSION_COOKIE_NAME =
-  process.env.NODE_ENV === "production"
+  process.env.NODE_ENV === "production" && !process.env.CI
     ? "__Secure-next-auth.session-token"
     : "next-auth.session-token";
 
@@ -30,12 +32,21 @@ declare module "next-auth" {
   }
 }
 
+// Whether we are in a real production environment (not a CI E2E run on localhost).
+// CI sets NODE_ENV=production via "npm start" but the server runs on plain HTTP,
+// so all TLS/secure-cookie requirements must be relaxed.
+const isSecureEnv = process.env.NODE_ENV === "production" && !process.env.CI;
+
 export const config = {
   secret: process.env.AUTH_SECRET,
+  // trustHost is required when running on a reverse proxy (Vercel, Cloud Run) or
+  // when NODE_ENV=production on plain HTTP (CI). Without it Auth.js v5 rejects
+  // every session request with UntrustedHost.
+  trustHost: true,
   session: {
     strategy: "jwt",
   },
-  useSecureCookies: process.env.NODE_ENV === "production",
+  useSecureCookies: isSecureEnv,
   cookies: {
     sessionToken: {
       name: SESSION_COOKIE_NAME,
@@ -43,7 +54,7 @@ export const config = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isSecureEnv,
       },
     },
   },

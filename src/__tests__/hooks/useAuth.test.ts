@@ -14,9 +14,8 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 
-jest.mock("react-hot-toast", () => ({
-  __esModule: true,
-  default: { success: jest.fn(), error: jest.fn() },
+jest.mock("sonner", () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
 }));
 
 jest.mock("@/lib/api/auth", () => ({

@@ -12,11 +12,10 @@ const ChatSystem = dynamic(() => import("./chat-system").then((m) => ({ default:
 
 export function ChatButton() {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(3); // Mock unread count
+  const unreadCount = 0;
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
-    setUnreadCount(0); // Clear unread count when opening
   };
 
   const handleCloseChat = () => {

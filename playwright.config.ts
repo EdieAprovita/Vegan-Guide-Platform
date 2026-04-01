@@ -23,8 +23,10 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
-  /* Limit workers on CI to avoid OOM */
-  workers: process.env.CI ? 1 : undefined,
+  /* 2 workers on CI (ubuntu-latest has 2 vCPUs). Parallelises intentional
+   * delays (LCP timers, slow-API mocks) so they don't block the whole suite.
+   * Do NOT exceed 2 on a 2-vCPU runner — CPU contention makes tests flakier. */
+  workers: process.env.CI ? 2 : undefined,
 
   /* Reporters */
   reporter: [
@@ -41,6 +43,20 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    // Block service worker registration in all tests.
+    //
+    // The app registers public/sw.js which intercepts fetch() calls at the
+    // browser's Service Worker layer — ABOVE Playwright's page.route() layer.
+    // For routes excluded from SW caching (e.g. /api/user/*) the SW still
+    // processes the request and makes its own network fetch, which bypasses
+    // page.route() entirely. Without this setting, Playwright mocks for
+    // /api/user/profile are silently skipped, the requests reach the Next.js
+    // Route Handler, and that handler fails (no backend in CI) → 500.
+    //
+    // "block" tells Chromium to never activate registered service workers,
+    // so all browser fetches go through the normal network stack where
+    // page.route() can intercept them.
+    serviceWorkers: "block",
   },
 
   /* Browser projects */
@@ -55,9 +71,23 @@ export default defineConfig({
     },
   ],
 
-  /* Auto-start Next.js dev server before tests */
+  /* Auto-start Next.js server before tests.
+   *
+   * In CI we run against the production build ("npm start") so that:
+   * - There is no HMR WebSocket — "networkidle" and "domcontentloaded" both
+   *   settle predictably and pages load 5–10x faster than the dev server.
+   * - OTel instrumentation module-not-found warnings are suppressed (no HMR
+   *   recompile loop).
+   * - The build artifact uploaded by the build job is reused (no double build).
+   *
+   * Locally, "npm run dev" is kept for fast iteration with hot reload.
+   * The build job must run first and download the .next artifact before this
+   * job starts (see ci.yml: needs: [build]).
+   */
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI
+      ? "npm start"
+      : "NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1 npm run dev",
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

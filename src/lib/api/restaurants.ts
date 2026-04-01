@@ -91,9 +91,16 @@ export async function getRestaurants(params?: RestaurantSearchParams) {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
-      console.warn("[DEV] Network/timeout error, returning mock data:", error);
-      return getMockRestaurants();
+    // In development and CI, return empty data on network errors (backend unavailable).
+    // In production, network errors should propagate (indicates real infrastructure issue).
+    if (process.env.NODE_ENV === "development") {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -279,9 +286,16 @@ export async function getNearbyRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
-      console.warn("[DEV] Network/timeout error, returning mock data:", error);
-      return getMockRestaurants();
+    // In development and CI, return empty data on network errors (backend unavailable).
+    // In production, network errors should propagate (indicates real infrastructure issue).
+    if (process.env.NODE_ENV === "development") {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -316,9 +330,16 @@ export async function getRestaurantsByCuisine(
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
-      console.warn("[DEV] Network/timeout error, returning mock data:", error);
-      return getMockRestaurants();
+    // In development and CI, return empty data on network errors (backend unavailable).
+    // In production, network errors should propagate (indicates real infrastructure issue).
+    if (process.env.NODE_ENV === "development") {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }
@@ -355,9 +376,16 @@ export async function getAdvancedRestaurants(params: {
       `/restaurants?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development" && !(error instanceof ApiError)) {
-      console.warn("[DEV] Network/timeout error, returning mock data:", error);
-      return getMockRestaurants();
+    // In development and CI, return empty data on network errors (backend unavailable).
+    // In production, network errors should propagate (indicates real infrastructure issue).
+    if (process.env.NODE_ENV === "development") {
+      // Only return empty data for non-API errors (network timeouts, etc.)
+      // ApiError extends Error, so if it's an ApiError it will have error.status
+      const isApiError = (error as any)?.status !== undefined;
+      if (!isApiError) {
+        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
+        return { success: true, data: [] };
+      }
     }
     throw error;
   }

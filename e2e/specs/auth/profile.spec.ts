@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../fixtures/auth.fixture";
 import { ProfilePage } from "../../pages/ProfilePage";
-import { mockNextImages, mockSessionWithAuth } from "../../helpers/api-mocks";
+import { mockNextImages } from "../../helpers/api-mocks";
 import { waitForHydration } from "../../helpers/test-utils";
 
 /**
@@ -15,17 +15,16 @@ import { waitForHydration } from "../../helpers/test-utils";
  * 6. Rate limiting is respected (max 5 updates per minute)
  */
 test.describe("Auth: Profile Update", () => {
-  test.beforeEach(async ({ page }) => {
-    await mockNextImages(page);
-    // Assume user is authenticated
-    await mockSessionWithAuth(page);
+  test.beforeEach(async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    // Auth is handled by the authedPage fixture (session cookie + route mocks + "/" navigation)
   });
 
-  test("profile form loads with editable fields", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("profile form loads with editable fields", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
     // Mock GET /api/user/profile
-    await page.route("**/api/user/profile", (route) =>
+    await authedPage.route("**/api/user/profile", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -41,8 +40,12 @@ test.describe("Auth: Profile Update", () => {
       })
     );
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Form fields should be visible and editable
     await expect(profilePage.firstNameInput).toBeVisible();
@@ -52,38 +55,36 @@ test.describe("Auth: Profile Update", () => {
     await expect(profilePage.saveButton).toBeVisible();
   });
 
-  test("successful profile update shows confirmation", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("successful profile update shows confirmation", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          id: "user-123",
-          email: "user@example.com",
-          username: "testuser",
-          firstName: "John",
-          lastName: "Doe",
-          bio: "Original bio",
-        }),
-      })
-    );
-
-    // Mock PUT endpoint
     let putCalled = false;
-    await page.route("**/api/user/profile", async (route) => {
+    // Object wrapper — TypeScript tracks property mutations through async closures,
+    // unlike plain `let` variables which it may narrow to their initializer type.
+    const capture = { body: null as { firstName?: string; bio?: string } | null };
+
+    // Single handler that serves both GET and PUT
+    await authedPage.route("**/api/user/profile", async (route) => {
+      if (route.request().method() === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            username: "testuser",
+            firstName: "John",
+            lastName: "Doe",
+            bio: "Original bio",
+          }),
+        });
+      }
       if (route.request().method() === "PUT") {
         putCalled = true;
         const bodyText = route.request().postData() || "";
-        const body = JSON.parse(bodyText);
+        capture.body = JSON.parse(bodyText) as { firstName?: string; bio?: string };
 
-        // Verify request contains updated data
-        expect(body.firstName).toBe("Jane");
-        expect(body.bio).toBe("Updated bio");
-
-        route.fulfill({
+        return route.fulfill({
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
@@ -95,13 +96,37 @@ test.describe("Auth: Profile Update", () => {
             bio: "Updated bio",
           }),
         });
-      } else {
-        route.continue();
       }
+      return route.continue();
     });
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    // Register response waiter BEFORE navigation so it captures the GET /api/user/profile
+    // request that loadProfile() fires asynchronously after the component mounts.
+    // useEffect runs after the initial React paint — if we register the waiter after
+    // goto() the request may already be in-flight and we could miss it.
+    const profileGetResponsePromise = authedPage.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      { timeout: 15000 }
+    );
+
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Explicitly wait for the GET /api/user/profile response to arrive in the browser.
+    // This guarantees loadProfile() has received its data and called setValue() before
+    // we assert on the email field value.
+    await profileGetResponsePromise;
+
+    // handleUpdateProfile guards on `user` being non-null, so we must confirm the
+    // form is fully hydrated with server data before saving.
+    await expect(authedPage.locator('input[name="email"]')).toHaveValue("user@example.com", {
+      timeout: 5000,
+    });
 
     // Update profile
     await profilePage.updateProfile({
@@ -114,13 +139,17 @@ test.describe("Auth: Profile Update", () => {
     const message = await profilePage.getSuccessMessage();
     expect(message).toBeTruthy();
     expect(putCalled).toBe(true);
+
+    // Verify PUT request body contained the expected updated data
+    expect(capture.body?.firstName).toBe("Jane");
+    expect(capture.body?.bio).toBe("Updated bio");
   });
 
-  test("client validation prevents invalid email", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("client validation prevents invalid email", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
     // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
+    await authedPage.route("**/api/user/profile", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -134,42 +163,44 @@ test.describe("Auth: Profile Update", () => {
       })
     );
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Try to enter invalid email
     await profilePage.emailInput.clear();
     await profilePage.emailInput.fill("not-an-email");
 
     // Client-side validation should mark field as invalid
-    const isInvalid = await profilePage.emailInput.evaluate((el) =>
-      (el as HTMLInputElement).validity.valid
+    const isInvalid = await profilePage.emailInput.evaluate(
+      (el) => (el as HTMLInputElement).validity.valid
     );
     expect(isInvalid).toBe(false);
   });
 
-  test("server validation error is displayed on invalid field", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("server validation error is displayed on invalid field", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          id: "user-123",
-          email: "user@example.com",
-          username: "testuser",
-          firstName: "John",
-          lastName: "Doe",
-        }),
-      })
-    );
-
-    // Mock PUT endpoint to return validation error
-    await page.route("**/api/user/profile", async (route) => {
+    // Single handler for both GET and PUT
+    await authedPage.route("**/api/user/profile", async (route) => {
+      if (route.request().method() === "GET") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            username: "testuser",
+            firstName: "John",
+            lastName: "Doe",
+          }),
+        });
+      }
       if (route.request().method() === "PUT") {
-        route.fulfill({
+        return route.fulfill({
           status: 400,
           contentType: "application/json",
           body: JSON.stringify({
@@ -183,29 +214,33 @@ test.describe("Auth: Profile Update", () => {
             ],
           }),
         });
-      } else {
-        route.continue();
       }
+      return route.continue();
     });
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
-    // Submit with empty first name
-    await profilePage.updateProfile({ firstName: "" });
+    // Submit with empty first name (clear the field)
+    await profilePage.firstNameInput.clear();
     await profilePage.save();
+    // Allow time for the Sonner toast to appear after the async request
+    await authedPage.waitForTimeout(500);
 
-    // Error message should be displayed
+    // Error message should be displayed — exact text varies ("Invalid input data" / "Failed to update profile")
     const errorMessage = await profilePage.getErrorMessage();
     expect(errorMessage).toBeTruthy();
-    expect(errorMessage).toContain("error");
   });
 
-  test("respects field length constraints", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("respects field length constraints", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
     // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
+    await authedPage.route("**/api/user/profile", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -220,24 +255,28 @@ test.describe("Auth: Profile Update", () => {
       })
     );
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Test firstName max length (50 chars)
     const longName = "a".repeat(51);
     await profilePage.firstNameInput.clear();
     await profilePage.firstNameInput.fill(longName);
 
-    // HTML5 validation should prevent exceeding max
+    // HTML5 maxLength should prevent exceeding max
     const actualValue = await profilePage.getFieldValue("firstNameInput");
     expect(actualValue.length).toBeLessThanOrEqual(50);
   });
 
-  test("bio field max length is 500 characters", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("bio field max length is 500 characters", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
     // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
+    await authedPage.route("**/api/user/profile", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -249,8 +288,12 @@ test.describe("Auth: Profile Update", () => {
       })
     );
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Test with valid 500 char bio
     const validBio = "x".repeat(500);
@@ -266,22 +309,25 @@ test.describe("Auth: Profile Update", () => {
     expect(bioValue.length).toBeLessThanOrEqual(500);
   });
 
-  test("unauthenticated users are redirected to login", async ({ page }) => {
-    // Don't mock session, user is not authenticated
-    await page.goto("/settings/profile");
+  test("unauthenticated users are redirected to login", async ({ authedPage }) => {
+    // Clear the session cookie set by the fixture so the user is unauthenticated
+    await authedPage.context().clearCookies();
+
+    await authedPage.goto("/profile");
 
     // Should redirect to login
-    await page.waitForURL("**/login**");
-    expect(page.url()).toContain("/login");
+    await authedPage.waitForURL("**/login**");
+    expect(authedPage.url()).toContain("/login");
   });
 
-  test("rate limiting returns 429 on excessive updates", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("rate limiting returns 429 on excessive updates", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
-    // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) => {
+    // Mock PUT to return rate limit error on subsequent requests
+    let requestCount = 0;
+    await authedPage.route("**/api/user/profile", async (route) => {
       if (route.request().method() === "GET") {
-        route.fulfill({
+        return route.fulfill({
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
@@ -291,15 +337,10 @@ test.describe("Auth: Profile Update", () => {
           }),
         });
       }
-    });
-
-    // Mock PUT to return rate limit error on subsequent requests
-    let requestCount = 0;
-    await page.route("**/api/user/profile", async (route) => {
       if (route.request().method() === "PUT") {
         requestCount++;
         if (requestCount > 5) {
-          route.fulfill({
+          return route.fulfill({
             status: 429,
             contentType: "application/json",
             body: JSON.stringify({
@@ -307,24 +348,26 @@ test.describe("Auth: Profile Update", () => {
               message: "Rate limit exceeded",
             }),
           });
-        } else {
-          route.fulfill({
-            status: 200,
-            contentType: "application/json",
-            body: JSON.stringify({
-              id: "user-123",
-              email: "user@example.com",
-              firstName: "John",
-            }),
-          });
         }
-      } else {
-        route.continue();
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: "user-123",
+            email: "user@example.com",
+            firstName: "John",
+          }),
+        });
       }
+      return route.continue();
     });
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
 
     // Attempt 6 updates (should hit rate limit on 6th)
     for (let i = 0; i < 6; i++) {
@@ -339,23 +382,45 @@ test.describe("Auth: Profile Update", () => {
     }
   });
 
-  test("cancel button reverts unsaved changes", async ({ page }) => {
-    const profilePage = new ProfilePage(page);
+  test("cancel button reverts unsaved changes", async ({ authedPage }) => {
+    const profilePage = new ProfilePage(authedPage);
 
     // Mock GET endpoint
-    await page.route("**/api/user/profile", (route) =>
+    await authedPage.route("**/api/user/profile", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
           id: "user-123",
           firstName: "OriginalName",
+          email: "user@example.com",
+          username: "testuser",
         }),
       })
     );
 
-    await profilePage.goto();
-    await waitForHydration(page);
+    // Register response waiter BEFORE navigation — loadProfile() fires its fetch
+    // asynchronously after the React paint; capturing the response explicitly
+    // avoids a race between the effect running and our toHaveValue assertion.
+    const profileGetResponsePromise = authedPage.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      { timeout: 15000 }
+    );
+
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    await authedPage
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 10000 });
+
+    // Ensure the GET /api/user/profile response was received before asserting
+    // that the form fields have been populated by loadProfile() → setValue().
+    await profileGetResponsePromise;
+
+    // Wait for profile to load and populate the form
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName", { timeout: 5000 });
 
     // Make changes
     await profilePage.updateProfile({ firstName: "NewName" });
@@ -363,10 +428,11 @@ test.describe("Auth: Profile Update", () => {
     // Cancel
     await profilePage.cancel();
 
-    // Changes should be reverted
-    // Note: Depending on implementation, this might reload or reset form
-    await page.waitForLoadState("networkidle");
-    const currentValue = await profilePage.getFieldValue("firstNameInput");
-    expect(currentValue).toBe("OriginalName");
+    // Allow RHF's synchronous reset() call to propagate through React's
+    // re-render cycle before asserting the reverted value.
+    await authedPage.waitForTimeout(300);
+
+    // Changes should be reverted to the original loaded value
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName", { timeout: 5000 });
   });
 });

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updateProfileSchema, UpdateProfileFormData } from "@/lib/validations/auth";
@@ -19,13 +20,15 @@ export function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const { user: sessionUser, isAuthenticated, status, updateProfile } = useAuthWithRouter();
+  const [originalValues, setOriginalValues] = useState<UpdateProfileFormData | null>(null);
+  const { user: sessionUser, isAuthenticated, status } = useAuthWithRouter();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
+    reset,
   } = useForm<UpdateProfileFormData>({
     resolver: zodResolver(updateProfileSchema),
   });
@@ -42,9 +45,19 @@ export function ProfileForm() {
         if (!response.ok) throw new Error("Failed to load profile");
         const profile = await response.json();
         setUser(profile);
-        setValue("username", profile.username);
-        setValue("email", profile.email);
-        setValue("photo", profile.photo);
+        const values: UpdateProfileFormData = {
+          username: profile.username,
+          email: profile.email,
+          photo: profile.photo ?? "",
+          firstName: profile.firstName ?? "",
+          lastName: profile.lastName ?? "",
+          bio: profile.bio ?? "",
+          phone: profile.phone ?? "",
+        };
+        Object.entries(values).forEach(([key, val]) => {
+          setValue(key as keyof UpdateProfileFormData, val as string);
+        });
+        setOriginalValues(values);
       } catch (error) {
         console.error("Failed to load profile:", error);
         toast.error("Failed to load profile");
@@ -61,14 +74,41 @@ export function ProfileForm() {
 
     setIsLoading(true);
     try {
-      await updateProfile(data);
-      setUser((prev) => (prev ? { ...prev, ...data } : null));
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+
+      const updatedUser = await response.json();
+      setUser((prev) => (prev ? { ...prev, ...updatedUser } : null));
+      const newValues: UpdateProfileFormData = {
+        username: updatedUser.username ?? data.username,
+        email: updatedUser.email ?? data.email,
+        photo: updatedUser.photo ?? data.photo ?? "",
+        firstName: updatedUser.firstName ?? data.firstName ?? "",
+        lastName: updatedUser.lastName ?? data.lastName ?? "",
+        bio: updatedUser.bio ?? data.bio ?? "",
+        phone: updatedUser.phone ?? data.phone ?? "",
+      };
+      setOriginalValues(newValues);
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (originalValues) {
+      reset(originalValues);
     }
   };
 
@@ -144,6 +184,44 @@ export function ProfileForm() {
             </div>
           </div>
 
+          {/* First Name */}
+          <div className="space-y-2">
+            <Label htmlFor="profile-firstName">First Name</Label>
+            <Input
+              id="profile-firstName"
+              placeholder="Enter your first name"
+              maxLength={50}
+              aria-invalid={!!errors.firstName}
+              aria-describedby={errors.firstName ? "profile-firstName-error" : undefined}
+              {...register("firstName")}
+              className={errors.firstName ? "border-red-500" : ""}
+            />
+            {errors.firstName && (
+              <p id="profile-firstName-error" role="alert" className="text-sm text-red-500">
+                {errors.firstName.message}
+              </p>
+            )}
+          </div>
+
+          {/* Last Name */}
+          <div className="space-y-2">
+            <Label htmlFor="profile-lastName">Last Name</Label>
+            <Input
+              id="profile-lastName"
+              placeholder="Enter your last name"
+              maxLength={50}
+              aria-invalid={!!errors.lastName}
+              aria-describedby={errors.lastName ? "profile-lastName-error" : undefined}
+              {...register("lastName")}
+              className={errors.lastName ? "border-red-500" : ""}
+            />
+            {errors.lastName && (
+              <p id="profile-lastName-error" role="alert" className="text-sm text-red-500">
+                {errors.lastName.message}
+              </p>
+            )}
+          </div>
+
           {/* Username */}
           <div className="space-y-2">
             <Label htmlFor="profile-username">
@@ -193,6 +271,45 @@ export function ProfileForm() {
             )}
           </div>
 
+          {/* Phone */}
+          <div className="space-y-2">
+            <Label htmlFor="profile-phone">Phone</Label>
+            <Input
+              id="profile-phone"
+              type="tel"
+              placeholder="Enter your phone number"
+              aria-invalid={!!errors.phone}
+              aria-describedby={errors.phone ? "profile-phone-error" : undefined}
+              {...register("phone")}
+              className={errors.phone ? "border-red-500" : ""}
+            />
+            {errors.phone && (
+              <p id="profile-phone-error" role="alert" className="text-sm text-red-500">
+                {errors.phone.message}
+              </p>
+            )}
+          </div>
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <Label htmlFor="profile-bio">Bio</Label>
+            <Textarea
+              id="profile-bio"
+              placeholder="Tell us about yourself"
+              maxLength={500}
+              rows={4}
+              aria-invalid={!!errors.bio}
+              aria-describedby={errors.bio ? "profile-bio-error" : undefined}
+              {...register("bio")}
+              className={errors.bio ? "border-red-500" : ""}
+            />
+            {errors.bio && (
+              <p id="profile-bio-error" role="alert" className="text-sm text-red-500">
+                {errors.bio.message}
+              </p>
+            )}
+          </div>
+
           {/* Photo URL */}
           <div className="space-y-2">
             <Label htmlFor="profile-photo">Profile Photo URL</Label>
@@ -226,9 +343,14 @@ export function ProfileForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Profile"}
-          </Button>
+          <div className="flex gap-3">
+            <Button type="submit" className="flex-1" disabled={isLoading}>
+              {isLoading ? "Updating..." : "Update Profile"}
+            </Button>
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading}>
+              Cancel
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

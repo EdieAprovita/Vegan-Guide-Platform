@@ -1,6 +1,20 @@
 import { Page } from "@playwright/test";
+import { encode } from "@auth/core/jwt";
 // Re-export mockNextImages from test-utils to maintain backward compatibility
 export { mockNextImages } from "./test-utils";
+
+// The secret must match the one used by the Next.js server (AUTH_SECRET env var).
+// In CI: "ci-placeholder-secret-not-used-in-production"
+// Locally: from .env.local
+const AUTH_SECRET =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "your-super-secret-key-here-change-this-in-production";
+
+// Cookie name mirrors SESSION_COOKIE_NAME from src/lib/auth.ts.
+// In CI (NODE_ENV=production && CI=true), it's "next-auth.session-token".
+// Locally (NODE_ENV=development), it's also "next-auth.session-token".
+const SESSION_COOKIE_NAME = "next-auth.session-token";
 
 /* ------------------------------------------------------------------ */
 /*  Shared API mock helpers for Verde Guide E2E tests                 */
@@ -49,10 +63,41 @@ export const mockAdmin = {
 };
 
 /**
- * Mocks the NextAuth session endpoint to simulate an authenticated user.
+ * Mocks the NextAuth session for an authenticated user.
+ * Injects a real JWT cookie so server-side middleware can verify the session,
+ * and mocks the client-side session fetch for useSession() hook.
  * Call this in beforeEach to avoid redirect-to-login in protected routes.
  */
 export async function mockSessionWithAuth(page: Page) {
+  // Inject a real JWT cookie so server-side middleware can verify the session.
+  const token = await encode({
+    token: {
+      sub: mockUser._id,
+      id: mockUser._id,
+      name: mockUser.username,
+      email: mockUser.email,
+      role: mockUser.role,
+      backendToken: mockUser.token,
+      backendRefreshToken: mockUser.refreshToken,
+      backendTokenExpiry: Date.now() + 14 * 60 * 1000,
+    },
+    secret: AUTH_SECRET,
+    salt: SESSION_COOKIE_NAME,
+  });
+
+  await page.context().addCookies([
+    {
+      name: SESSION_COOKIE_NAME,
+      value: token,
+      domain: "localhost",
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax" as const,
+      secure: false,
+    },
+  ]);
+
+  // Also mock the client-side session fetch for useSession() hook
   await page.route("**/api/auth/session", (route) =>
     route.fulfill({
       status: 200,

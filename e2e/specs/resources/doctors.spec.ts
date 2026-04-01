@@ -241,7 +241,7 @@ authedTest.describe("Doctors: Authenticated Actions", () => {
   authedTest(
     "authenticated user can view doctor detail",
     async ({ doctorPage }) => {
-      await doctorPage.goto("/doctors/doc-001", { waitUntil: "networkidle" });
+      await doctorPage.goto("/doctors/doc-001", { waitUntil: "domcontentloaded" });
       await waitForHydration(doctorPage);
 
       // Content must be meaningful

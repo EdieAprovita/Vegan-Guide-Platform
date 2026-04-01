@@ -30,18 +30,47 @@ export class ProfilePage {
 
     // Action buttons
     this.saveButton = page.getByRole("button", { name: /save|update|submit/i });
-    this.cancelButton = page.getByRole("button", { name: /cancel|close/i });
+    this.cancelButton = page.getByRole("button", { name: /cancel|cancelar/i });
 
-    // Messages
-    this.successMessage = page.getByRole("alert");
-    this.errorMessage = page.getByRole("alert");
+    // Messages — Sonner toasts + inline field errors
+    this.successMessage = page
+      .locator('[data-type="success"], [data-sonner-toast][data-type="success"]')
+      .or(page.getByText(/updated successfully|profile saved|success/i));
+    this.errorMessage = page
+      .locator('[data-type="error"], [data-sonner-toast][data-type="error"]')
+      .or(page.getByRole("alert"));
   }
 
   /**
-   * Navigate to profile settings page
+   * Navigate to profile settings page and wait for the form to be ready.
+   *
+   * NextAuth v5 (beta) with App Router does NOT automatically trigger a
+   * /api/auth/session fetch when SessionProvider mounts without an initial
+   * `session` prop. To hydrate the client-side session, we must first
+   * navigate to "/" (any page) so that useSession() runs in a fully
+   * initialized app context. Only then is the session cached in React
+   * context, and the /profile page can render the editable form.
+   *
+   * This mirrors the pattern used in the authedPage fixture
+   * (e2e/fixtures/auth.fixture.ts → setupAuthSession), which also
+   * navigates to "/" before performing any protected-page tests.
    */
   async goto() {
-    await this.page.goto("/settings/profile");
+    // Step 1: Warm up the session by visiting the home page first.
+    // useSession() fetches /api/auth/session here and caches the result.
+    await this.page.goto("/", { waitUntil: "domcontentloaded" });
+
+    // Step 2: Now navigate to /profile — session is already cached, form renders immediately.
+    await this.page.goto("/profile", { waitUntil: "domcontentloaded" });
+
+    // Step 3: Wait for any form input to confirm the form is ready.
+    await this.page
+      .locator('input[name="firstName"], input[name="username"], input[name="email"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 8000 })
+      .catch(() => {
+        // Profile might still be loading or auth may have failed — callers will handle
+      });
   }
 
   /**
@@ -96,24 +125,58 @@ export class ProfilePage {
   }
 
   /**
-   * Get success message text
+   * Get success message text.
+   * Only checks Sonner toast selectors — does NOT fall back to role="alert"
+   * because field validation errors also render as role="alert" elements and
+   * would produce false positives when the form has not yet loaded.
    */
   async getSuccessMessage(): Promise<string> {
-    try {
-      await this.successMessage.waitFor({ state: "visible", timeout: 3000 });
-      return await this.successMessage.textContent() ?? "";
-    } catch {
-      return "";
+    const toastSelectors = [
+      '[data-type="success"]',
+      '[data-sonner-toast][data-type="success"]',
+      'li[data-type="success"]',
+    ];
+
+    for (const sel of toastSelectors) {
+      const el = this.page.locator(sel).first();
+      try {
+        await el.waitFor({ state: "visible", timeout: 3000 });
+        const text = await el.textContent();
+        if (text?.trim()) return text.trim();
+      } catch {
+        // try next selector
+      }
     }
+
+    return "";
   }
 
   /**
-   * Get error message text
+   * Get error message text.
+   * Tries Sonner error toast selectors first, then falls back to inline role="alert".
    */
   async getErrorMessage(): Promise<string> {
+    const errorToastSelectors = [
+      '[data-type="error"]',
+      '[data-sonner-toast][data-type="error"]',
+      'li[data-type="error"]',
+    ];
+
+    for (const sel of errorToastSelectors) {
+      const el = this.page.locator(sel).first();
+      try {
+        await el.waitFor({ state: "visible", timeout: 3000 });
+        const text = await el.textContent();
+        if (text?.trim()) return text.trim();
+      } catch {
+        // try next selector
+      }
+    }
+
+    // Fallback: inline field errors with role="alert"
     try {
-      await this.errorMessage.waitFor({ state: "visible", timeout: 3000 });
-      return await this.errorMessage.textContent() ?? "";
+      await this.page.getByRole("alert").first().waitFor({ state: "visible", timeout: 1000 });
+      return (await this.page.getByRole("alert").first().textContent()) ?? "";
     } catch {
       return "";
     }

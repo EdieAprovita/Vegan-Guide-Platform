@@ -112,6 +112,21 @@ const nextConfig = {
       },
     ];
   },
+  // Suppress webpack warnings for optional OpenTelemetry packages that are not
+  // installed in CI or production. instrumentation.ts wraps all requires in a
+  // try/catch, so the server starts cleanly — these are purely build-time noise.
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings ?? []),
+        {
+          module: /instrumentation\.ts/,
+          message: /Module not found: Can't resolve '@opentelemetry\//,
+        },
+      ];
+    }
+    return config;
+  },
   // Configuración adicional para estabilidad
   poweredByHeader: false,
   generateEtags: false,

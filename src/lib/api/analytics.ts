@@ -58,17 +58,14 @@ interface CountableResponse {
  */
 export async function getAnalytics(
   timeRange: string = "30d",
-  token?: string,
+  token?: string
 ): Promise<AnalyticsData> {
   try {
     const headers = token ? getApiHeaders(token) : {};
-    const response = await fetch(
-      `${API_CONFIG.BASE_URL}/analytics?timeRange=${timeRange}`,
-      {
-        headers,
-        credentials: "include",
-      },
-    );
+    const response = await fetch(`${API_CONFIG.BASE_URL}/analytics?timeRange=${timeRange}`, {
+      headers,
+      credentials: "include",
+    });
 
     if (!response.ok) {
       throw new Error(`Analytics API error: ${response.status}`);
@@ -92,20 +89,20 @@ async function getAggregatedAnalytics(token?: string): Promise<AnalyticsData> {
   const fetchOpts: RequestInit = { headers, credentials: "include" };
 
   const [restaurants, recipes, doctors, markets, businesses] = await Promise.allSettled([
-    fetch(`${API_CONFIG.BASE_URL}/restaurants?limit=1`, fetchOpts).then((r) =>
-      r.json() as Promise<CountableResponse>,
+    fetch(`${API_CONFIG.BASE_URL}/restaurants?limit=1`, fetchOpts).then(
+      (r) => r.json() as Promise<CountableResponse>
     ),
-    fetch(`${API_CONFIG.BASE_URL}/recipes?limit=1`, fetchOpts).then((r) =>
-      r.json() as Promise<CountableResponse>,
+    fetch(`${API_CONFIG.BASE_URL}/recipes?limit=1`, fetchOpts).then(
+      (r) => r.json() as Promise<CountableResponse>
     ),
-    fetch(`${API_CONFIG.BASE_URL}/doctors?limit=1`, fetchOpts).then((r) =>
-      r.json() as Promise<CountableResponse>,
+    fetch(`${API_CONFIG.BASE_URL}/doctors?limit=1`, fetchOpts).then(
+      (r) => r.json() as Promise<CountableResponse>
     ),
-    fetch(`${API_CONFIG.BASE_URL}/markets?limit=1`, fetchOpts).then((r) =>
-      r.json() as Promise<CountableResponse>,
+    fetch(`${API_CONFIG.BASE_URL}/markets?limit=1`, fetchOpts).then(
+      (r) => r.json() as Promise<CountableResponse>
     ),
-    fetch(`${API_CONFIG.BASE_URL}/businesses?limit=1`, fetchOpts).then((r) =>
-      r.json() as Promise<CountableResponse>,
+    fetch(`${API_CONFIG.BASE_URL}/businesses?limit=1`, fetchOpts).then(
+      (r) => r.json() as Promise<CountableResponse>
     ),
   ]);
 

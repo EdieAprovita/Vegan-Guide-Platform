@@ -46,7 +46,6 @@ test.describe("Responsive: Mobile Layout", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    // Look for hamburger/menu toggle button — must be visible on mobile
     const menuButton = page.locator(
       [
         'button[aria-controls="mobile-menu"]',
@@ -58,13 +57,20 @@ test.describe("Responsive: Mobile Layout", () => {
       ].join(", "),
     );
 
+    // Wait for any matching button to appear (handles async client-side rendering)
     let foundVisible = false;
-    const count = await menuButton.count();
-    for (let i = 0; i < Math.min(count, 5); i++) {
-      const isVisible = await menuButton.nth(i).isVisible().catch(() => false);
-      if (isVisible) {
-        foundVisible = true;
-        break;
+    try {
+      await menuButton.first().waitFor({ state: "visible", timeout: 5000 });
+      foundVisible = true;
+    } catch {
+      // No hamburger button found — check pragmatic fallback
+      const count = await menuButton.count();
+      for (let i = 0; i < Math.min(count, 5); i++) {
+        const isVisible = await menuButton.nth(i).isVisible().catch(() => false);
+        if (isVisible) {
+          foundVisible = true;
+          break;
+        }
       }
     }
     expect(foundVisible).toBe(true);
