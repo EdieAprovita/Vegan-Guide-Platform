@@ -36,6 +36,7 @@ export const BENIGN_ERRORS = [
   "useSearchParams() should be wrapped",
   "[API Error]", // Server-side fetch errors during RSC rendering (no mock backend)
   "HTTP 404", // Expected when backend is unavailable
+  "SW registration failed", // Service worker is blocked in tests (serviceWorkers:"block"); the app logs this when navigator.serviceWorker.register() resolves with undefined
 ];
 
 /**
