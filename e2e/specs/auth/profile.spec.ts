@@ -100,6 +100,16 @@ test.describe("Auth: Profile Update", () => {
       return route.continue();
     });
 
+    // Register response waiter BEFORE navigation so it captures the GET /api/user/profile
+    // request that loadProfile() fires asynchronously after the component mounts.
+    // useEffect runs after the initial React paint — if we register the waiter after
+    // goto() the request may already be in-flight and we could miss it.
+    const profileGetResponsePromise = authedPage.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      { timeout: 15000 }
+    );
+
     await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
     await waitForHydration(authedPage);
     await authedPage
@@ -107,7 +117,11 @@ test.describe("Auth: Profile Update", () => {
       .first()
       .waitFor({ state: "visible", timeout: 10000 });
 
-    // Wait for async loadProfile() to populate the email field before interacting —
+    // Explicitly wait for the GET /api/user/profile response to arrive in the browser.
+    // This guarantees loadProfile() has received its data and called setValue() before
+    // we assert on the email field value.
+    await profileGetResponsePromise;
+
     // handleUpdateProfile guards on `user` being non-null, so we must confirm the
     // form is fully hydrated with server data before saving.
     await expect(authedPage.locator('input[name="email"]')).toHaveValue("user@example.com", {
@@ -385,6 +399,15 @@ test.describe("Auth: Profile Update", () => {
       })
     );
 
+    // Register response waiter BEFORE navigation — loadProfile() fires its fetch
+    // asynchronously after the React paint; capturing the response explicitly
+    // avoids a race between the effect running and our toHaveValue assertion.
+    const profileGetResponsePromise = authedPage.waitForResponse(
+      (resp) =>
+        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      { timeout: 15000 }
+    );
+
     await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
     await waitForHydration(authedPage);
     await authedPage
@@ -392,8 +415,12 @@ test.describe("Auth: Profile Update", () => {
       .first()
       .waitFor({ state: "visible", timeout: 10000 });
 
+    // Ensure the GET /api/user/profile response was received before asserting
+    // that the form fields have been populated by loadProfile() → setValue().
+    await profileGetResponsePromise;
+
     // Wait for profile to load and populate the form
-    await expect(profilePage.firstNameInput).toHaveValue("OriginalName");
+    await expect(profilePage.firstNameInput).toHaveValue("OriginalName", { timeout: 5000 });
 
     // Make changes
     await profilePage.updateProfile({ firstName: "NewName" });
