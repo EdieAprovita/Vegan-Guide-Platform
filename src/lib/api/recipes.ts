@@ -78,9 +78,9 @@ export async function getRecipes(
   }
 }
 
-export async function getRecipe(id: string) {
+export async function getRecipe(id: string, signal?: AbortSignal) {
   try {
-    return await apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`);
+    return await apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`, { signal });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
