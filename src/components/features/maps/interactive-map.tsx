@@ -81,8 +81,26 @@ export function InteractiveMap({
       : undefined,
   });
 
+
+  // Validates that a URL uses only http: or https: protocols before assigning
+  // to .href. Prevents javascript: and data: URL injection (XSS).
+  const safeHref = useCallback((url: string | undefined): string => {
+    if (!url) return '#';
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        return parsed.href;
+      }
+    } catch {
+      // invalid URL -- fall through to safe fallback
+    }
+    return '#';
+  }, []);
+
   // Helper function to create info window content
   const createInfoWindowContent = useCallback((location: Location): string => {
+    const detailHref = safeHref(location.url);
+    const websiteHref = safeHref(location.website);
     return `
       <div class="p-4 max-w-xs">
         <div class="space-y-2">
@@ -106,13 +124,13 @@ export function InteractiveMap({
             }
           </div>
           <div class="flex gap-2 pt-2">
-            <a href="${location.url}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+            <a href="${detailHref}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
               Ver detalles
             </a>
             ${
               location.website
                 ? `
-              <a href="${location.website}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+              <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
                 Sitio web
               </a>
             `
@@ -122,7 +140,7 @@ export function InteractiveMap({
         </div>
       </div>
     `;
-  }, []);
+  }, [safeHref]);
 
   // Memoized marker data conversion for performance
   const markerData = useMemo((): MarkerData[] => {
