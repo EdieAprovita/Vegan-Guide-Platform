@@ -154,7 +154,8 @@ describe("restaurant query hooks", () => {
     useAdvancedRestaurantSearch(params);
 
     const config = queryConfigs[0];
-    expect(config.queryKey[0]).toBe("restaurants", "search");
+    expect(config.queryKey[0]).toBe("restaurants");
+    expect(config.queryKey[1]).toBe("search");
 
     await config.queryFn();
     expect(restaurantsApi.getAdvancedRestaurants).toHaveBeenCalledWith({
