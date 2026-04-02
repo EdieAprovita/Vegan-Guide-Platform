@@ -35,18 +35,6 @@ export function extractBackendListData<T>(response: BackendListResponse<T>): T[]
   return response.data;
 }
 
-// Helper universal para procesar respuestas del backend (maneja ambos formatos)
-/** @deprecated Use extractListData, extractItemData, or extractPaginatedData instead */
-export function processBackendResponse<T>(response: unknown): T[] | T {
-  if (response && typeof response === "object" && "data" in response) {
-    return (response as { data: T[] | T }).data;
-  }
-  if (Array.isArray(response)) {
-    return response as T[];
-  }
-  return response as T;
-}
-
 /**
  * Typed extractor for list responses. Throws if the response shape is invalid
  * so callers get a clear error instead of silently receiving `undefined`.
@@ -197,6 +185,43 @@ export const handleApiError = (error: unknown): string => {
   return "An unexpected error occurred";
 };
 
+/**
+ * Merges multiple AbortSignals into one. Aborts when any input signal aborts.
+ * Uses native AbortSignal.any() when available (Node ≥20, Safari ≥17),
+ * falls back to manual listener wiring for older environments.
+ */
+export function mergeAbortSignals(...signals: (AbortSignal | undefined | null)[]): AbortSignal {
+  const defined = signals.filter((s): s is AbortSignal => s != null);
+  if (defined.length === 0) return new AbortController().signal;
+  if (defined.length === 1) return defined[0];
+
+  // Use native AbortSignal.any() when available.
+  // The spec signature is AbortSignal.any(iterable) — pass the array directly.
+  if (
+    typeof AbortSignal !== "undefined" &&
+    typeof (AbortSignal as unknown as { any?: unknown }).any === "function"
+  ) {
+    return (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any(
+      defined
+    );
+  }
+
+  // Polyfill: manual listener wiring
+  const controller = new AbortController();
+  const abort = () => {
+    controller.abort();
+    defined.forEach((s) => s.removeEventListener("abort", abort));
+  };
+  defined.forEach((s) => {
+    if (s.aborted) {
+      abort();
+    } else {
+      s.addEventListener("abort", abort, { once: true });
+    }
+  });
+  return controller.signal;
+}
+
 // Función helper para hacer requests con manejo de errores consistente
 export const apiRequest = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   const correlationId = generateCorrelationId();
@@ -210,7 +235,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   if (options.signal instanceof AbortSignal) {
     signals.push(options.signal);
   }
-  const mergedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0];
+  const mergedSignal = mergeAbortSignals(...signals);
 
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {

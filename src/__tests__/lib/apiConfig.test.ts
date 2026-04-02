@@ -5,8 +5,9 @@ import {
   extractBackendListData,
   getApiHeaders,
   handleApiError,
-  processBackendResponse,
+  mergeAbortSignals,
 } from "@/lib/api/config";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 const originalFetch = global.fetch;
 
@@ -84,21 +85,6 @@ describe("apiRequest", () => {
   });
 });
 
-describe("processBackendResponse", () => {
-  it("returns data from standard backend response", () => {
-    const response = { success: true, data: [{ id: 1 }] };
-    expect(processBackendResponse(response)).toEqual([{ id: 1 }]);
-  });
-
-  it("handles direct arrays and objects", () => {
-    const arrayResponse = [{ id: 1 }];
-    const objectResponse = { id: 2 };
-
-    expect(processBackendResponse(arrayResponse)).toEqual(arrayResponse);
-    expect(processBackendResponse(objectResponse)).toEqual(objectResponse);
-  });
-});
-
 describe("extraction helpers", () => {
   it("extracts data from backend wrappers", () => {
     const entry = { success: true, data: { id: "x" } };
@@ -134,5 +120,90 @@ describe("handleApiError", () => {
     expect(handleApiError(new Error("native"))).toBe("native");
     expect(handleApiError("plain error")).toBe("plain error");
     expect(handleApiError(undefined)).toBe("An unexpected error occurred");
+  });
+});
+
+describe("mergeAbortSignals", () => {
+  it("returns an inert signal when called with no arguments", () => {
+    const signal = mergeAbortSignals();
+    expect(signal.aborted).toBe(false);
+  });
+
+  it("returns the same signal when only one is provided", () => {
+    const controller = new AbortController();
+    const result = mergeAbortSignals(controller.signal);
+    expect(result).toBe(controller.signal);
+  });
+
+  it("aborts the merged signal when the first input signal aborts", () => {
+    const a = new AbortController();
+    const b = new AbortController();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+
+    expect(merged.aborted).toBe(false);
+    a.abort();
+    expect(merged.aborted).toBe(true);
+  });
+
+  it("aborts the merged signal when the second input signal aborts", () => {
+    const a = new AbortController();
+    const b = new AbortController();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+
+    b.abort();
+    expect(merged.aborted).toBe(true);
+  });
+
+  it("handles an already-aborted signal immediately", () => {
+    const aborted = new AbortController();
+    aborted.abort();
+    const live = new AbortController();
+
+    const merged = mergeAbortSignals(aborted.signal, live.signal);
+    expect(merged.aborted).toBe(true);
+  });
+
+  it("filters out null and undefined entries", () => {
+    const controller = new AbortController();
+    const merged = mergeAbortSignals(null, undefined, controller.signal, null);
+    expect(merged).toBe(controller.signal);
+  });
+});
+
+describe("queryKeys uniqueness (H-19)", () => {
+  it("recipes.list and recipes.detail produce distinct keys", () => {
+    const listKey = JSON.stringify(queryKeys.recipes.list({}));
+    const detailKey = JSON.stringify(queryKeys.recipes.detail("x"));
+    expect(listKey).not.toBe(detailKey);
+  });
+
+  it("recipes.all is a prefix of recipes.list", () => {
+    const allKey = queryKeys.recipes.all;
+    const listKey = queryKeys.recipes.list({});
+    // list key must start with the same segment as all
+    expect(listKey[0]).toBe(allKey[0]);
+    // but must have more segments so invalidation is scoped
+    expect(listKey.length).toBeGreaterThan(allKey.length);
+  });
+
+  it("recipes.list does not collide with recipes.detail", () => {
+    // ["recipes", "list", ...] vs ["recipes", "detail", ...]
+    const listKey = queryKeys.recipes.list({});
+    const detailKey = queryKeys.recipes.detail("x");
+    expect(listKey[1]).toBe("list");
+    expect(detailKey[1]).toBe("detail");
+  });
+
+  it("posts.list and posts.detail produce distinct keys", () => {
+    const listKey = JSON.stringify(queryKeys.posts.list({}));
+    const detailKey = JSON.stringify(queryKeys.posts.detail("x"));
+    expect(listKey).not.toBe(detailKey);
+  });
+
+  it("posts.list does not collide with posts.detail", () => {
+    const listKey = queryKeys.posts.list({});
+    const detailKey = queryKeys.posts.detail("x");
+    expect(listKey[1]).toBe("list");
+    expect(detailKey[1]).toBe("detail");
   });
 });
