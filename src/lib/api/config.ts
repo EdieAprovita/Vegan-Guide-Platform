@@ -136,10 +136,18 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
+  // Merge the caller's signal (if provided) with the internal timeout signal so that
+  // either an external abort (e.g. component unmounts) or the timeout cancels the fetch.
+  const signals: AbortSignal[] = [controller.signal];
+  if (options.signal instanceof AbortSignal) {
+    signals.push(options.signal);
+  }
+  const mergedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0];
+
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
       ...options,
-      signal: controller.signal,
+      signal: mergedSignal,
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
@@ -179,6 +187,11 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
+      // If the caller's signal was aborted, re-throw the native AbortError so the
+      // caller can distinguish an intentional cancellation from a timeout.
+      if (options.signal?.aborted) {
+        throw error;
+      }
       // In CI, timeout errors are expected when backend is unavailable.
       if (!process.env.CI) {
         console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");

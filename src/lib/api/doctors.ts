@@ -72,7 +72,7 @@ export interface DoctorSearchParams {
   sortBy?: "distance" | "rating" | "name" | "createdAt";
 }
 
-export async function getDoctors(params?: DoctorSearchParams) {
+export async function getDoctors(params?: DoctorSearchParams, signal?: AbortSignal) {
   const searchParams = buildSearchParams({
     page: params?.page,
     limit: params?.limit,
@@ -87,7 +87,9 @@ export async function getDoctors(params?: DoctorSearchParams) {
   });
 
   try {
-    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)

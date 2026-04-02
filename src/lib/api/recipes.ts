@@ -42,13 +42,16 @@ export interface CreateRecipeData {
   image?: File;
 }
 
-export async function getRecipes(params?: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  category?: string;
-  difficulty?: string;
-}) {
+export async function getRecipes(
+  params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    difficulty?: string;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -58,7 +61,9 @@ export async function getRecipes(params?: {
 
   // Return the backend response as-is, let the hook handle the format
   try {
-    return await apiRequest<BackendListResponse<Recipe>>(`/recipes?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Recipe>>(`/recipes?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)

@@ -38,7 +38,7 @@ export function GlobalSearch() {
   const searchInputId = "global-search";
   const resultsRegionId = useId();
 
-  const searchAll = async (searchQuery: string, signal: AbortSignal) => {
+  const searchAll = async (searchQuery: string, signal?: AbortSignal) => {
     if (!searchQuery.trim()) {
       setResults([]);
       return;
@@ -50,7 +50,7 @@ export function GlobalSearch() {
 
       // Search restaurants
       try {
-        const restaurants = await getRestaurants({ search: searchQuery, limit: 5 });
+        const restaurants = await getRestaurants({ search: searchQuery, limit: 5 }, signal);
         const restaurantResults = (restaurants.data || []).map((restaurant) => ({
           id: restaurant._id as string,
           type: "restaurant" as const,
@@ -68,7 +68,7 @@ export function GlobalSearch() {
 
       // Search recipes
       try {
-        const recipes = await getRecipes({ search: searchQuery, limit: 5 });
+        const recipes = await getRecipes({ search: searchQuery, limit: 5 }, signal);
         const recipeResults = (recipes.data || []).map((recipe) => ({
           id: recipe._id as string,
           type: "recipe" as const,
@@ -85,7 +85,7 @@ export function GlobalSearch() {
 
       // Search doctors
       try {
-        const doctors = await getDoctors({ search: searchQuery, limit: 5 });
+        const doctors = await getDoctors({ search: searchQuery, limit: 5 }, signal);
         const doctorResults = (doctors.data || []).map((doctor) => ({
           id: doctor._id as string,
           type: "doctor" as const,
@@ -103,7 +103,7 @@ export function GlobalSearch() {
 
       // Search markets
       try {
-        const markets = await getMarkets({ search: searchQuery, limit: 5 });
+        const markets = await getMarkets({ search: searchQuery, limit: 5 }, signal);
         const marketResults = (markets.data || []).map((market) => ({
           id: market._id as string,
           type: "market" as const,
@@ -119,7 +119,7 @@ export function GlobalSearch() {
         console.error("Error searching markets:", error);
       }
 
-      if (signal.aborted) return;
+      if (signal?.aborted) return;
 
       // Sort results by rating (highest first)
       allResults.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -128,7 +128,7 @@ export function GlobalSearch() {
       if (error instanceof Error && error.name === "AbortError") return;
       console.error("Search error:", error);
     } finally {
-      if (!signal.aborted) setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
