@@ -79,7 +79,7 @@ export interface ProfessionSearchParams {
   sortBy?: "professionName" | "distance" | "rating";
 }
 
-export async function getProfessions(params?: ProfessionSearchParams) {
+export async function getProfessions(params?: ProfessionSearchParams, signal?: AbortSignal) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -92,11 +92,13 @@ export async function getProfessions(params?: ProfessionSearchParams) {
   if (params?.radius) searchParams.append("radius", params.radius.toString());
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
-export async function getProfession(id: string) {
-  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`);
+export async function getProfession(id: string, signal?: AbortSignal) {
+  return apiRequest<BackendResponse<Profession>>(`/professions/${id}`, { signal });
 }
 
 export async function createProfession(data: CreateProfessionData, token?: string) {
@@ -224,7 +226,10 @@ export interface ProfessionalProfileSearchParams {
   sortBy?: "user.username" | "distance" | "rates.hourly";
 }
 
-export async function getProfessionalProfiles(params?: ProfessionalProfileSearchParams) {
+export async function getProfessionalProfiles(
+  params?: ProfessionalProfileSearchParams,
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -240,12 +245,13 @@ export async function getProfessionalProfiles(params?: ProfessionalProfileSearch
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
   return apiRequest<PaginatedResponse<ProfessionalProfile>>(
-    `/professionalProfile?${searchParams.toString()}`
+    `/professionalProfile?${searchParams.toString()}`,
+    { signal }
   );
 }
 
-export async function getProfessionalProfile(id: string) {
-  return apiRequest<BackendResponse<ProfessionalProfile>>(`/professionalProfile/${id}`);
+export async function getProfessionalProfile(id: string, signal?: AbortSignal) {
+  return apiRequest<BackendResponse<ProfessionalProfile>>(`/professionalProfile/${id}`, { signal });
 }
 
 export async function createProfessionalProfile(
@@ -279,14 +285,17 @@ export async function deleteProfessionalProfile(id: string, token?: string) {
 }
 
 // Geospatial functions for Professions
-export async function getNearbyProfessions(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  category?: string;
-  rating?: number;
-}) {
+export async function getNearbyProfessions(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    category?: string;
+    rating?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams({
     latitude: params.latitude.toString(),
     longitude: params.longitude.toString(),
@@ -298,17 +307,22 @@ export async function getNearbyProfessions(params: {
   if (params.category) searchParams.append("category", params.category);
   if (params.rating) searchParams.append("rating", params.rating.toString());
 
-  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
-export async function getProfessionsByCategory(params: {
-  category: string;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  limit?: number;
-  sortBy?: "professionName" | "distance" | "rating";
-}) {
+export async function getProfessionsByCategory(
+  params: {
+    category: string;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    limit?: number;
+    sortBy?: "professionName" | "distance" | "rating";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams({
     category: params.category,
     sortBy: params.sortBy || "professionName",
@@ -319,19 +333,24 @@ export async function getProfessionsByCategory(params: {
   if (params.radius) searchParams.append("radius", (params.radius || 10).toString());
   if (params.limit) searchParams.append("limit", params.limit.toString());
 
-  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Profession>>(`/professions?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
 // Geospatial functions for Professional Profiles
-export async function getNearbyProfessionalProfiles(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  profession?: string;
-  skills?: string;
-  availability?: boolean;
-}) {
+export async function getNearbyProfessionalProfiles(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    profession?: string;
+    skills?: string;
+    availability?: boolean;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams({
     latitude: params.latitude.toString(),
     longitude: params.longitude.toString(),
@@ -346,22 +365,26 @@ export async function getNearbyProfessionalProfiles(params: {
     searchParams.append("availability", params.availability.toString());
 
   return apiRequest<PaginatedResponse<ProfessionalProfile>>(
-    `/professionalProfile?${searchParams.toString()}`
+    `/professionalProfile?${searchParams.toString()}`,
+    { signal }
   );
 }
 
-export async function getAdvancedProfessionalProfiles(params: {
-  search?: string;
-  profession?: string;
-  skills?: string[];
-  availability?: boolean;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  sortBy?: "user.username" | "distance" | "rates.hourly";
-  limit?: number;
-  page?: number;
-}) {
+export async function getAdvancedProfessionalProfiles(
+  params: {
+    search?: string;
+    profession?: string;
+    skills?: string[];
+    availability?: boolean;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    sortBy?: "user.username" | "distance" | "rates.hourly";
+    limit?: number;
+    page?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
 
   if (params.search) searchParams.append("search", params.search);
@@ -378,6 +401,7 @@ export async function getAdvancedProfessionalProfiles(params: {
   if (params.page) searchParams.append("page", params.page.toString());
 
   return apiRequest<PaginatedResponse<ProfessionalProfile>>(
-    `/professionalProfile?${searchParams.toString()}`
+    `/professionalProfile?${searchParams.toString()}`,
+    { signal }
   );
 }
