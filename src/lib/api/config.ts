@@ -235,7 +235,7 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   if (options.signal instanceof AbortSignal) {
     signals.push(options.signal);
   }
-  const mergedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0];
+  const mergedSignal = mergeAbortSignals(...signals);
 
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
