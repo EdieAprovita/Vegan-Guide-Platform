@@ -91,7 +91,10 @@ async function incrementDistributedCounter(
   };
 }
 
-function incrementInMemoryCounter(key: string, windowMs: number): { count: number; resetTime: number } {
+function incrementInMemoryCounter(
+  key: string,
+  windowMs: number
+): { count: number; resetTime: number } {
   const now = Date.now();
   let attemptInfo = attempts.get(key);
 

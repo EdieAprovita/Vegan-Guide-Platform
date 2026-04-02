@@ -67,7 +67,10 @@ export async function getRecipes(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] recipes list: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] recipes list: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -79,7 +82,10 @@ export async function getRecipe(id: string, signal?: AbortSignal) {
     return await apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`, { signal });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] recipe detail: backend unavailable, returning empty object.", error);
+      console.warn(
+        "[API Fallback] recipe detail: backend unavailable, returning empty object.",
+        error
+      );
       return { success: true, data: {} as Recipe };
     }
     throw error;

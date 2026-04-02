@@ -93,7 +93,10 @@ export async function getDoctors(params?: DoctorSearchParams, signal?: AbortSign
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] doctors list: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] doctors list: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -105,7 +108,10 @@ export async function getDoctor(id: string, signal?: AbortSignal) {
     return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`, { signal });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] doctor detail: backend unavailable, returning empty object.", error);
+      console.warn(
+        "[API Fallback] doctor detail: backend unavailable, returning empty object.",
+        error
+      );
       return { success: true, data: {} as Doctor };
     }
     throw error;
@@ -178,7 +184,10 @@ export async function getNearbyDoctors(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] nearby doctors: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] nearby doctors: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -216,7 +225,10 @@ export async function getDoctorsBySpecialty(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] doctors by specialty: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] doctors by specialty: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -260,7 +272,10 @@ export async function getAdvancedDoctors(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] advanced doctors: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] advanced doctors: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
