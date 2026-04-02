@@ -48,11 +48,7 @@ export function ThemeToggle() {
   // Show resolved icon so the button always reflects the actual applied theme
   const activeTheme = (theme as Theme) ?? "system";
   const ResolvedIcon =
-    resolvedTheme === "dark"
-      ? Moon
-      : resolvedTheme === "light"
-        ? Sun
-        : THEME_ICONS[activeTheme];
+    resolvedTheme === "dark" ? Moon : resolvedTheme === "light" ? Sun : THEME_ICONS[activeTheme];
 
   const THEME_LABELS: Record<Theme, string> = {
     light: t("a11y.lightTheme"),
@@ -69,10 +65,7 @@ export function ThemeToggle() {
           className="text-foreground/70 hover:text-foreground focus-visible:ring-ring/50 h-9 w-9 p-0 transition-colors duration-200 focus-visible:ring-[3px] focus-visible:outline-none"
           aria-label={t("a11y.changeTheme")}
         >
-          <ResolvedIcon
-            className="h-4 w-4 transition-transform duration-300"
-            aria-hidden="true"
-          />
+          <ResolvedIcon className="h-4 w-4 transition-transform duration-300" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
 

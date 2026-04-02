@@ -80,14 +80,17 @@ describe("market query hooks", () => {
     expect(config.queryKey[1]).toBe("nearby");
 
     await config.queryFn({ signal: undefined });
-    expect(marketsApi.getNearbyMarkets).toHaveBeenCalledWith({
-      latitude: 3,
-      longitude: 4,
-      radius: 8,
-      limit: 20,
-      products: "fruits",
-      minRating: 3,
-    }, undefined);
+    expect(marketsApi.getNearbyMarkets).toHaveBeenCalledWith(
+      {
+        latitude: 3,
+        longitude: 4,
+        radius: 8,
+        limit: 20,
+        products: "fruits",
+        minRating: 3,
+      },
+      undefined
+    );
   });
 
   it("requests position when missing for nearby markets", async () => {
@@ -109,13 +112,17 @@ describe("market query hooks", () => {
 
     const config = queryConfigs[0];
     await config.queryFn({ signal: undefined });
-    expect(marketsApi.getMarketsByProducts).toHaveBeenCalledWith("tofu", {
-      page: undefined,
-      limit: 6,
-      latitude: 3,
-      longitude: 4,
-      radius: 10,
-    }, undefined);
+    expect(marketsApi.getMarketsByProducts).toHaveBeenCalledWith(
+      "tofu",
+      {
+        page: undefined,
+        limit: 6,
+        latitude: 3,
+        longitude: 4,
+        radius: 10,
+      },
+      undefined
+    );
   });
 
   it("configures advanced market search", async () => {
@@ -132,16 +139,19 @@ describe("market query hooks", () => {
 
     const config = queryConfigs[0];
     await config.queryFn({ signal: undefined });
-    expect(marketsApi.getAdvancedMarkets).toHaveBeenCalledWith({
-      search: "organic",
-      products: ["greens"],
-      minRating: 5,
-      sortBy: "distance",
-      limit: 50,
-      latitude: 3,
-      longitude: 4,
-      radius: 9,
-    }, undefined);
+    expect(marketsApi.getAdvancedMarkets).toHaveBeenCalledWith(
+      {
+        search: "organic",
+        products: ["greens"],
+        minRating: 5,
+        sortBy: "distance",
+        limit: 50,
+        latitude: 3,
+        longitude: 4,
+        radius: 9,
+      },
+      undefined
+    );
   });
 
   it("invalidates caches after market mutations", async () => {

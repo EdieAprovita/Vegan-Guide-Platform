@@ -190,9 +190,7 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                         placeholder="Enter ingredient"
                         aria-label={`Ingredient ${index + 1}`}
                         aria-invalid={!!error}
-                        aria-describedby={
-                          error ? `recipe-ingredient-${index}-error` : undefined
-                        }
+                        aria-describedby={error ? `recipe-ingredient-${index}-error` : undefined}
                       />
                     </FormControl>
                     <Button
@@ -238,9 +236,7 @@ export function RecipeForm({ initialData, onSubmit, isLoading = false }: RecipeF
                         className="h-20"
                         aria-label={`Instruction step ${index + 1}`}
                         aria-invalid={!!error}
-                        aria-describedby={
-                          error ? `recipe-instruction-${index}-error` : undefined
-                        }
+                        aria-describedby={error ? `recipe-instruction-${index}-error` : undefined}
                       />
                     </FormControl>
                     <Button

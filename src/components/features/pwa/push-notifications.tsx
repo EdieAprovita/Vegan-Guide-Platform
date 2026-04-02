@@ -151,7 +151,10 @@ export function PushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (sub: PushSubscription, settingsSnapshot: NotificationSettings) => {
+  const sendSubscriptionToServer = async (
+    sub: PushSubscription,
+    settingsSnapshot: NotificationSettings
+  ) => {
     const response = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: {
@@ -193,7 +196,8 @@ export function PushNotifications() {
 
         toast.success("Notification settings updated");
       } catch (err) {
-        const errorMessage = err instanceof Error && err.message ? err.message : "Failed to update settings";
+        const errorMessage =
+          err instanceof Error && err.message ? err.message : "Failed to update settings";
         toast.error(errorMessage);
         // Revert optimistic update using the snapshot captured before the write
         setSettings(previousSettings);

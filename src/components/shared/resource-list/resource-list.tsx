@@ -47,8 +47,7 @@ import { ResourceListFilters } from "./resource-list-filters";
 import type { ResourceListProps } from "./types";
 
 /** Default Tailwind grid class used when the caller does not provide one. */
-const DEFAULT_GRID_CLASS =
-  "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3";
+const DEFAULT_GRID_CLASS = "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3";
 
 /** Number of skeleton cards shown during pre-mount and initial loading. */
 const SKELETON_COUNT = 6;
@@ -108,7 +107,7 @@ export function ResourceList<T extends { _id: string }>({
     return (
       <div className="space-y-6">
         {showFilters && (
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <div className="bg-card rounded-lg border p-6 shadow-sm">
             <div className={`grid gap-4 ${filterGridClass}`}>
               {/* Search skeleton */}
               <div className="h-10 animate-pulse rounded bg-gray-200" />
@@ -122,10 +121,7 @@ export function ResourceList<T extends { _id: string }>({
 
         <div className={gridClassName}>
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-            <div
-              key={i}
-              className={`${skeletonCardHeight} animate-pulse rounded-lg bg-gray-200`}
-            />
+            <div key={i} className={`${skeletonCardHeight} animate-pulse rounded-lg bg-gray-200`} />
           ))}
         </div>
       </div>
@@ -138,7 +134,7 @@ export function ResourceList<T extends { _id: string }>({
   return (
     <div className="space-y-6">
       {/* Optional page heading */}
-      {title && <h2 className="text-2xl font-bold text-foreground">{title}</h2>}
+      {title && <h2 className="text-foreground text-2xl font-bold">{title}</h2>}
 
       {/* Filter bar */}
       {showFilters && (
@@ -187,7 +183,7 @@ export function ResourceList<T extends { _id: string }>({
         ) : items.length === 0 ? (
           // Empty state — no results for the current search/filter combination.
           <div role="status" className="py-12 text-center">
-            <p className="text-lg text-muted-foreground">No {emptyLabel} found.</p>
+            <p className="text-muted-foreground text-lg">No {emptyLabel} found.</p>
             <p className="text-muted-foreground/70">Try adjusting your search criteria.</p>
           </div>
         ) : (
@@ -214,10 +210,7 @@ export function ResourceList<T extends { _id: string }>({
                 >
                   {loading ? (
                     <>
-                      <Loader2
-                        className="mr-2 h-4 w-4 animate-spin"
-                        aria-hidden="true"
-                      />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                       Loading...
                     </>
                   ) : (

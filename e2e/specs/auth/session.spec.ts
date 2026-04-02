@@ -20,9 +20,7 @@ test.describe("Auth: Session - Unauthenticated", () => {
     await mockNextImages(page);
   });
 
-  test("session API endpoint returns null/401 when not authenticated", async ({
-    request,
-  }) => {
+  test("session API endpoint returns null/401 when not authenticated", async ({ request }) => {
     const response = await request.get("http://localhost:3000/api/auth/session");
 
     // Either 401 or 200 with null body, depending on implementation
@@ -101,9 +99,7 @@ authedTest.describe("Auth: Session - Authenticated", () => {
     }
   });
 
-  authedTest("user can access protected routes when authenticated", async ({
-    authedPage,
-  }) => {
+  authedTest("user can access protected routes when authenticated", async ({ authedPage }) => {
     // Try to access profile
     await authedPage.goto("/profile");
     await waitForHydration(authedPage);
@@ -125,9 +121,7 @@ authedTest.describe("Auth: Session - Authenticated", () => {
     expect(html).not.toContain("mock-refresh-token");
   });
 
-  authedTest("user info is accessible in authenticated context", async ({
-    authedPage,
-  }) => {
+  authedTest("user info is accessible in authenticated context", async ({ authedPage }) => {
     await authedPage.goto("/profile");
     await waitForHydration(authedPage);
 
@@ -136,12 +130,13 @@ authedTest.describe("Auth: Session - Authenticated", () => {
     expect(content?.length).toBeGreaterThan(0);
   });
 
-  authedTest("session API endpoint returns user data when authenticated", async ({
-    authedPage,
-  }) => {
-    const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
+  authedTest(
+    "session API endpoint returns user data when authenticated",
+    async ({ authedPage }) => {
+      const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
 
-    // Accept either 200 with user data or any valid response
-    expect([200, 401, 404]).toContain(response.status());
-  });
+      // Accept either 200 with user data or any valid response
+      expect([200, 401, 404]).toContain(response.status());
+    }
+  );
 });

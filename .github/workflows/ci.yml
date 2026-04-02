@@ -46,11 +46,9 @@ jobs:
       - name: Type Check
         run: npm run type-check
 
-      # Prettier: check formatting. Non-blocking until existing debt is resolved.
-      # TODO: Remove continue-on-error once `npx prettier --write .` has been run project-wide.
+      # Prettier: formatting is a blocking quality gate.
       - name: Format Check
         run: npm run format:check
-        continue-on-error: true
 
       # Security audit — block on high/critical vulnerabilities.
       # "moderate" and below are reported but do not fail the job.

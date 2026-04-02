@@ -144,7 +144,7 @@
 ------------------------------------------------------------------------- */
 @layer components {
   .focus-ring {
-    @apply outline-none ring-2 ring-emerald-500 ring-offset-2;
+    @apply ring-2 ring-emerald-500 ring-offset-2 outline-none;
   }
 }
 
@@ -156,5 +156,7 @@ select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px oklch(1 0 0), 0 0 0 4px oklch(0.508 0.199 160.53 / 0.7);
+  box-shadow:
+    0 0 0 2px oklch(1 0 0),
+    0 0 0 4px oklch(0.508 0.199 160.53 / 0.7);
 }

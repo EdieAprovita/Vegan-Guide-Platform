@@ -188,8 +188,9 @@ export function InteractiveMap({
       zoom,
       styles: (typeof structuredClone === "function"
         ? structuredClone(theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light)
-        : JSON.parse(JSON.stringify(theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light))
-      ) as unknown as google.maps.MapTypeStyle[],
+        : JSON.parse(
+            JSON.stringify(theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light)
+          )) as unknown as google.maps.MapTypeStyle[],
       ...controls,
       restriction: {
         latLngBounds: {

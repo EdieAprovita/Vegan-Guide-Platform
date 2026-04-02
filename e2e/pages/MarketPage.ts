@@ -19,10 +19,10 @@ export class MarketPage extends BaseResourcePage {
 
     // Use data-testid for reliable selection; fallback to id-based selection
     this.productsFilter = page.locator(
-      '[data-testid="products-filter"], [id*="product"], select[aria-label*="product" i]',
+      '[data-testid="products-filter"], [id*="product"], select[aria-label*="product" i]'
     );
     this.ratingFilter = page.locator(
-      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]',
+      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]'
     );
     this.addMarketButton = page.getByRole("button", {
       name: /add market|agregar mercado/i,
@@ -32,7 +32,7 @@ export class MarketPage extends BaseResourcePage {
   /** Check if any cards have product badges displayed */
   async hasProductBadges(): Promise<boolean> {
     const badges = this.page.locator(
-      '[aria-label*="product"], [class*="badge"][class*="product"], [data-testid*="product"]',
+      '[aria-label*="product"], [class*="badge"][class*="product"], [data-testid*="product"]'
     );
     return (await badges.count()) > 0;
   }

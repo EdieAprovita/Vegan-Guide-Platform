@@ -141,11 +141,11 @@ export function Features() {
 
         {/* Call to Action */}
         <div className="text-center">
-          <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground sm:p-12">
+          <div className="from-primary to-primary/80 text-primary-foreground rounded-2xl bg-gradient-to-r p-8 sm:p-12">
             <h3 className="mb-4 font-['Playfair_Display'] text-2xl font-bold sm:text-3xl">
               ¿Listo para comenzar tu viaje vegano?
             </h3>
-            <p className="mx-auto mb-8 max-w-2xl text-lg text-primary-foreground/80">
+            <p className="text-primary-foreground/80 mx-auto mb-8 max-w-2xl text-lg">
               Únete a miles de personas que ya están transformando sus vidas con Verde Guide. Es
               completamente gratuito y puedes empezar ahora mismo.
             </p>
@@ -153,14 +153,14 @@ export function Features() {
               {/* Inverted CTA: white background with primary-colored text on the primary-colored banner */}
               <Button
                 size="lg"
-                className="rounded-full bg-white font-['Playfair_Display'] font-bold text-primary hover:bg-white/90"
+                className="text-primary rounded-full bg-white font-['Playfair_Display'] font-bold hover:bg-white/90"
               >
                 Crear Cuenta Gratis
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="rounded-full border-white bg-transparent font-['Playfair_Display'] font-bold text-white hover:bg-white hover:text-primary"
+                className="hover:text-primary rounded-full border-white bg-transparent font-['Playfair_Display'] font-bold text-white hover:bg-white"
               >
                 Ver Demo
               </Button>

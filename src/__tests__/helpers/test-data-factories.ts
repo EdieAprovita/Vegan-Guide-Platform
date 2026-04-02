@@ -79,9 +79,7 @@ export function createMockRestaurant(overrides?: Partial<Restaurant>): Restauran
 // ---------------------------------------------------------------------------
 // Recipe (as RecipeCard props — not the API shape)
 // ---------------------------------------------------------------------------
-export function createMockRecipeCardProps(
-  overrides?: Partial<RecipeCardProps>
-): RecipeCardProps {
+export function createMockRecipeCardProps(overrides?: Partial<RecipeCardProps>): RecipeCardProps {
   return {
     title: "Vegan Tacos",
     description: "Delicious plant-based tacos with all the fixings.",

@@ -100,7 +100,7 @@ test.describe("Error Handling: Network Failures", () => {
               restaurantName: "Slow Restaurant",
               name: "Slow Restaurant",
             },
-          ]),
+          ])
         );
       }
       return route.continue();
@@ -180,9 +180,7 @@ test.describe("Error Handling: API Error Responses", () => {
     await pragmaticFallback(page);
   });
 
-  test("empty list response renders empty state or fallback", async ({
-    page,
-  }) => {
+  test("empty list response renders empty state or fallback", async ({ page }) => {
     await page.route("**/api/v1/restaurants*", (route) => {
       if (route.request().method() === "GET") {
         return route.fulfill(jsonResponse([]));
@@ -229,9 +227,7 @@ test.describe("Error Handling: API Error Responses", () => {
       // Should still be on login page or show error
       const url = page.url();
       const body = await page.locator("body").textContent();
-      expect(
-        url.includes("/login") || (body ?? "").toLowerCase().includes("error"),
-      ).toBe(true);
+      expect(url.includes("/login") || (body ?? "").toLowerCase().includes("error")).toBe(true);
     } catch {
       // Login might fail due to validation — that's fine
       expect(page.url()).toContain("/login");
@@ -300,9 +296,7 @@ test.describe("Error Handling: Form Validation", () => {
     }
   });
 
-  test("register form shows validation for mismatched passwords", async ({
-    page,
-  }) => {
+  test("register form shows validation for mismatched passwords", async ({ page }) => {
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await waitForHydration(page);
@@ -325,9 +319,7 @@ test.describe("Error Handling: Form Validation", () => {
     }
   });
 
-  test("register form shows validation for short password", async ({
-    page,
-  }) => {
+  test("register form shows validation for short password", async ({ page }) => {
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await waitForHydration(page);
@@ -356,9 +348,7 @@ test.describe("Error Handling: Form Validation", () => {
     await waitForHydration(page);
 
     try {
-      const searchInput = page
-        .locator('input[type="search"], input[type="text"]')
-        .first();
+      const searchInput = page.locator('input[type="search"], input[type="text"]').first();
       const visible = await searchInput.isVisible().catch(() => false);
 
       if (visible) {
@@ -384,9 +374,7 @@ test.describe("Error Handling: Loading States", () => {
     await mockGoogleMaps(page);
   });
 
-  test("restaurant list shows content or loading indicator", async ({
-    page,
-  }) => {
+  test("restaurant list shows content or loading indicator", async ({ page }) => {
     // Delay the API response to catch loading state
     await page.route("**/api/v1/restaurants*", async (route) => {
       if (route.request().method() === "GET") {
@@ -432,9 +420,7 @@ test.describe("Error Handling: Loading States", () => {
     await page.route("**/api/v1/search*", async (route) => {
       if (route.request().method() === "GET") {
         await new Promise((r) => setTimeout(r, 2000));
-        return route.fulfill(
-          jsonResponse({ results: [], total: 0, page: 1, limit: 10 }),
-        );
+        return route.fulfill(jsonResponse({ results: [], total: 0, page: 1, limit: 10 }));
       }
       return route.continue();
     });
@@ -498,7 +484,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
 
     try {
       const homeLink = page.locator(
-        'a[href="/"], button:has-text("Home"), button:has-text("Inicio")',
+        'a[href="/"], button:has-text("Home"), button:has-text("Inicio")'
       );
       const linkCount = await homeLink.count();
 
@@ -513,9 +499,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
     }
   });
 
-  test("invalid restaurant ID shows error or not-found state", async ({
-    page,
-  }) => {
+  test("invalid restaurant ID shows error or not-found state", async ({ page }) => {
     await page.route("**/api/v1/restaurants/*", (route) => {
       if (route.request().method() === "GET") {
         return route.fulfill(errorResponse("Not found", 404));
@@ -531,9 +515,7 @@ test.describe("Error Handling: 404 & Not Found", () => {
     await pragmaticFallback(page);
   });
 
-  test("multiple 404 navigations do not accumulate errors", async ({
-    page,
-  }) => {
+  test("multiple 404 navigations do not accumulate errors", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
     await page.goto("/fake-1", { waitUntil: "domcontentloaded" });

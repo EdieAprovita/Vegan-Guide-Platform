@@ -16,10 +16,10 @@ import { useTranslation } from "@/lib/i18n";
 
 const SUGGESTED_LINKS = [
   { href: "/restaurants", labelKey: "resources.restaurants", icon: UtensilsCrossed },
-  { href: "/recipes",     labelKey: "resources.recipes",     icon: BookOpen         },
-  { href: "/doctors",     labelKey: "resources.doctors",     icon: Stethoscope      },
-  { href: "/markets",     labelKey: "resources.markets",     icon: ShoppingBasket   },
-  { href: "/community",   labelKey: "resources.community",   icon: Users            },
+  { href: "/recipes", labelKey: "resources.recipes", icon: BookOpen },
+  { href: "/doctors", labelKey: "resources.doctors", icon: Stethoscope },
+  { href: "/markets", labelKey: "resources.markets", icon: ShoppingBasket },
+  { href: "/community", labelKey: "resources.community", icon: Users },
 ] as const;
 
 export default function NotFound() {
@@ -27,15 +27,10 @@ export default function NotFound() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-emerald-50 via-white to-white px-4 py-16">
-
       {/* Brand mark */}
       <div className="mb-10 flex flex-col items-center gap-3">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-200">
-          <Leaf
-            className="h-10 w-10 text-white"
-            aria-hidden="true"
-            strokeWidth={1.5}
-          />
+          <Leaf className="h-10 w-10 text-white" aria-hidden="true" strokeWidth={1.5} />
         </div>
         <span className="text-sm font-semibold tracking-widest text-emerald-600 uppercase">
           Verde Guide
@@ -44,7 +39,7 @@ export default function NotFound() {
 
       {/* 404 hero number */}
       <p
-        className="select-none bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 bg-clip-text text-[9rem] font-extrabold leading-none tracking-tight text-transparent sm:text-[12rem]"
+        className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 bg-clip-text text-[9rem] leading-none font-extrabold tracking-tight text-transparent select-none sm:text-[12rem]"
         aria-hidden="true"
       >
         404
@@ -53,11 +48,7 @@ export default function NotFound() {
       {/* Divider leaf accent */}
       <div className="my-6 flex items-center gap-3">
         <div className="h-px w-16 bg-emerald-200" />
-        <Leaf
-          className="h-5 w-5 text-emerald-400"
-          aria-hidden="true"
-          strokeWidth={1.5}
-        />
+        <Leaf className="h-5 w-5 text-emerald-400" aria-hidden="true" strokeWidth={1.5} />
         <div className="h-px w-16 bg-emerald-200" />
       </div>
 
@@ -99,7 +90,7 @@ export default function NotFound() {
 
       {/* Suggested links */}
       <div className="mt-10 w-full max-w-md">
-        <p className="text-muted-foreground/60 mb-4 text-center text-xs font-semibold uppercase tracking-widest">
+        <p className="text-muted-foreground/60 mb-4 text-center text-xs font-semibold tracking-widest uppercase">
           {t("notFound.explore")}
         </p>
         <nav aria-label="Secciones sugeridas">
@@ -108,7 +99,7 @@ export default function NotFound() {
               <li key={href}>
                 <Link
                   href={href}
-                  className="bg-card border-border text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                  className="bg-card border-border text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
                   <Icon
                     className="h-4 w-4 flex-shrink-0 text-emerald-500"

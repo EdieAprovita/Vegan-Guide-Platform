@@ -55,14 +55,17 @@ export function useNearbySanctuaries(params?: {
         return [];
       }
 
-      const response = await sanctuariesApi.getNearbySanctuaries({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params?.radius || 5,
-        limit: params?.limit || 20,
-        typeofSanctuary: params?.typeofSanctuary,
-        minRating: params?.minRating,
-      }, signal);
+      const response = await sanctuariesApi.getNearbySanctuaries(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params?.radius || 5,
+          limit: params?.limit || 20,
+          typeofSanctuary: params?.typeofSanctuary,
+          minRating: params?.minRating,
+        },
+        signal
+      );
 
       return extractListData<Sanctuary>(response);
     },
@@ -84,7 +87,11 @@ export function useSanctuariesByType(
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: queryKeys.sanctuaries.byType(typeofSanctuary, userCoords, params as Record<string, unknown>),
+    queryKey: queryKeys.sanctuaries.byType(
+      typeofSanctuary,
+      userCoords,
+      params as Record<string, unknown>
+    ),
     queryFn: async ({ signal }) => {
       const searchParams = {
         page: params?.page,
@@ -99,7 +106,11 @@ export function useSanctuariesByType(
         });
       }
 
-      const response = await sanctuariesApi.getSanctuariesByType(typeofSanctuary, searchParams, signal);
+      const response = await sanctuariesApi.getSanctuariesByType(
+        typeofSanctuary,
+        searchParams,
+        signal
+      );
       return extractListData<Sanctuary>(response);
     },
     enabled: params?.enabled !== false && !!typeofSanctuary,

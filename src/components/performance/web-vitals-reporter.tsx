@@ -48,7 +48,7 @@ function reportMetric(metric: VitalMetric): void {
     // eslint-disable-next-line no-console
     console.warn(
       `[WebVitals] ${metric.name} exceeded threshold: ${metric.value} > ${threshold}`,
-      structuredLog,
+      structuredLog
     );
   }
 

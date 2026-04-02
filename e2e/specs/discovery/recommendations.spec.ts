@@ -75,40 +75,34 @@ test.describe("Recommendations: Page Load", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Recommendations: Authenticated Access", () => {
-  authedTest(
-    "authenticated user can view recommendations",
-    async ({ authedPage }) => {
-      await mockRecommendations(authedPage);
-      await mockUserPreferences(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user can view recommendations", async ({ authedPage }) => {
+    await mockRecommendations(authedPage);
+    await mockUserPreferences(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/recommendations", {
-        waitUntil: "domcontentloaded",
-      });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/recommendations", {
+      waitUntil: "domcontentloaded",
+    });
+    await waitForHydration(authedPage);
 
-      // Assert that the authenticated page loaded content and did NOT redirect to /login.
-      // The authedTest fixture ensures the user is authenticated.
-      await assertAuthedPageLoaded(authedPage);
-    },
-  );
+    // Assert that the authenticated page loaded content and did NOT redirect to /login.
+    // The authedTest fixture ensures the user is authenticated.
+    await assertAuthedPageLoaded(authedPage);
+  });
 
-  authedTest(
-    "recommendations page displays recommendation content",
-    async ({ authedPage }) => {
-      await mockRecommendations(authedPage);
-      await mockUserPreferences(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("recommendations page displays recommendation content", async ({ authedPage }) => {
+    await mockRecommendations(authedPage);
+    await mockUserPreferences(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/recommendations", {
-        waitUntil: "domcontentloaded",
-      });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/recommendations", {
+      waitUntil: "domcontentloaded",
+    });
+    await waitForHydration(authedPage);
 
-      // Assert that the authenticated page loaded content and did NOT redirect to /login.
-      await assertAuthedPageLoaded(authedPage);
-    },
-  );
+    // Assert that the authenticated page loaded content and did NOT redirect to /login.
+    await assertAuthedPageLoaded(authedPage);
+  });
 });

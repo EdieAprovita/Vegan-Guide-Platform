@@ -58,7 +58,7 @@ export function CallToAction() {
           <Button
             variant="outline"
             size="xl"
-            className="rounded-full border-2 border-white bg-transparent font-['Playfair_Display'] font-bold text-white hover:bg-white hover:text-primary"
+            className="hover:text-primary rounded-full border-2 border-white bg-transparent font-['Playfair_Display'] font-bold text-white hover:bg-white"
           >
             Explorar
           </Button>

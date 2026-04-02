@@ -2,7 +2,10 @@ import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RegisterForm } from "@/components/auth/register-form";
-import { expectValidationBlocked, expectValidationMessage } from "@/test-utils/auth-form-test-utils";
+import {
+  expectValidationBlocked,
+  expectValidationMessage,
+} from "@/test-utils/auth-form-test-utils";
 
 jest.mock("@/components/ui/form", () => require("@/test-utils/shadcn-form-mocks").createFormMock());
 jest.mock("@/components/ui/button", () =>
@@ -179,17 +182,14 @@ describe("RegisterForm", () => {
       },
     ];
 
-    test.each(validationCases)(
-      "does not call onSubmit when $name",
-      async ({ fill }) => {
-        const user = userEvent.setup();
-        const props = buildProps();
-        render(<RegisterForm {...props} />);
-        await fill(user);
-        await user.click(screen.getByRole("button", { name: "Create Account" }));
-        await expectValidationBlocked(props.onSubmit);
-      }
-    );
+    test.each(validationCases)("does not call onSubmit when $name", async ({ fill }) => {
+      const user = userEvent.setup();
+      const props = buildProps();
+      render(<RegisterForm {...props} />);
+      await fill(user);
+      await user.click(screen.getByRole("button", { name: "Create Account" }));
+      await expectValidationBlocked(props.onSubmit);
+    });
 
     const errorMessageCases = [
       {

@@ -50,7 +50,7 @@ function RecipeCardComponent({
   return (
     <article
       aria-label={`Receta: ${title}`}
-      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm overflow-hidden transition-all hover:shadow-lg"
+      className="bg-card text-card-foreground flex flex-col gap-6 overflow-hidden rounded-xl border shadow-sm transition-all hover:shadow-lg"
     >
       <div className="group relative h-48">
         <Image
@@ -62,7 +62,10 @@ function RecipeCardComponent({
           placeholder="blur"
           blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/30" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/30"
+        />
         <div className="bg-popover/90 absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-1 backdrop-blur-sm">
           <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
           <span
@@ -76,7 +79,7 @@ function RecipeCardComponent({
 
       <div className="space-y-4 p-4">
         <div>
-          <h3 className="font-brand-serif text-foreground line-clamp-1 text-xl font-bold leading-none">
+          <h3 className="font-brand-serif text-foreground line-clamp-1 text-xl leading-none font-bold">
             {title}
           </h3>
           <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">{description}</p>
@@ -110,7 +113,10 @@ function RecipeCardComponent({
               blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PC9zdmc+"
             />
           ) : (
-            <div aria-hidden="true" className="bg-accent flex h-6 w-6 items-center justify-center rounded-full">
+            <div
+              aria-hidden="true"
+              className="bg-accent flex h-6 w-6 items-center justify-center rounded-full"
+            >
               <span className="text-accent-foreground text-xs font-medium">
                 {author.username[0]}
               </span>

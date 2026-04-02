@@ -89,6 +89,9 @@ temp/
 ehthumbs.db
 Thumbs.db
 
+# Local agent artifacts (not tracked in git)
+.agents/
+
 # PWA files
 public/sw.js
 public/workbox-*.js

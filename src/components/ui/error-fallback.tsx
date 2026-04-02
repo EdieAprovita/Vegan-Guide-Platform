@@ -30,7 +30,7 @@ export function ErrorFallback({
     <div
       className={cn(
         "flex min-h-[400px] flex-col items-center justify-center px-4 py-12",
-        className,
+        className
       )}
       role="alert"
       aria-live="assertive"
@@ -38,18 +38,12 @@ export function ErrorFallback({
       <div className="flex w-full max-w-sm flex-col items-center gap-6 text-center">
         {/* Icon */}
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-100">
-          <Icon
-            className="h-8 w-8 text-emerald-600"
-            aria-hidden="true"
-            strokeWidth={1.5}
-          />
+          <Icon className="h-8 w-8 text-emerald-600" aria-hidden="true" strokeWidth={1.5} />
         </div>
 
         {/* Text */}
         <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold tracking-tight text-gray-900">
-            {resolvedTitle}
-          </h2>
+          <h2 className="text-xl font-semibold tracking-tight text-gray-900">{resolvedTitle}</h2>
           <p className="text-sm leading-relaxed text-gray-500">{resolvedDescription}</p>
         </div>
 

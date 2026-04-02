@@ -156,14 +156,17 @@ export async function addMarketReview(id: string, review: MarketReview, token?: 
   });
 }
 
-export async function getNearbyMarkets(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  products?: string;
-  minRating?: number;
-}, signal?: AbortSignal) {
+export async function getNearbyMarkets(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    products?: string;
+    minRating?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = buildSearchParams(
     {
       latitude: params.latitude,
@@ -178,7 +181,9 @@ export async function getNearbyMarkets(params: {
   );
 
   try {
-    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
+    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
@@ -219,7 +224,9 @@ export async function getMarketsByProducts(
   });
 
   try {
-    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
+    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
@@ -234,17 +241,20 @@ export async function getMarketsByProducts(
   }
 }
 
-export async function getAdvancedMarkets(params: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  products?: string[];
-  minRating?: number;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  sortBy?: "distance" | "rating" | "marketName" | "createdAt";
-}, signal?: AbortSignal) {
+export async function getAdvancedMarkets(
+  params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    products?: string[];
+    minRating?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    sortBy?: "distance" | "rating" | "marketName" | "createdAt";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = buildSearchParams(
     {
       page: params.page,
@@ -261,7 +271,9 @@ export async function getAdvancedMarkets(params: {
   );
 
   try {
-    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
+    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)

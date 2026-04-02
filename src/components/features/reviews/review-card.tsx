@@ -146,15 +146,15 @@ export const ReviewCard = ({
 
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
-                <span className="truncate text-sm font-medium text-foreground">
+                <span className="text-foreground truncate text-sm font-medium">
                   {review.user.username}
                 </span>
                 <StarRating rating={review.rating} size="sm" />
               </div>
 
-              <p className="mb-2 line-clamp-2 text-sm text-muted-foreground">{review.comment}</p>
+              <p className="text-muted-foreground mb-2 line-clamp-2 text-sm">{review.comment}</p>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="text-muted-foreground flex items-center justify-between text-xs">
                 <span>
                   {formatDistanceToNow(new Date(review.createdAt), {
                     addSuffix: true,
@@ -162,7 +162,10 @@ export const ReviewCard = ({
                   })}
                 </span>
                 {review.helpfulCount > 0 && (
-                  <span className="flex items-center gap-1" aria-label={`${review.helpfulCount} personas encontraron esto útil`}>
+                  <span
+                    className="flex items-center gap-1"
+                    aria-label={`${review.helpfulCount} personas encontraron esto útil`}
+                  >
                     <span aria-hidden="true">👍</span> {review.helpfulCount}
                   </span>
                 )}
@@ -191,7 +194,7 @@ export const ReviewCard = ({
 
               <div className="min-w-0">
                 <div className="mb-1 flex items-center gap-2">
-                  <h3 className="truncate font-semibold text-foreground">{review.user.username}</h3>
+                  <h3 className="text-foreground truncate font-semibold">{review.user.username}</h3>
                   {user?.role === "admin" && (
                     <Badge variant="outline" className="text-xs">
                       {user?.role}
@@ -199,7 +202,7 @@ export const ReviewCard = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-3 text-sm">
                   <div className="flex items-center gap-1">
                     <StarRating rating={review.rating} size="md" />
                     <span className={`ml-1 font-medium ${getRatingColor(review.rating)}`}>
@@ -207,7 +210,9 @@ export const ReviewCard = ({
                     </span>
                   </div>
 
-                  <span aria-hidden="true" className="text-muted-foreground/40">•</span>
+                  <span aria-hidden="true" className="text-muted-foreground/40">
+                    •
+                  </span>
 
                   <span>
                     {formatDistanceToNow(new Date(review.createdAt), {
@@ -278,17 +283,17 @@ export const ReviewCard = ({
             <Badge variant="secondary" className={`${getRatingColor(review.rating)} bg-opacity-10`}>
               {getRatingLabel(review.rating)}
             </Badge>
-            <span className="text-sm text-muted-foreground">Calificación: {review.rating}/5</span>
+            <span className="text-muted-foreground text-sm">Calificación: {review.rating}/5</span>
           </div>
 
           {/* Review Content */}
           <div className="space-y-3">
-            <p className="leading-relaxed whitespace-pre-wrap text-foreground">{review.comment}</p>
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">{review.comment}</p>
 
             {/* Resource Context */}
-            <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+            <div className="bg-muted text-muted-foreground rounded-lg p-3 text-sm">
               <span>Review para: </span>
-              <span className="font-medium text-foreground">
+              <span className="text-foreground font-medium">
                 {resourceType === "restaurant" && "Restaurante"}
                 {resourceType === "recipe" && "Receta"}
                 {resourceType === "market" && "Mercado"}
@@ -312,7 +317,7 @@ export const ReviewCard = ({
           </div>
 
           {/* Footer Info */}
-          <div className="flex items-center justify-between border-t pt-2 text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-between border-t pt-2 text-xs">
             <span>ID: {review._id.slice(-8)}</span>
             {review.updatedAt !== review.createdAt && (
               <span>
