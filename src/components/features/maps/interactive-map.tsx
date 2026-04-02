@@ -81,6 +81,22 @@ export function InteractiveMap({
       : undefined,
   });
 
+
+  // Validates that a URL uses only http: or https: protocols before assigning
+  // to .href. Prevents javascript: and data: URL injection (XSS).
+  const safeHref = useCallback((url: string | undefined): string => {
+    if (!url) return '#';
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        return parsed.href;
+      }
+    } catch {
+      // invalid URL -- fall through to safe fallback
+    }
+    return '#';
+  }, []);
+
   // Helper function to create info window content using DOM APIs (XSS-safe)
   const createInfoWindowContent = useCallback(
     (location: Location): HTMLDivElement => {
@@ -129,7 +145,7 @@ export function InteractiveMap({
       links.className = "flex gap-2 pt-2";
 
       const detailLink = document.createElement("a");
-      detailLink.href = location.url;
+      detailLink.href = safeHref(location.url);
       detailLink.className =
         "text-blue-600 hover:text-blue-800 text-xs font-medium";
       detailLink.textContent = "Ver detalles";
@@ -137,7 +153,7 @@ export function InteractiveMap({
 
       if (location.website) {
         const siteLink = document.createElement("a");
-        siteLink.href = location.website;
+        siteLink.href = safeHref(location.website);
         siteLink.target = "_blank";
         siteLink.rel = "noopener noreferrer";
         siteLink.className =
@@ -150,7 +166,7 @@ export function InteractiveMap({
       container.appendChild(inner);
       return container;
     },
-    [],
+    [safeHref],
   );
 
   // Memoized marker data conversion for performance
