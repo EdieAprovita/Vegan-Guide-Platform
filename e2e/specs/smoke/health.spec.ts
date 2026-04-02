@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
  * Verifies that:
  * 1. Next.js dev server is running and serves the homepage
  * 2. The page renders without critical errors
- * 3. Core layout elements (header, main) are present
+ * 3. Core layout container (`main`) is present
  *
  * This is the very first E2E test — if this passes, the entire
  * Playwright + Next.js pipeline is working.

@@ -229,10 +229,12 @@ jobs:
     name: E2E Tests (Chromium)
     runs-on: ubuntu-latest
     # Depend on build so the .next/ artifact is available for "npm start".
+    # Smoke is a separate blocking gate; this broader suite stays non-blocking
+    # and runs independently for extra debugging signal.
     # The build job already depends on quality, so the quality gate is still
     # enforced transitively. Wall time is not materially affected because the
     # build job finishes in ~90s, well before Playwright browser install completes.
-    needs: [build, smoke]
+    needs: [build]
     # Run E2E only on pull requests (not on push to main).
     if: github.event_name == 'pull_request'
     # Hard ceiling: 351 tests at workers=2 complete in ~12 minutes, plus
