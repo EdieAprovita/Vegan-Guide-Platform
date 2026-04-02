@@ -66,8 +66,8 @@ export const queryKeys = {
 
   recipes: {
     all: createKey("recipes"),
-    list: (params?: Record<string, unknown>) => createKey("recipes", params ?? null),
-    detail: (id: string) => createKey("recipes", id),
+    list: (params?: Record<string, unknown>) => createKey("recipes", "list", params ?? null),
+    detail: (id: string) => createKey("recipes", "detail", id),
     infinite: (params?: Record<string, unknown>) =>
       createKey("recipes", "infinite", params ?? null),
   },
@@ -92,8 +92,8 @@ export const queryKeys = {
 
   posts: {
     all: createKey("posts"),
-    list: (params?: Record<string, unknown>) => createKey("posts", params ?? null),
-    detail: (id: string) => createKey("posts", id),
+    list: (params?: Record<string, unknown>) => createKey("posts", "list", params ?? null),
+    detail: (id: string) => createKey("posts", "detail", id),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("posts", "nearby", coords ?? null, params ?? null),
     byTags: (params?: Record<string, unknown>, coords?: Coordinates | null) =>
