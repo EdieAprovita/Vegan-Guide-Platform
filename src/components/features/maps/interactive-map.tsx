@@ -96,6 +96,19 @@ export function InteractiveMap({
     return "#";
   }, []);
 
+  // Escapes HTML special characters to prevent XSS when interpolating
+  // user-controlled strings into innerHTML / template literals.
+  const escapeHtml = useCallback((str: string): string => {
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return str.replace(/[&<>"']/g, (c) => map[c] || c);
+  }, []);
+
   // Helper function to create info window content
   const createInfoWindowContent = useCallback(
     (location: Location): string => {
@@ -104,17 +117,17 @@ export function InteractiveMap({
       return `
       <div class="p-4 max-w-xs">
         <div class="space-y-2">
-          <h3 class="font-semibold text-gray-900 text-sm">${location.name}</h3>
-          <p class="text-gray-600 text-xs">${location.address}</p>
+          <h3 class="font-semibold text-gray-900 text-sm">${escapeHtml(location.name)}</h3>
+          <p class="text-gray-600 text-xs">${escapeHtml(location.address)}</p>
           <div class="flex items-center gap-2">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ${location.type}
+              ${escapeHtml(location.type)}
             </span>
             ${
               location.rating
                 ? `
               <div class="flex items-center gap-1">
-                <span role="img" aria-label="Calificación: ${location.rating.toFixed(1)} de 5 estrellas">
+                <span role="img" aria-label="Calificación: ${escapeHtml(location.rating.toFixed(1))} de 5 estrellas">
                   <span aria-hidden="true" class="text-yellow-400">★</span>
                 </span>
                 <span class="text-xs text-gray-600">${location.rating.toFixed(1)}</span>
@@ -141,7 +154,7 @@ export function InteractiveMap({
       </div>
     `;
     },
-    [safeHref],
+    [safeHref, escapeHtml]
   );
 
   // Memoized marker data conversion for performance

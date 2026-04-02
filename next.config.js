@@ -38,7 +38,7 @@ const nextConfig = {
     ],
     // Configuración de optimización
     unoptimized: false,
-    contentDispositionType: "attachment",
+    contentDispositionType: "inline",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Configuración de tamaños para mejorar rendimiento
     // Tightened to reduce unique cache variants (CVE mitigation: GHSA-3x4c-7xq6-9pq8)
@@ -64,10 +64,7 @@ const nextConfig = {
   }),
   // Configuración de compilación
   compiler: {
-    removeConsole:
-      process.env.NODE_ENV === "production"
-        ? { exclude: ["error", "warn"] }
-        : false,
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
   // Configuración de PWA
   async headers() {
