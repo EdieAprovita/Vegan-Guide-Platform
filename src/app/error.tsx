@@ -24,7 +24,13 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
     };
     console.error("[GlobalError]", JSON.stringify(errorReport));
-    Sentry.captureException(error);
+    Sentry.withScope((scope) => {
+      scope.setTag("digest", error.digest ?? "unknown");
+      scope.setExtra("path", typeof window !== "undefined" ? window.location.pathname : "unknown");
+      scope.setExtra("userAgent", typeof navigator !== "undefined" ? navigator.userAgent : "unknown");
+      scope.setExtra("timestamp", new Date().toISOString());
+      Sentry.captureException(error);
+    });
   }, [error]);
 
   return (
