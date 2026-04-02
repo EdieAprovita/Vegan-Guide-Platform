@@ -72,7 +72,7 @@ export interface RestaurantSearchParams {
   sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
 }
 
-export async function getRestaurants(params?: RestaurantSearchParams) {
+export async function getRestaurants(params?: RestaurantSearchParams, signal?: AbortSignal) {
   const searchParams = buildSearchParams({
     page: params?.page,
     limit: params?.limit,
@@ -88,7 +88,8 @@ export async function getRestaurants(params?: RestaurantSearchParams) {
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
-      `/restaurants?${searchParams.toString()}`
+      `/restaurants?${searchParams.toString()}`,
+      { signal }
     );
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).

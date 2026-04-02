@@ -71,7 +71,7 @@ describe("Doctors API", () => {
 
       const result = await getDoctors();
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors?");
+      expect(apiRequest).toHaveBeenCalledWith("/doctors?", { signal: undefined });
       expect(result).toEqual(mockResponse);
     });
 
@@ -95,7 +95,8 @@ describe("Doctors API", () => {
       const result = await getDoctors(params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?page=1&limit=10&search=nutrition&specialty=Nutrition&rating=4&location=Bogot%C3%A1&latitude=4.6097&longitude=-74.0817&radius=5&sortBy=distance"
+        "/doctors?page=1&limit=10&search=nutrition&specialty=Nutrition&rating=4&location=Bogot%C3%A1&latitude=4.6097&longitude=-74.0817&radius=5&sortBy=distance",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });
@@ -107,7 +108,7 @@ describe("Doctors API", () => {
       const params = { specialty: "Nutrition", rating: 4 };
       const result = await getDoctors(params);
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4");
+      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4", { signal: undefined });
       expect(result).toEqual(mockResponse);
     });
   });

@@ -76,7 +76,7 @@ export interface MarketSearchParams {
   sortBy?: "distance" | "rating" | "marketName" | "createdAt";
 }
 
-export async function getMarkets(params?: MarketSearchParams) {
+export async function getMarkets(params?: MarketSearchParams, signal?: AbortSignal) {
   const searchParams = buildSearchParams({
     page: params?.page,
     limit: params?.limit,
@@ -91,7 +91,9 @@ export async function getMarkets(params?: MarketSearchParams) {
   });
 
   try {
-    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, {
+      signal,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
