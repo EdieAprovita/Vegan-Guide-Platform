@@ -188,10 +188,8 @@ describe("restaurant query hooks", () => {
 
     mutationConfigs.forEach((config) => config.onSuccess());
 
+    expect(invalidateQueries).toHaveBeenCalledTimes(4);
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurants"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurants", "nearby"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurants", "byCuisine"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurants", "search"] });
 
     expect(createRestaurant).toBeDefined();
     expect(updateRestaurant).toBeDefined();

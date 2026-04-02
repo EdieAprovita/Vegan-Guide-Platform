@@ -161,9 +161,7 @@ describe("market query hooks", () => {
 
     mutationConfigs.forEach((config) => config.onSuccess());
 
+    expect(invalidateQueries).toHaveBeenCalledTimes(4);
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "nearby"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "byProducts"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "search"] });
   });
 });

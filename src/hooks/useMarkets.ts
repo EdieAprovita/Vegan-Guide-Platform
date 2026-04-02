@@ -148,9 +148,6 @@ export function useMarketMutations() {
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.markets.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.markets.nearbyAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.markets.byProductsAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.markets.searchAll });
   };
 
   const createMarket = useMutation({
