@@ -35,13 +35,16 @@ export const queryKeys = {
     all: createKey("doctors"),
     list: (params?: Record<string, unknown>) => createKey("doctors", params ?? null),
     detail: (id: string) => createKey("doctors", id),
+    nearbyAll: createKey("nearbyDoctors"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("nearbyDoctors", coords ?? null, params ?? null),
+    bySpecialtyAll: createKey("doctorsBySpecialty"),
     bySpecialty: (
       specialty: string,
       coords?: Coordinates | null,
       params?: Record<string, unknown>,
     ) => createKey("doctorsBySpecialty", specialty, coords ?? null, params ?? null),
+    searchAll: createKey("advancedDoctorSearch"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
       createKey("advancedDoctorSearch", coords ?? null, params ?? null),
   },

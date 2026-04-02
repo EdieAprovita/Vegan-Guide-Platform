@@ -164,9 +164,9 @@ export function useDoctorMutations() {
     mutationFn: ({ data }: { data: CreateDoctorData }) => createDoctor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearby() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.bySpecialty("") });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.search() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.bySpecialtyAll });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.searchAll });
     },
   });
 
@@ -183,7 +183,7 @@ export function useDoctorMutations() {
     mutationFn: ({ id }: { id: string }) => deleteDoctor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearby() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
     },
   });
 
