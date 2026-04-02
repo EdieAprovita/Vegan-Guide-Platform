@@ -27,19 +27,22 @@ export function useNearbyProfessions(params: {
 
   return useQuery({
     queryKey: queryKeys.professions.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
       }
 
-      const response = await professionsApi.getNearbyProfessions({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params.radius || 5,
-        limit: params.limit,
-        category: params.category,
-        rating: params.rating,
-      });
+      const response = await professionsApi.getNearbyProfessions(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params.radius || 5,
+          limit: params.limit,
+          category: params.category,
+          rating: params.rating,
+        },
+        signal
+      );
 
       return extractListData<Profession>(response);
     },
@@ -61,7 +64,7 @@ export function useProfessionsByCategory(params: {
 
   return useQuery({
     queryKey: queryKeys.professions.byCategory(params as Record<string, unknown>, userCoords),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams: Parameters<typeof professionsApi.getProfessionsByCategory>[0] = {
         category: params.category,
         limit: params.limit,
@@ -74,7 +77,7 @@ export function useProfessionsByCategory(params: {
         searchParams.radius = params.radius || 10;
       }
 
-      const response = await professionsApi.getProfessionsByCategory(searchParams);
+      const response = await professionsApi.getProfessionsByCategory(searchParams, signal);
       return extractListData<Profession>(response);
     },
     enabled: !!params.category && params.enabled !== false,
@@ -86,8 +89,8 @@ export function useProfessionsByCategory(params: {
 export function useProfessions(params?: ProfessionSearchParams & { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.professions.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await professionsApi.getProfessions(params);
+    queryFn: async ({ signal }) => {
+      const response = await professionsApi.getProfessions(params, signal);
       return extractListData<Profession>(response);
     },
     enabled: params?.enabled !== false,
@@ -99,8 +102,8 @@ export function useProfessions(params?: ProfessionSearchParams & { enabled?: boo
 export function useProfession(id: string, enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.professions.detail(id),
-    queryFn: async () => {
-      const response = await professionsApi.getProfession(id);
+    queryFn: async ({ signal }) => {
+      const response = await professionsApi.getProfession(id, signal);
       return extractItemData<Profession>(response);
     },
     enabled: !!id && enabled,
@@ -122,20 +125,23 @@ export function useNearbyProfessionalProfiles(params: {
 
   return useQuery({
     queryKey: queryKeys.professionalProfiles.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
       }
 
-      const response = await professionsApi.getNearbyProfessionalProfiles({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params.radius || 5,
-        limit: params.limit,
-        profession: params.profession,
-        skills: params.skills,
-        availability: params.availability,
-      });
+      const response = await professionsApi.getNearbyProfessionalProfiles(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params.radius || 5,
+          limit: params.limit,
+          profession: params.profession,
+          skills: params.skills,
+          availability: params.availability,
+        },
+        signal
+      );
 
       return extractListData<ProfessionalProfile>(response);
     },
@@ -161,7 +167,7 @@ export function useAdvancedProfessionalProfileSearch(params: {
 
   return useQuery({
     queryKey: queryKeys.professionalProfiles.search(params as Record<string, unknown>, userCoords),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams: Parameters<typeof professionsApi.getAdvancedProfessionalProfiles>[0] = {
         search: params.search,
         profession: params.profession,
@@ -178,7 +184,7 @@ export function useAdvancedProfessionalProfileSearch(params: {
         searchParams.radius = params.radius || 10;
       }
 
-      const response = await professionsApi.getAdvancedProfessionalProfiles(searchParams);
+      const response = await professionsApi.getAdvancedProfessionalProfiles(searchParams, signal);
       return extractListData<ProfessionalProfile>(response);
     },
     enabled: params.enabled !== false,
@@ -192,8 +198,8 @@ export function useProfessionalProfiles(
 ) {
   return useQuery({
     queryKey: queryKeys.professionalProfiles.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await professionsApi.getProfessionalProfiles(params);
+    queryFn: async ({ signal }) => {
+      const response = await professionsApi.getProfessionalProfiles(params, signal);
       return extractListData<ProfessionalProfile>(response);
     },
     enabled: params?.enabled !== false,
@@ -205,8 +211,8 @@ export function useProfessionalProfiles(
 export function useProfessionalProfile(id: string, enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.professionalProfiles.detail(id),
-    queryFn: async () => {
-      const response = await professionsApi.getProfessionalProfile(id);
+    queryFn: async ({ signal }) => {
+      const response = await professionsApi.getProfessionalProfile(id, signal);
       return extractItemData<ProfessionalProfile>(response);
     },
     enabled: !!id && enabled,

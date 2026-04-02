@@ -49,8 +49,8 @@ export function useBusinesses(
 
   const query = useQuery({
     queryKey: queryKeys.businesses.list(resolvedFilters as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await businessesApi.getBusinesses(resolvedFilters);
+    queryFn: async ({ signal }) => {
+      const response = await businessesApi.getBusinesses(resolvedFilters, signal);
       return extractListData<Business>(response);
     },
     enabled: filters?.autoFetch !== false,
@@ -74,8 +74,8 @@ export function useBusinesses(
 export function useBusiness(id?: string) {
   const query = useQuery({
     queryKey: queryKeys.businesses.detail(id ?? ""),
-    queryFn: async () => {
-      const response = await businessesApi.getBusiness(id!);
+    queryFn: async ({ signal }) => {
+      const response = await businessesApi.getBusiness(id!, signal);
       return extractItemData<Business>(response);
     },
     enabled: !!id,

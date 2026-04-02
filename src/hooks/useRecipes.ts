@@ -40,14 +40,17 @@ export function useInfiniteRecipes(params?: {
       difficulty: params?.difficulty,
       limit,
     }),
-    queryFn: async ({ pageParam }) => {
-      const response = await recipesApi.getRecipes({
-        page: pageParam,
-        limit,
-        search: params?.search,
-        category: params?.category,
-        difficulty: params?.difficulty,
-      });
+    queryFn: async ({ pageParam, signal }) => {
+      const response = await recipesApi.getRecipes(
+        {
+          page: pageParam,
+          limit,
+          search: params?.search,
+          category: params?.category,
+          difficulty: params?.difficulty,
+        },
+        signal
+      );
       return extractListData<Recipe>(response);
     },
     initialPageParam: 1,

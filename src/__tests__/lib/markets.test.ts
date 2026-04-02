@@ -109,7 +109,7 @@ describe("createMarket", () => {
     expect(JSON.parse(options.body as string)).toMatchObject({
       marketName: "Green Farmers Market",
     });
-    expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer my-token");
     expect(result).toEqual(payload);
   });
 
@@ -119,7 +119,7 @@ describe("createMarket", () => {
     await createMarket(sampleMarket);
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on server error", async () => {
@@ -149,7 +149,7 @@ describe("updateMarket", () => {
     await updateMarket("m1", { products: ["herbs"] });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on non-ok response", async () => {
@@ -169,7 +169,7 @@ describe("deleteMarket", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/markets/m1`);
     expect(options.method).toBe("DELETE");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
   });
 
   it("throws on non-ok response", async () => {
@@ -200,7 +200,7 @@ describe("addMarketReview", () => {
     await addMarketReview("m1", { rating: 4, comment: "Good selection." });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 });
 

@@ -103,7 +103,8 @@ describe("useBusinesses", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(businessesApi.getBusinesses).toHaveBeenCalledWith(
-      expect.objectContaining({ lat: 10, lng: 20, radius: 5 })
+      expect.objectContaining({ lat: 10, lng: 20, radius: 5 }),
+      expect.any(AbortSignal)
     );
   });
 
@@ -120,7 +121,8 @@ describe("useBusinesses", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(businessesApi.getBusinesses).toHaveBeenCalledWith(
-      expect.objectContaining({ lat: 10, lng: 20, radius: 10 })
+      expect.objectContaining({ lat: 10, lng: 20, radius: 10 }),
+      expect.any(AbortSignal)
     );
   });
 
@@ -172,7 +174,7 @@ describe("useBusiness", () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(businessesApi.getBusiness).toHaveBeenCalledWith("b1");
+    expect(businessesApi.getBusiness).toHaveBeenCalledWith("b1", expect.any(AbortSignal));
     expect(result.current.business).toEqual(mockBusiness);
     expect(result.current.error).toBeNull();
   });

@@ -46,7 +46,7 @@ describe("updateReview", () => {
     expect(url).toBe(`${BASE}/reviews/rv1`);
     expect(options.method).toBe("PUT");
     expect(JSON.parse(options.body as string)).toEqual({ rating: 4, comment: "Updated comment." });
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
     expect(result).toEqual(payload);
   });
 
@@ -56,7 +56,7 @@ describe("updateReview", () => {
     await updateReview("rv1", { rating: 3 });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on non-ok response", async () => {
@@ -76,7 +76,7 @@ describe("deleteReview", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/reviews/rv1`);
     expect(options.method).toBe("DELETE");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
   });
 
   it("works without token", async () => {
@@ -85,7 +85,7 @@ describe("deleteReview", () => {
     await deleteReview("rv1");
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on non-ok response", async () => {
@@ -106,7 +106,7 @@ describe("markReviewHelpful", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/reviews/rv1/helpful`);
     expect(options.method).toBe("POST");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
     expect(result).toEqual(payload);
   });
 
@@ -116,7 +116,7 @@ describe("markReviewHelpful", () => {
     await markReviewHelpful("rv1");
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on non-ok response", async () => {
@@ -137,7 +137,7 @@ describe("removeReviewHelpful", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/reviews/rv1/helpful`);
     expect(options.method).toBe("DELETE");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
     expect(result).toEqual(payload);
   });
 
@@ -147,7 +147,7 @@ describe("removeReviewHelpful", () => {
     await removeReviewHelpful("rv1");
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 });
 
@@ -224,7 +224,7 @@ describe("createRestaurantReview", () => {
     expect(url).toBe(`${BASE}/restaurants/rest1/reviews`);
     expect(options.method).toBe("POST");
     expect(JSON.parse(options.body as string)).toEqual({ rating: 5, comment: "Best vegan food!" });
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
     expect(result).toEqual(payload);
   });
 
@@ -234,7 +234,7 @@ describe("createRestaurantReview", () => {
     await createRestaurantReview("rest1", { rating: 3, comment: "Decent food here." });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on server error", async () => {

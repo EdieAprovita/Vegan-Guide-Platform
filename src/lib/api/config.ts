@@ -237,16 +237,21 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   }
   const mergedSignal = mergeAbortSignals(...signals);
 
-  const mergedHeaders: Record<string, string> = {
+  const mergedHeaders = new Headers({
     "Content-Type": "application/json",
     Accept: "application/json",
     "X-Correlation-ID": correlationId,
-    ...(options.headers as Record<string, string>),
-  };
+  });
+
+  // Overlay caller-supplied headers (handles Record, Headers, and [string,string][] shapes)
+  new Headers(options.headers as HeadersInit).forEach((value, key) => {
+    mergedHeaders.set(key, value);
+  });
 
   // Let the browser set Content-Type (including the multipart boundary) for FormData.
+  // Headers.delete() is case-insensitive per spec.
   if (options.body instanceof FormData) {
-    delete mergedHeaders["Content-Type"];
+    mergedHeaders.delete("Content-Type");
   }
 
   try {

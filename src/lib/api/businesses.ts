@@ -68,7 +68,7 @@ export interface BusinessFilters {
   budget?: number;
 }
 
-export async function getBusinesses(filters?: BusinessFilters) {
+export async function getBusinesses(filters?: BusinessFilters, signal?: AbortSignal) {
   // Geospatial params are only sent when both lat and lng are present (original logic).
   const geoParams =
     filters?.lat !== undefined && filters?.lng !== undefined
@@ -94,7 +94,7 @@ export async function getBusinesses(filters?: BusinessFilters) {
   const url = queryString ? `/businesses?${queryString}` : "/businesses";
 
   try {
-    return await apiRequest<BackendResponse<Business[]>>(url);
+    return await apiRequest<BackendResponse<Business[]>>(url, { signal });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
       console.warn(
@@ -107,9 +107,9 @@ export async function getBusinesses(filters?: BusinessFilters) {
   }
 }
 
-export async function getBusiness(id: string) {
+export async function getBusiness(id: string, signal?: AbortSignal) {
   try {
-    return await apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
+    return await apiRequest<BackendResponse<Business>>(`/businesses/${id}`, { signal });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
       console.warn(

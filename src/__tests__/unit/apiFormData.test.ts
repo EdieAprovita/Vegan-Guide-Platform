@@ -1,9 +1,9 @@
 /**
- * M-08: apiRequest — FormData body must not include Content-Type header.
+ * M-08 / Copilot-C1+C2: apiRequest — FormData body must not include Content-Type header.
  *
- * This file intentionally does NOT mock @/lib/api/config so the real
- * apiRequest implementation is exercised. fetch is replaced globally because
- * JSDOM does not define it as a configurable property (jest.spyOn fails).
+ * headers is now a Headers instance (not a plain object) — use .get() / .has()
+ * for assertions.  fetch is replaced globally because JSDOM does not define it
+ * as a configurable property (jest.spyOn fails).
  */
 
 let originalFetch: typeof global.fetch;
@@ -36,8 +36,8 @@ describe("M-08: apiRequest — FormData body does not send Content-Type", () => 
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, fetchOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const headers = fetchOptions.headers as Record<string, string>;
-    expect(headers["Content-Type"]).toBeUndefined();
+    const headers = fetchOptions.headers as Headers;
+    expect(headers.has("content-type")).toBe(false);
   });
 
   it("includes Content-Type: application/json for non-FormData body", async () => {
@@ -50,8 +50,8 @@ describe("M-08: apiRequest — FormData body does not send Content-Type", () => 
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, fetchOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const headers = fetchOptions.headers as Record<string, string>;
-    expect(headers["Content-Type"]).toBe("application/json");
+    const headers = fetchOptions.headers as Headers;
+    expect(headers.get("content-type")).toBe("application/json");
   });
 
   it("includes Content-Type: application/json for requests with no body", async () => {
@@ -61,7 +61,21 @@ describe("M-08: apiRequest — FormData body does not send Content-Type", () => 
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, fetchOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const headers = fetchOptions.headers as Record<string, string>;
-    expect(headers["Content-Type"]).toBe("application/json");
+    const headers = fetchOptions.headers as Headers;
+    expect(headers.get("content-type")).toBe("application/json");
+  });
+
+  it("merges caller-supplied headers with defaults", async () => {
+    const { apiRequest } = await import("@/lib/api/config");
+
+    await apiRequest("/posts", {
+      headers: { Authorization: "Bearer token123" },
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [, fetchOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const headers = fetchOptions.headers as Headers;
+    expect(headers.get("authorization")).toBe("Bearer token123");
+    expect(headers.get("content-type")).toBe("application/json");
   });
 });
