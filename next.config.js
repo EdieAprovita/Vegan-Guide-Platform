@@ -132,4 +132,9 @@ const nextConfig = {
   generateEtags: false,
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+const { withSentryConfig } = require("@sentry/nextjs");
+
+module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), {
+  silent: true,
+  hideSourceMaps: true,
+});
