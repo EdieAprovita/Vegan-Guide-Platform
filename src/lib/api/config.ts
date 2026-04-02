@@ -66,7 +66,11 @@ export function extractListData<T>(response: unknown): T[] {
  */
 export function extractItemData<T>(response: unknown): T {
   if (response && typeof response === "object" && "data" in response) {
-    return (response as { data: T }).data;
+    const data = (response as { data: unknown }).data;
+    if (data !== undefined && data !== null) {
+      return data as T;
+    }
+    throw new Error("Invalid item response shape: data field is null or undefined");
   }
   throw new Error("Invalid item response shape: expected data field");
 }
@@ -78,13 +82,16 @@ export function extractItemData<T>(response: unknown): T {
 export function extractPaginatedData<T>(response: unknown): PaginatedResponse<T> {
   if (response && typeof response === "object" && "data" in response) {
     const r = response as Record<string, unknown>;
+    if (!Array.isArray(r.data)) {
+      throw new Error("Invalid paginated response shape: expected data to be an array");
+    }
     return {
-      data: (r.data ?? []) as T[],
-      totalPages: (r.totalPages as number) ?? 1,
-      currentPage: (r.currentPage as number) ?? 1,
-      totalCount: (r.totalCount as number) ?? 0,
-      hasNextPage: (r.hasNextPage as boolean) ?? false,
-      hasPrevPage: (r.hasPrevPage as boolean) ?? false,
+      data: r.data as T[],
+      totalPages: typeof r.totalPages === "number" ? r.totalPages : 1,
+      currentPage: typeof r.currentPage === "number" ? r.currentPage : 1,
+      totalCount: typeof r.totalCount === "number" ? r.totalCount : 0,
+      hasNextPage: typeof r.hasNextPage === "boolean" ? r.hasNextPage : false,
+      hasPrevPage: typeof r.hasPrevPage === "boolean" ? r.hasPrevPage : false,
     };
   }
   throw new Error("Invalid paginated response shape: expected data and pagination fields");

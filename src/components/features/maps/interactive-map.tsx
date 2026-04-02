@@ -173,8 +173,9 @@ export function InteractiveMap({
     const mapInstance = new google.maps.Map(mapRef.current, {
       center,
       zoom,
-      styles: structuredClone(
-        theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light,
+      styles: (typeof structuredClone === "function"
+        ? structuredClone(theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light)
+        : JSON.parse(JSON.stringify(theme === "dark" ? MAP_THEMES.dark : MAP_THEMES.light))
       ) as unknown as google.maps.MapTypeStyle[],
       ...controls,
       restriction: {
