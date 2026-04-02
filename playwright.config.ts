@@ -32,9 +32,7 @@ export default defineConfig({
   reporter: [
     ["html", { open: "never" }],
     ["list"],
-    ...(process.env.CI
-      ? [["junit", { outputFile: "e2e-results.xml" }] as const]
-      : []),
+    ...(process.env.CI ? [["junit", { outputFile: "e2e-results.xml" }] as const] : []),
   ],
 
   /* Shared settings for all projects */

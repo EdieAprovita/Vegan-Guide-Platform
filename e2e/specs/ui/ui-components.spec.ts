@@ -48,7 +48,7 @@ test.describe("UI Components: Theme Toggle", () => {
           'button[aria-label*="tema" i]',
           'button[data-testid*="theme"]',
           'button[title*="theme" i]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await themeToggle.count();
 
@@ -77,7 +77,7 @@ test.describe("UI Components: Theme Toggle", () => {
       } else {
         // Wider search for any theme-related button with an aria-label
         const anyThemeBtn = page.locator(
-          'button[aria-label*="theme" i], button[aria-label*="tema" i]',
+          'button[aria-label*="theme" i], button[aria-label*="tema" i]'
         );
         const anyCount = await anyThemeBtn.count();
         const body = await page.locator("body").textContent();
@@ -98,7 +98,7 @@ test.describe("UI Components: Theme Toggle", () => {
           'button[aria-label="a11y.changeTheme"]',
           'button[aria-label*="theme" i]',
           'button[aria-label*="tema" i]',
-        ].join(", "),
+        ].join(", ")
       );
       const exists = (await themeToggle.count()) > 0;
 
@@ -116,9 +116,7 @@ test.describe("UI Components: Theme Toggle", () => {
     }
   });
 
-  test("page loads without console errors after theme button is visible", async ({
-    page,
-  }) => {
+  test("page loads without console errors after theme button is visible", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -153,7 +151,7 @@ test.describe("UI Components: Language Toggle", () => {
           'button:has-text("ES")',
           'button:has-text("EN")',
           'button[data-testid*="language"]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await langToggle.count();
 
@@ -173,17 +171,13 @@ test.describe("UI Components: Language Toggle", () => {
     await waitForHydration(page);
 
     try {
-      const langToggle = page.locator(
-        'button[aria-label="a11y.changeLanguage"]',
-      );
+      const langToggle = page.locator('button[aria-label="a11y.changeLanguage"]');
       const exists = (await langToggle.count()) > 0;
 
       if (exists) {
         const text = await langToggle.first().textContent();
         // Should show "ES" or "EN" (or similar locale code)
-        const hasLocale = /^(ES|EN|es|en|Español|English)$/i.test(
-          (text ?? "").trim(),
-        );
+        const hasLocale = /^(ES|EN|es|en|Español|English)$/i.test((text ?? "").trim());
         // Accept: label present with any text
         expect(hasLocale || (text ?? "").trim().length >= 0).toBe(true);
       } else {
@@ -199,9 +193,7 @@ test.describe("UI Components: Language Toggle", () => {
     await waitForHydration(page);
 
     try {
-      const langToggle = page.locator(
-        'button[aria-label="a11y.changeLanguage"]',
-      );
+      const langToggle = page.locator('button[aria-label="a11y.changeLanguage"]');
       const exists = (await langToggle.count()) > 0;
 
       if (exists) {
@@ -210,7 +202,7 @@ test.describe("UI Components: Language Toggle", () => {
       } else {
         // Wider search
         const anyLangBtn = page.locator(
-          'button[aria-label*="language" i], button[aria-label*="idioma" i]',
+          'button[aria-label*="language" i], button[aria-label*="idioma" i]'
         );
         const anyCount = await anyLangBtn.count();
         const body = await page.locator("body").textContent();
@@ -256,7 +248,9 @@ test.describe("UI Components: Header & Navigation", () => {
 
     try {
       // Logo is typically an <a href="/"> in the header
-      const logoLink = page.locator('header a[href="/"], a[aria-label*="logo" i], a[aria-label*="home" i]');
+      const logoLink = page.locator(
+        'header a[href="/"], a[aria-label*="logo" i], a[aria-label*="home" i]'
+      );
       const count = await logoLink.count();
 
       if (count > 0) {
@@ -273,9 +267,7 @@ test.describe("UI Components: Header & Navigation", () => {
     }
   });
 
-  test("login / sign-in link exists for unauthenticated users", async ({
-    page,
-  }) => {
+  test("login / sign-in link exists for unauthenticated users", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -289,7 +281,7 @@ test.describe("UI Components: Header & Navigation", () => {
           'button:has-text("Login")',
           'button:has-text("Iniciar sesión")',
           '[aria-label*="login" i]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await authLink.count();
 
@@ -353,15 +345,9 @@ test.describe("UI Components: Form Components", () => {
         // Check that at least the first input has some form of label/accessible name
         const firstInput = inputs.first();
         const id = await firstInput.getAttribute("id").catch(() => null);
-        const ariaLabel = await firstInput
-          .getAttribute("aria-label")
-          .catch(() => null);
-        const placeholder = await firstInput
-          .getAttribute("placeholder")
-          .catch(() => null);
-        const ariaLabelledBy = await firstInput
-          .getAttribute("aria-labelledby")
-          .catch(() => null);
+        const ariaLabel = await firstInput.getAttribute("aria-label").catch(() => null);
+        const placeholder = await firstInput.getAttribute("placeholder").catch(() => null);
+        const ariaLabelledBy = await firstInput.getAttribute("aria-labelledby").catch(() => null);
 
         let hasLabelFor = false;
         if (id) {
@@ -372,8 +358,7 @@ test.describe("UI Components: Form Components", () => {
           hasLabelFor = labelCount > 0;
         }
 
-        const hasAccessibleName =
-          hasLabelFor || !!ariaLabel || !!placeholder || !!ariaLabelledBy;
+        const hasAccessibleName = hasLabelFor || !!ariaLabel || !!placeholder || !!ariaLabelledBy;
         expect(hasAccessibleName || inputCount > 0).toBe(true);
       } else {
         // Login page may redirect or use different layout
@@ -420,7 +405,7 @@ test.describe("UI Components: Form Components", () => {
           'button:has-text("Sign in")',
           'button:has-text("Entrar")',
           'input[type="submit"]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await submitBtn.count();
 
@@ -443,26 +428,20 @@ test.describe("UI Components: Form Components", () => {
     checker.check();
   });
 
-  test("search input has accessible attributes on search page", async ({
-    page,
-  }) => {
+  test("search input has accessible attributes on search page", async ({ page }) => {
     await page.goto("/search", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     try {
       const searchInput = page.locator(
-        'input[type="search"], input[type="text"], #advanced-search-input',
+        'input[type="search"], input[type="text"], #advanced-search-input'
       );
       const count = await searchInput.count();
 
       if (count > 0) {
         const firstInput = searchInput.first();
-        const ariaLabel = await firstInput
-          .getAttribute("aria-label")
-          .catch(() => null);
-        const placeholder = await firstInput
-          .getAttribute("placeholder")
-          .catch(() => null);
+        const ariaLabel = await firstInput.getAttribute("aria-label").catch(() => null);
+        const placeholder = await firstInput.getAttribute("placeholder").catch(() => null);
         const id = await firstInput.getAttribute("id").catch(() => null);
 
         let hasLabel = false;
@@ -502,16 +481,14 @@ test.describe("UI Components: Loading & Error States", () => {
     try {
       // After full load, no element should still show "Loading..." text
       const loadingElements = page.locator(
-        '[role="status"][aria-label*="Loading" i], [aria-label*="loading" i]',
+        '[role="status"][aria-label*="Loading" i], [aria-label*="loading" i]'
       );
       const count = await loadingElements.count();
 
       // Zero loading indicators after networkidle is ideal
       // If present, they should have aria-label
       if (count > 0) {
-        const ariaLabel = await loadingElements
-          .first()
-          .getAttribute("aria-label");
+        const ariaLabel = await loadingElements.first().getAttribute("aria-label");
         expect(ariaLabel !== null || count >= 0).toBe(true);
       } else {
         expect(count).toBe(0);
@@ -564,9 +541,7 @@ test.describe("UI Components: Loading & Error States", () => {
     }
   });
 
-  test("data-slot input elements maintain visual integrity", async ({
-    page,
-  }) => {
+  test("data-slot input elements maintain visual integrity", async ({ page }) => {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -605,20 +580,17 @@ authedTest.describe("UI Components: Authenticated Header", () => {
     await mockRestaurantList(authedPage);
   });
 
-  authedTest(
-    "authenticated header renders with user controls",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("authenticated header renders with user controls", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      const currentUrl = authedPage.url();
-      const redirectedToLogin = currentUrl.includes("/login");
+    const body = await authedPage.locator("body").textContent();
+    const currentUrl = authedPage.url();
+    const redirectedToLogin = currentUrl.includes("/login");
 
-      // Either the authenticated layout is shown or we redirected to login
-      expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
-    },
-  );
+    // Either the authenticated layout is shown or we redirected to login
+    expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
+  });
 
   authedTest(
     "theme and language toggles are keyboard-accessible when authenticated",
@@ -634,7 +606,7 @@ authedTest.describe("UI Components: Authenticated Header", () => {
             'button[aria-label="a11y.changeLanguage"]',
             'button[aria-label*="theme" i]',
             'button[aria-label*="language" i]',
-          ].join(", "),
+          ].join(", ")
         );
         const count = await toggleButtons.count();
 
@@ -650,47 +622,41 @@ authedTest.describe("UI Components: Authenticated Header", () => {
       } catch {
         await pragmaticFallback(authedPage);
       }
-    },
+    }
   );
 
-  authedTest(
-    "authenticated pages have consistent header across routes",
-    async ({ authedPage }) => {
-      await mockRecipeList(authedPage);
+  authedTest("authenticated pages have consistent header across routes", async ({ authedPage }) => {
+    await mockRecipeList(authedPage);
 
-      // Check header consistency across two routes
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    // Check header consistency across two routes
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const homeBody = await authedPage.locator("body").textContent();
-      const homeHasContent = (homeBody ?? "").length > 0;
+    const homeBody = await authedPage.locator("body").textContent();
+    const homeHasContent = (homeBody ?? "").length > 0;
 
-      await authedPage.goto("/recipes", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/recipes", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const recipesBody = await authedPage.locator("body").textContent();
-      const recipesHasContent = (recipesBody ?? "").length > 0;
+    const recipesBody = await authedPage.locator("body").textContent();
+    const recipesHasContent = (recipesBody ?? "").length > 0;
 
-      // Both routes should render content
-      expect(homeHasContent || recipesHasContent).toBe(true);
-    },
-  );
+    // Both routes should render content
+    expect(homeHasContent || recipesHasContent).toBe(true);
+  });
 
-  authedTest(
-    "no duplicate main landmarks on authenticated pages",
-    async ({ authedPage }) => {
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("no duplicate main landmarks on authenticated pages", async ({ authedPage }) => {
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        const mainElements = authedPage.locator('main, [role="main"]');
-        const count = await mainElements.count();
+    try {
+      const mainElements = authedPage.locator('main, [role="main"]');
+      const count = await mainElements.count();
 
-        // A page should have exactly one main landmark (or zero if 404/redirect)
-        expect(count).toBeLessThanOrEqual(1);
-      } catch {
-        await pragmaticFallback(authedPage);
-      }
-    },
-  );
+      // A page should have exactly one main landmark (or zero if 404/redirect)
+      expect(count).toBeLessThanOrEqual(1);
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 });

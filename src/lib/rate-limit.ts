@@ -12,7 +12,18 @@ interface AttemptInfo {
   resetTime: number;
 }
 
-// In-memory store (in production, use Redis or similar)
+interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: Date;
+}
+
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const RATE_LIMIT_KEY_PREFIX = process.env.RATE_LIMIT_KEY_PREFIX ?? "rate-limit";
+
+// Fallback in-memory store for local development and test environments.
 const attempts = new Map<string, AttemptInfo>();
 
 // Clean up expired entries every 10 minutes
@@ -28,39 +39,108 @@ setInterval(
   10 * 60 * 1000
 );
 
+function hasDistributedStoreConfig(): boolean {
+  return Boolean(UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN);
+}
+
+async function runUpstashCommand<T>(args: Array<string | number>): Promise<T | null> {
+  if (!hasDistributedStoreConfig()) return null;
+
+  const response = await fetch(UPSTASH_REDIS_REST_URL!, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upstash command failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as { result?: T };
+  if (!("result" in payload)) {
+    throw new Error("Upstash response did not include a result field");
+  }
+
+  return payload.result ?? null;
+}
+
+async function incrementDistributedCounter(
+  key: string,
+  windowMs: number
+): Promise<{ count: number; resetTime: number } | null> {
+  if (!hasDistributedStoreConfig()) return null;
+
+  const count = await runUpstashCommand<number>(["INCR", key]);
+  if (typeof count !== "number") return null;
+
+  let ttlMs = await runUpstashCommand<number>(["PTTL", key]);
+  if (typeof ttlMs !== "number") return null;
+
+  if (ttlMs < 0) {
+    await runUpstashCommand<number>(["PEXPIRE", key, windowMs]);
+    ttlMs = windowMs;
+  }
+
+  return {
+    count,
+    resetTime: Date.now() + Math.max(ttlMs, 1),
+  };
+}
+
+function incrementInMemoryCounter(
+  key: string,
+  windowMs: number
+): { count: number; resetTime: number } {
+  const now = Date.now();
+  let attemptInfo = attempts.get(key);
+
+  if (!attemptInfo || now > attemptInfo.resetTime) {
+    attemptInfo = {
+      count: 0,
+      resetTime: now + windowMs,
+    };
+  }
+
+  attemptInfo.count++;
+  attempts.set(key, attemptInfo);
+
+  return {
+    count: attemptInfo.count,
+    resetTime: attemptInfo.resetTime,
+  };
+}
+
+function toRateLimitResult(count: number, maxAttempts: number, resetTime: number): RateLimitResult {
+  return {
+    success: count <= maxAttempts,
+    limit: maxAttempts,
+    remaining: Math.max(0, maxAttempts - count),
+    reset: new Date(resetTime),
+  };
+}
+
 export function rateLimit(options: RateLimitOptions) {
   return {
-    check: async (
-      request: NextRequest,
-      identifier?: string
-    ): Promise<{ success: boolean; limit: number; remaining: number; reset: Date }> => {
-      const now = Date.now();
+    check: async (request: NextRequest, identifier?: string): Promise<RateLimitResult> => {
       const ip = identifier || getClientIP(request);
-      const key = `${ip}:${request.nextUrl.pathname}`;
+      const key = `${RATE_LIMIT_KEY_PREFIX}:${ip}:${request.nextUrl.pathname}`;
 
-      let attemptInfo = attempts.get(key);
-
-      // Initialize or reset if window expired
-      if (!attemptInfo || now > attemptInfo.resetTime) {
-        attemptInfo = {
-          count: 0,
-          resetTime: now + options.windowMs,
-        };
+      try {
+        const distributed = await incrementDistributedCounter(key, options.windowMs);
+        if (distributed) {
+          return toRateLimitResult(distributed.count, options.maxAttempts, distributed.resetTime);
+        }
+      } catch (error) {
+        // Distributed store failures should not break auth/profile routes.
+        console.warn("[rate-limit] Falling back to in-memory store:", error);
       }
 
-      attemptInfo.count++;
-      attempts.set(key, attemptInfo);
-
-      const success = attemptInfo.count <= options.maxAttempts;
-      const remaining = Math.max(0, options.maxAttempts - attemptInfo.count);
-      const reset = new Date(attemptInfo.resetTime);
-
-      return {
-        success,
-        limit: options.maxAttempts,
-        remaining,
-        reset,
-      };
+      const local = incrementInMemoryCounter(key, options.windowMs);
+      return toRateLimitResult(local.count, options.maxAttempts, local.resetTime);
     },
   };
 }
@@ -83,8 +163,6 @@ export const passwordResetRateLimit = rateLimit({
 
 // Utility to get client IP
 function getClientIP(request: NextRequest): string {
-  // Next.js 15 removed request.ip; read from the x-real-ip header set by the
-  // edge runtime or a trusted reverse proxy as the primary signal.
   const realIp = request.headers.get("x-real-ip");
   if (realIp) {
     return realIp.trim();
@@ -92,11 +170,21 @@ function getClientIP(request: NextRequest): string {
 
   const xff = request.headers.get("x-forwarded-for");
   if (xff) {
-    // Use the RIGHTMOST IP: proxies append their observed source address, so the
-    // rightmost entry is the last trusted hop. The leftmost is client-supplied
-    // and trivially spoofable — never use it for security decisions.
-    const ips = xff.split(",");
-    return ips[ips.length - 1].trim();
+    const ips = xff
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    if (ips.length > 0) {
+      const trustedProxyHopsRaw = Number.parseInt(
+        process.env.RATE_LIMIT_TRUSTED_PROXY_HOPS ?? "0",
+        10
+      );
+      const trustedProxyHops =
+        Number.isFinite(trustedProxyHopsRaw) && trustedProxyHopsRaw >= 0 ? trustedProxyHopsRaw : 0;
+      const index = Math.max(0, ips.length - 1 - trustedProxyHops);
+      return ips[index];
+    }
   }
 
   return "unknown";

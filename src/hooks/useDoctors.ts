@@ -58,14 +58,17 @@ export function useNearbyDoctors(params?: {
   return useQuery({
     queryKey: queryKeys.doctors.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async ({ signal }) => {
-      const response = await getNearbyDoctors({
-        latitude: userCoords!.lat,
-        longitude: userCoords!.lng,
-        radius: params?.radius || 5,
-        limit: params?.limit || 20,
-        specialty: params?.specialty,
-        minRating: params?.minRating,
-      }, signal);
+      const response = await getNearbyDoctors(
+        {
+          latitude: userCoords!.lat,
+          longitude: userCoords!.lng,
+          radius: params?.radius || 5,
+          limit: params?.limit || 20,
+          specialty: params?.specialty,
+          minRating: params?.minRating,
+        },
+        signal
+      );
 
       return extractListData<Doctor>(response);
     },
@@ -83,7 +86,7 @@ export function useDoctorsBySpecialty(
     includeLocation?: boolean;
     radius?: number;
     enabled?: boolean;
-  },
+  }
 ) {
   const { userCoords } = useUserLocation();
 
@@ -91,7 +94,7 @@ export function useDoctorsBySpecialty(
     queryKey: queryKeys.doctors.bySpecialty(
       specialty,
       userCoords,
-      params as Record<string, unknown>,
+      params as Record<string, unknown>
     ),
     queryFn: async ({ signal }) => {
       const apiParams: Parameters<typeof getDoctorsBySpecialty>[1] = {

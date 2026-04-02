@@ -125,7 +125,7 @@ test.describe("Doctors: List Page", () => {
     } else {
       // Search input may use a different selector; look more broadly
       const searchFallback = page.locator(
-        'input[type="text"], input[type="search"], input[placeholder]',
+        'input[type="text"], input[type="search"], input[placeholder]'
       );
       const fallbackCount = await searchFallback.count();
       // Pragmatic: either a search input exists or the page loaded cleanly
@@ -189,9 +189,7 @@ test.describe("Doctors: Detail Page", () => {
     await waitForHydration(page);
 
     // Check the page object's backButton first
-    const backButtonVisible = await doctorPage.backButton
-      .isVisible()
-      .catch(() => false);
+    const backButtonVisible = await doctorPage.backButton.isVisible().catch(() => false);
 
     if (backButtonVisible) {
       expect(backButtonVisible).toBe(true);
@@ -207,7 +205,7 @@ test.describe("Doctors: Detail Page", () => {
           'a[aria-label*="volver" i]',
           'a:has-text("Back")',
           'a:has-text("Volver")',
-        ].join(", "),
+        ].join(", ")
       );
       const backNavCount = await backNav.count();
       // Pragmatic: presence of at least one back-nav element is ideal,
@@ -222,35 +220,29 @@ test.describe("Doctors: Detail Page", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Doctors: Authenticated Actions", () => {
-  authedTest(
-    "authenticated user can view doctor list",
-    async ({ doctorPage }) => {
-      await doctorPage.goto("/doctors");
-      await waitForHydration(doctorPage);
+  authedTest("authenticated user can view doctor list", async ({ doctorPage }) => {
+    await doctorPage.goto("/doctors");
+    await waitForHydration(doctorPage);
 
-      // Page should be accessible and render content
-      const body = await doctorPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(0);
+    // Page should be accessible and render content
+    const body = await doctorPage.locator("body").textContent();
+    expect((body ?? "").length).toBeGreaterThan(0);
 
-      // Must NOT be on the login page (redirect guard)
-      const currentUrl = doctorPage.url();
-      expect(currentUrl).not.toContain("/login");
-    },
-  );
+    // Must NOT be on the login page (redirect guard)
+    const currentUrl = doctorPage.url();
+    expect(currentUrl).not.toContain("/login");
+  });
 
-  authedTest(
-    "authenticated user can view doctor detail",
-    async ({ doctorPage }) => {
-      await doctorPage.goto("/doctors/doc-001", { waitUntil: "domcontentloaded" });
-      await waitForHydration(doctorPage);
+  authedTest("authenticated user can view doctor detail", async ({ doctorPage }) => {
+    await doctorPage.goto("/doctors/doc-001", { waitUntil: "domcontentloaded" });
+    await waitForHydration(doctorPage);
 
-      // Content must be meaningful
-      const body = await doctorPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(20);
+    // Content must be meaningful
+    const body = await doctorPage.locator("body").textContent();
+    expect((body ?? "").length).toBeGreaterThan(20);
 
-      // Must NOT be redirected to login
-      const currentUrl = doctorPage.url();
-      expect(currentUrl).not.toContain("/login");
-    },
-  );
+    // Must NOT be redirected to login
+    const currentUrl = doctorPage.url();
+    expect(currentUrl).not.toContain("/login");
+  });
 });

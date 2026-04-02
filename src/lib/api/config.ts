@@ -127,6 +127,23 @@ export class ApiError extends Error {
   }
 }
 
+export function isBuildTimeApiFallbackEnabled(): boolean {
+  return (
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.BUILD_ALLOW_API_FALLBACK === "1"
+  );
+}
+
+export function shouldUseApiFallback(): boolean {
+  return process.env.NODE_ENV === "development" || isBuildTimeApiFallbackEnabled();
+}
+
+export function isNonApiTransportError(error: unknown): boolean {
+  if (error instanceof ApiError) return false;
+  if (error && typeof error === "object" && "status" in error) return false;
+  return true;
+}
+
 // Generates a short unique ID for distributed request tracing.
 // Generates a unique correlation ID using crypto.randomUUID() (available in
 // all modern browsers and Node 14.17+). Falls back to crypto.getRandomValues()
@@ -221,9 +238,8 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
 
       const errorMessage =
         errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-      // In CI, we expect the backend to be unavailable, so only log in production.
-      // The caller's try/catch will handle the error appropriately.
-      if (!process.env.CI) {
+      // In CI and production build fallback mode we avoid noisy logs.
+      if (!process.env.CI && !isBuildTimeApiFallbackEnabled()) {
         console.error(`[API Error] [${correlationId}] ${method} ${url}:`, errorMessage);
       }
       throw new ApiError(response.status, errorMessage);
@@ -243,15 +259,15 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
       if (options.signal?.aborted) {
         throw error;
       }
-      // In CI, timeout errors are expected when backend is unavailable.
-      if (!process.env.CI) {
+      // In CI and production build fallback mode we avoid noisy logs.
+      if (!process.env.CI && !isBuildTimeApiFallbackEnabled()) {
         console.error(`[API Error] [${correlationId}] ${method} ${url}:`, "Request timeout");
       }
       throw new Error("Request timeout");
     }
     if (!(error instanceof ApiError)) {
-      // In CI, network errors are expected. In production, log them for debugging.
-      if (!process.env.CI) {
+      // In CI and production build fallback mode we avoid noisy logs.
+      if (!process.env.CI && !isBuildTimeApiFallbackEnabled()) {
         console.error(`[API Error] [${correlationId}] ${method} ${url}:`, error);
       }
     }

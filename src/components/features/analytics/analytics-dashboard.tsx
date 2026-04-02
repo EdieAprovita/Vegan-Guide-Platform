@@ -150,13 +150,10 @@ export function AnalyticsDashboard() {
     data.overview.totalDoctors,
     data.overview.totalMarkets,
     data.overview.totalBusinesses,
-    1,
+    1
   );
 
-  const activityMax = Math.max(
-    data.userActivity.monthlyActive,
-    1,
-  );
+  const activityMax = Math.max(data.userActivity.monthlyActive, 1);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -198,7 +195,9 @@ export function AnalyticsDashboard() {
         {/* Overview — user + content counts                                     */}
         {/* ------------------------------------------------------------------ */}
         <section aria-labelledby="overview-heading" className="mb-8">
-          <h2 id="overview-heading" className="sr-only">Overview metrics</h2>
+          <h2 id="overview-heading" className="sr-only">
+            Overview metrics
+          </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label="Total Users"
@@ -395,7 +394,9 @@ export function AnalyticsDashboard() {
         {/* Top content lists                                                     */}
         {/* ------------------------------------------------------------------ */}
         <section aria-labelledby="top-content-heading">
-          <h2 id="top-content-heading" className="sr-only">Top content</h2>
+          <h2 id="top-content-heading" className="sr-only">
+            Top content
+          </h2>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Top posts */}
             <Card>
@@ -417,7 +418,7 @@ export function AnalyticsDashboard() {
                         key={post.id}
                         className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                       >
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{post.title}</p>
                           <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
                             <span aria-label={`${post.likes} likes`}>
@@ -460,7 +461,7 @@ export function AnalyticsDashboard() {
                         key={restaurant.id}
                         className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                       >
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{restaurant.name}</p>
                           <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
                             <span aria-label={`Rating: ${restaurant.rating}`}>

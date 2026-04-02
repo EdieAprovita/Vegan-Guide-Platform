@@ -108,23 +108,22 @@ authedTest.describe("Auth: Protected Routes - Authenticated", () => {
     expect(onRecommendations || redirectedToLogin).toBe(true);
   });
 
-  authedTest("login page redirects authenticated user to home/dashboard", async ({
-    authedPage,
-  }) => {
-    // If already authenticated, visiting /login might redirect to home
-    await authedPage.goto("/login");
-    await waitForHydration(authedPage);
+  authedTest(
+    "login page redirects authenticated user to home/dashboard",
+    async ({ authedPage }) => {
+      // If already authenticated, visiting /login might redirect to home
+      await authedPage.goto("/login");
+      await waitForHydration(authedPage);
 
-    // Either stays on /login (allowed but unusual) or redirects to home
-    // Most apps redirect auth'd users away from login page
-    const isRedirected = !authedPage.url().includes("/login");
-    // This is OK - just checking it doesn't break
-    expect(typeof isRedirected).toBe("boolean");
-  });
+      // Either stays on /login (allowed but unusual) or redirects to home
+      // Most apps redirect auth'd users away from login page
+      const isRedirected = !authedPage.url().includes("/login");
+      // This is OK - just checking it doesn't break
+      expect(typeof isRedirected).toBe("boolean");
+    }
+  );
 
-  authedTest("register page is accessible (even when authenticated)", async ({
-    authedPage,
-  }) => {
+  authedTest("register page is accessible (even when authenticated)", async ({ authedPage }) => {
     await authedPage.goto("/register");
     await waitForHydration(authedPage);
 
@@ -140,16 +139,12 @@ test.describe("Auth: No Infinite Redirects", () => {
     await mockNextImages(page);
   });
 
-  test("no infinite redirect loop when accessing /login without auth", async ({
-    page,
-  }) => {
+  test("no infinite redirect loop when accessing /login without auth", async ({ page }) => {
     await assertNoInfiniteRedirect(page, "/login");
     expect(page.url()).toContain("/login");
   });
 
-  test("no infinite redirect loop when accessing protected route", async ({
-    page,
-  }) => {
+  test("no infinite redirect loop when accessing protected route", async ({ page }) => {
     await assertNoInfiniteRedirect(page, "/profile");
     expect(page.url()).toContain("/login");
   });

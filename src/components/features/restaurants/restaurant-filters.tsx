@@ -174,17 +174,17 @@ export function RestaurantFilters({ values }: RestaurantFiltersProps) {
         {hasActiveFilters && (
           <div className="mt-3 flex flex-wrap gap-2" aria-live="polite" aria-label="Active filters">
             {values.search && (
-              <span className="bg-emerald-50 text-emerald-700 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                 Search: {values.search}
               </span>
             )}
             {values.cuisine && (
-              <span className="bg-emerald-50 text-emerald-700 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                 Cuisine: {values.cuisine}
               </span>
             )}
             {values.minRating && (
-              <span className="bg-emerald-50 text-emerald-700 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                 {values.minRating}+ stars
               </span>
             )}

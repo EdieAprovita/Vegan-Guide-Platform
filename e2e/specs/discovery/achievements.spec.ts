@@ -75,36 +75,30 @@ test.describe("Achievements: Page Load", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Achievements: Authenticated Access", () => {
-  authedTest(
-    "authenticated user can view achievements",
-    async ({ authedPage }) => {
-      await mockAchievements(authedPage);
-      await mockGamificationStats(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user can view achievements", async ({ authedPage }) => {
+    await mockAchievements(authedPage);
+    await mockGamificationStats(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/achievements", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/achievements", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      // Assert that the authenticated page loaded content and did NOT redirect to /login.
-      // The authedTest fixture ensures the user is authenticated.
-      await assertAuthedPageLoaded(authedPage);
-    },
-  );
+    // Assert that the authenticated page loaded content and did NOT redirect to /login.
+    // The authedTest fixture ensures the user is authenticated.
+    await assertAuthedPageLoaded(authedPage);
+  });
 
-  authedTest(
-    "achievements page displays achievement content",
-    async ({ authedPage }) => {
-      await mockAchievements(authedPage);
-      await mockGamificationStats(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("achievements page displays achievement content", async ({ authedPage }) => {
+    await mockAchievements(authedPage);
+    await mockGamificationStats(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/achievements", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/achievements", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      // Assert that the authenticated page loaded content and did NOT redirect to /login.
-      await assertAuthedPageLoaded(authedPage);
-    },
-  );
+    // Assert that the authenticated page loaded content and did NOT redirect to /login.
+    await assertAuthedPageLoaded(authedPage);
+  });
 });

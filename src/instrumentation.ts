@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 /**
  * Next.js instrumentation hook — runs once when the server starts.
  *
@@ -12,7 +14,14 @@
  *               @opentelemetry/semantic-conventions
  */
 export async function register() {
-  // Only initialise tracing in the Node.js runtime (not Edge).
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+    enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  });
+
+  // Only initialise OpenTelemetry tracing in the Node.js runtime (not Edge).
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
   try {
@@ -62,3 +71,5 @@ export async function register() {
     // OTel packages not installed — tracing disabled, server continues normally.
   }
 }
+
+export const onRequestError = Sentry.captureRequestError;

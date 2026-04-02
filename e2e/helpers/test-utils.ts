@@ -74,9 +74,9 @@ export async function mockNextImages(page: Page) {
       // 1x1 transparent PNG
       body: Buffer.from(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "base64",
+        "base64"
       ),
-    }),
+    })
   );
 }
 
@@ -102,7 +102,7 @@ export async function mockGoogleMaps(page: Page) {
           }
         };
       `,
-    }),
+    })
   );
 }
 
@@ -175,8 +175,7 @@ export async function assertPageHasContent(page: Page, minLength = 0) {
  */
 export async function assertAuthedPageLoaded(page: Page) {
   const url = page.url();
-  const hasContent =
-    ((await page.locator("body").textContent())?.length ?? 0) > 0;
+  const hasContent = ((await page.locator("body").textContent())?.length ?? 0) > 0;
   const redirectedToLogin = url.includes("/login");
   // Assert that we have content AND we're not on the login page
   expect(hasContent && !redirectedToLogin).toBe(true);
@@ -188,7 +187,7 @@ export async function assertAuthedPageLoaded(page: Page) {
  */
 export async function tryOpenMobileMenu(page: Page) {
   const hamburger = page.locator(
-    'button[aria-label*="menu" i], button[aria-label*="menú" i], button[aria-label*="abrir" i], button:has(svg[class*="menu"]), [data-testid="mobile-menu"]',
+    'button[aria-label*="menu" i], button[aria-label*="menú" i], button[aria-label*="abrir" i], button:has(svg[class*="menu"]), [data-testid="mobile-menu"]'
   );
   try {
     const visible = await hamburger
@@ -198,7 +197,11 @@ export async function tryOpenMobileMenu(page: Page) {
     if (visible) {
       await hamburger.first().click();
       // Wait for menu to appear (dialog or nav)
-      await page.locator('[role="dialog"], nav[id*="menu"]').first().isVisible({ timeout: 1000 }).catch(() => false);
+      await page
+        .locator('[role="dialog"], nav[id*="menu"]')
+        .first()
+        .isVisible({ timeout: 1000 })
+        .catch(() => false);
     }
   } catch {
     // No mobile menu — ignore

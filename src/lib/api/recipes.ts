@@ -3,7 +3,8 @@ import {
   getApiHeaders,
   BackendResponse,
   BackendListResponse,
-  ApiError,
+  shouldUseApiFallback,
+  isNonApiTransportError,
 } from "./config";
 
 export interface Recipe {
@@ -65,14 +66,12 @@ export async function getRecipes(
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] recipes list: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -82,14 +81,12 @@ export async function getRecipe(id: string, signal?: AbortSignal) {
   try {
     return await apiRequest<BackendResponse<Recipe>>(`/recipes/${id}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] as unknown as Recipe };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] recipe detail: backend unavailable, returning empty object.",
+        error
+      );
+      return { success: true, data: {} as Recipe };
     }
     throw error;
   }

@@ -35,10 +35,16 @@ export class RecipePage {
 
     // List page
     this.heading = page.locator("h1");
-    this.searchInput = page.locator('input[type="search"], input[placeholder*="earch"], input[placeholder*="eceta"]');
+    this.searchInput = page.locator(
+      'input[type="search"], input[placeholder*="earch"], input[placeholder*="eceta"]'
+    );
     this.cards = page.locator('article[aria-label*="Receta"], article[aria-label*="Recipe"]');
-    this.categoryFilter = page.locator('[id*="category"], select:has(option[value="breakfast"]), button:has-text("Category")');
-    this.difficultyFilter = page.locator('[id*="difficulty"], select:has(option[value="easy"]), button:has-text("Difficulty")');
+    this.categoryFilter = page.locator(
+      '[id*="category"], select:has(option[value="breakfast"]), button:has-text("Category")'
+    );
+    this.difficultyFilter = page.locator(
+      '[id*="difficulty"], select:has(option[value="easy"]), button:has-text("Difficulty")'
+    );
 
     // Detail page
     this.backButton = page.locator('button[aria-label*="Volver"], a[aria-label*="Volver"]');
@@ -52,9 +58,15 @@ export class RecipePage {
     this.cookTimeInput = page.locator('#recipe-cook-time, input[name="cookingTime"]');
     this.servingsInput = page.locator('#recipe-servings, input[name="servings"]');
     this.difficultySelect = page.locator('#recipe-difficulty, select[name="difficulty"]');
-    this.addIngredientButton = page.getByRole("button", { name: /add ingredient|agregar ingrediente/i });
-    this.addInstructionButton = page.getByRole("button", { name: /add instruction|agregar instruc/i });
-    this.submitButton = page.getByRole("button", { name: /create recipe|update recipe|crear receta|actualizar/i });
+    this.addIngredientButton = page.getByRole("button", {
+      name: /add ingredient|agregar ingrediente/i,
+    });
+    this.addInstructionButton = page.getByRole("button", {
+      name: /add instruction|agregar instruc/i,
+    });
+    this.submitButton = page.getByRole("button", {
+      name: /create recipe|update recipe|crear receta|actualizar/i,
+    });
   }
 
   /** Navigate to the recipe list */

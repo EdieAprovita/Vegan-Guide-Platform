@@ -154,7 +154,7 @@ export function Header() {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="font-brand-serif rounded-full px-6 text-sm font-medium transition-all duration-200 hover:border-foreground hover:bg-foreground hover:text-background"
+                  className="font-brand-serif hover:border-foreground hover:bg-foreground hover:text-background rounded-full px-6 text-sm font-medium transition-all duration-200"
                 >
                   {t("nav.signOut")}
                 </Button>

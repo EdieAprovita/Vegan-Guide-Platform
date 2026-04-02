@@ -17,6 +17,8 @@ jest.mock("@/lib/api/config", () => ({
   apiRequest: jest.fn(),
   getApiHeaders: jest.fn(() => ({ "Content-Type": "application/json" })),
   processBackendResponse: jest.fn((response) => response.data),
+  shouldUseApiFallback: jest.fn(() => false),
+  isNonApiTransportError: jest.fn(() => false),
 }));
 
 const { apiRequest } = require("@/lib/api/config");
@@ -108,7 +110,9 @@ describe("Doctors API", () => {
       const params = { specialty: "Nutrition", rating: 4 };
       const result = await getDoctors(params);
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4", { signal: undefined });
+      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4", {
+        signal: undefined,
+      });
       expect(result).toEqual(mockResponse);
     });
   });

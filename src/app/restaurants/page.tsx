@@ -32,7 +32,8 @@ async function RestaurantResults({ searchParams }: RestaurantsPageProps) {
   const cuisine = params.cuisine?.trim() ?? "";
   const minRatingRaw = params.minRating?.trim() ?? "";
   const minRatingParsed = minRatingRaw ? parseInt(minRatingRaw, 10) : undefined;
-  const minRating = minRatingParsed !== undefined && !isNaN(minRatingParsed) ? minRatingParsed : undefined;
+  const minRating =
+    minRatingParsed !== undefined && !isNaN(minRatingParsed) ? minRatingParsed : undefined;
 
   const filters: RestaurantFilterValues = {
     search,
@@ -103,8 +104,8 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
           Discover Amazing Vegan Restaurants
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-gray-600">
-          Find the best plant-based dining experiences, from cozy cafes to fine dining.
-          All carefully curated for the vegan community.
+          Find the best plant-based dining experiences, from cozy cafes to fine dining. All
+          carefully curated for the vegan community.
         </p>
       </div>
 

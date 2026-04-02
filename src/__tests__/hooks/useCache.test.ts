@@ -17,9 +17,7 @@ describe("useCache", () => {
   it("fetches fresh data when no cache exists and stores the result", async () => {
     const fetchFn = jest.fn().mockResolvedValue({ name: "vegan" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-fresh" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-fresh" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -43,9 +41,7 @@ describe("useCache", () => {
 
     const fetchFn = jest.fn().mockResolvedValue({ name: "fresh" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-cached" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-cached" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -64,9 +60,7 @@ describe("useCache", () => {
 
     const fetchFn = jest.fn().mockResolvedValue({ name: "fresh" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-expired" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-expired" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -88,9 +82,7 @@ describe("useCache", () => {
 
     const fetchFn = jest.fn().mockResolvedValue({ name: "refreshed" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-refresh" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-refresh" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -102,9 +94,7 @@ describe("useCache", () => {
   it("sets error state when fetchFunction rejects", async () => {
     const fetchFn = jest.fn().mockRejectedValue(new Error("fetch failed"));
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-error" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-error" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -125,9 +115,7 @@ describe("useCache", () => {
     const freshData = { name: "fresh" };
     const fetchFn = jest.fn().mockResolvedValue(freshData);
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-refetch" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-refetch" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -153,9 +141,7 @@ describe("useCache", () => {
 
     const fetchFn = jest.fn().mockResolvedValue({ name: "after-clear" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-clear" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-clear" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -182,9 +168,7 @@ describe("useCache", () => {
     const fetchFn = jest.fn().mockResolvedValue("data");
     const customTtl = 1000; // 1 second
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-ttl", ttl: customTtl })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-ttl", ttl: customTtl }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -197,9 +181,7 @@ describe("useCache", () => {
 
     const fetchFn = jest.fn().mockResolvedValue({ name: "recovered" });
 
-    const { result } = renderHook(() =>
-      useCache(fetchFn, [], { key: "test-corrupt" })
-    );
+    const { result } = renderHook(() => useCache(fetchFn, [], { key: "test-corrupt" }));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 

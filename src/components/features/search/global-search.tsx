@@ -261,7 +261,7 @@ export function GlobalSearch() {
                 {results.map((result) => (
                   <li key={`${result.type}-${result.id}`}>
                     <Card
-                      className="cursor-pointer transition-shadow hover:shadow-md focus-within:shadow-md"
+                      className="cursor-pointer transition-shadow focus-within:shadow-md hover:shadow-md"
                       onClick={() => handleResultClick(result)}
                     >
                       <CardContent className="p-4">

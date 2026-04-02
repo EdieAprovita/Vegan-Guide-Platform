@@ -135,43 +135,37 @@ test.describe("Community: Content Display", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Community: Authenticated Access", () => {
-  authedTest(
-    "authenticated user can view community",
-    async ({ authedPage }) => {
-      await mockPostList(authedPage, 3);
-      await mockPostDetail(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user can view community", async ({ authedPage }) => {
+    await mockPostList(authedPage, 3);
+    await mockPostDetail(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/community", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/community", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      // Page should be accessible and render content
-      await pragmaticFallback(authedPage);
+    // Page should be accessible and render content
+    await pragmaticFallback(authedPage);
 
-      // Must NOT be on the login page (redirect guard)
-      const currentUrl = authedPage.url();
-      expect(currentUrl).not.toContain("/login");
-    },
-  );
+    // Must NOT be on the login page (redirect guard)
+    const currentUrl = authedPage.url();
+    expect(currentUrl).not.toContain("/login");
+  });
 
-  authedTest(
-    "authenticated user sees community interface",
-    async ({ authedPage }) => {
-      await mockPostList(authedPage, 3);
-      await mockPostDetail(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user sees community interface", async ({ authedPage }) => {
+    await mockPostList(authedPage, 3);
+    await mockPostDetail(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/community", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/community", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        await assertPageHasContent(authedPage, 50);
-      } catch {
-        // Pragmatic: at minimum the page resolved
-        expect(authedPage.url()).toBeTruthy();
-      }
-    },
-  );
+    try {
+      await assertPageHasContent(authedPage, 50);
+    } catch {
+      // Pragmatic: at minimum the page resolved
+      expect(authedPage.url()).toBeTruthy();
+    }
+  });
 });

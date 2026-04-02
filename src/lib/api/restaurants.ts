@@ -3,12 +3,15 @@ import {
   getApiHeaders,
   BackendListResponse,
   BackendResponse,
-  ApiError,
+  shouldUseApiFallback,
+  isNonApiTransportError,
 } from "./config";
 import { buildSearchParams } from "./utils";
 import { Review } from "@/types";
 import { GeoLocation } from "@/types/geospatial";
 
+// WARNING: Mock/fallback data is only used for transport failures in
+// development or explicit build-time fallback mode.
 export interface Restaurant {
   _id: string;
   restaurantName: string;
@@ -89,16 +92,12 @@ export async function getRestaurants(params?: RestaurantSearchParams, signal?: A
       { signal }
     );
   } catch (error) {
-    // In development and CI, return empty data on network errors (backend unavailable).
-    // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] restaurants list: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -179,16 +178,12 @@ export async function getNearbyRestaurants(
       { signal }
     );
   } catch (error) {
-    // In development and CI, return empty data on network errors (backend unavailable).
-    // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] nearby restaurants: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -225,16 +220,12 @@ export async function getRestaurantsByCuisine(
       { signal }
     );
   } catch (error) {
-    // In development and CI, return empty data on network errors (backend unavailable).
-    // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] restaurants by cuisine: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -275,16 +266,12 @@ export async function getAdvancedRestaurants(
       { signal }
     );
   } catch (error) {
-    // In development and CI, return empty data on network errors (backend unavailable).
-    // In production, network errors should propagate (indicates real infrastructure issue).
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] advanced restaurants: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }

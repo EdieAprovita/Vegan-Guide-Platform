@@ -96,11 +96,7 @@ export const postsResponseSchema = apiResponseSchema(z.array(postSchema));
 // Validation helpers — warn in production, throw in development/test
 // ---------------------------------------------------------------------------
 
-function validateOrWarn<T>(
-  schema: z.ZodType<T>,
-  data: unknown,
-  context: string
-): T {
+function validateOrWarn<T>(schema: z.ZodType<T>, data: unknown, context: string): T {
   const result = schema.safeParse(data);
   if (result.success) {
     return result.data;

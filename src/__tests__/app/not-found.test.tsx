@@ -117,9 +117,7 @@ describe("NotFound page", () => {
 
   it("renders the descriptive subtitle", () => {
     render(<NotFound />);
-    expect(
-      screen.getByText("La página que buscas no existe o fue movida")
-    ).toBeInTheDocument();
+    expect(screen.getByText("La página que buscas no existe o fue movida")).toBeInTheDocument();
   });
 
   it("renders a link back to home", () => {
@@ -147,22 +145,10 @@ describe("NotFound page", () => {
       "href",
       "/restaurants"
     );
-    expect(screen.getByRole("link", { name: /recetas/i })).toHaveAttribute(
-      "href",
-      "/recipes"
-    );
-    expect(screen.getByRole("link", { name: /doctores/i })).toHaveAttribute(
-      "href",
-      "/doctors"
-    );
-    expect(screen.getByRole("link", { name: /mercados/i })).toHaveAttribute(
-      "href",
-      "/markets"
-    );
-    expect(screen.getByRole("link", { name: /comunidad/i })).toHaveAttribute(
-      "href",
-      "/community"
-    );
+    expect(screen.getByRole("link", { name: /recetas/i })).toHaveAttribute("href", "/recipes");
+    expect(screen.getByRole("link", { name: /doctores/i })).toHaveAttribute("href", "/doctors");
+    expect(screen.getByRole("link", { name: /mercados/i })).toHaveAttribute("href", "/markets");
+    expect(screen.getByRole("link", { name: /comunidad/i })).toHaveAttribute("href", "/community");
   });
 
   it("renders the 'Explorar' section label", () => {

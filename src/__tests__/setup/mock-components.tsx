@@ -214,18 +214,12 @@ export const dropdownMenuMock = {
   DropdownMenu: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-menu">{children}</div>
   ),
-  DropdownMenuTrigger: ({
-    children,
-  }: {
-    children: React.ReactNode;
-    asChild?: boolean;
-  }) => <div data-testid="dropdown-trigger">{children}</div>,
-  DropdownMenuContent: ({
-    children,
-  }: {
-    children: React.ReactNode;
-    align?: string;
-  }) => <div data-testid="dropdown-content">{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode; asChild?: boolean }) => (
+    <div data-testid="dropdown-trigger">{children}</div>
+  ),
+  DropdownMenuContent: ({ children }: { children: React.ReactNode; align?: string }) => (
+    <div data-testid="dropdown-content">{children}</div>
+  ),
   DropdownMenuItem: ({
     children,
     onClick,
@@ -237,12 +231,7 @@ export const dropdownMenuMock = {
     disabled?: boolean;
     className?: string;
   }) => (
-    <button
-      data-testid="dropdown-item"
-      onClick={onClick}
-      disabled={disabled}
-      className={className}
-    >
+    <button data-testid="dropdown-item" onClick={onClick} disabled={disabled} className={className}>
       {children}
     </button>
   ),
@@ -253,6 +242,5 @@ export const dropdownMenuMock = {
 // @/lib/utils — cn() utility
 // ---------------------------------------------------------------------------
 export const utilsMock = {
-  cn: (...args: (string | undefined | false | null)[]) =>
-    args.filter(Boolean).join(" "),
+  cn: (...args: (string | undefined | false | null)[]) => args.filter(Boolean).join(" "),
 };

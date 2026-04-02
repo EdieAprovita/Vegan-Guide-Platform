@@ -96,7 +96,9 @@ describe("useBusinesses", () => {
       data: [mockBusiness],
     });
 
-    const { result } = renderHook(() => useBusinesses({ useUserLocation: true, radius: 5 }), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => useBusinesses({ useUserLocation: true, radius: 5 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -111,7 +113,9 @@ describe("useBusinesses", () => {
       data: [],
     });
 
-    const { result } = renderHook(() => useBusinesses({ useUserLocation: true }), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => useBusinesses({ useUserLocation: true }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -121,7 +125,9 @@ describe("useBusinesses", () => {
   });
 
   it("skips auto-fetch when autoFetch is false", async () => {
-    const { result } = renderHook(() => useBusinesses({ autoFetch: false }), { wrapper: createQueryWrapper() });
+    const { result } = renderHook(() => useBusinesses({ autoFetch: false }), {
+      wrapper: createQueryWrapper(),
+    });
 
     await act(async () => {});
 

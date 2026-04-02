@@ -54,7 +54,7 @@ test.describe("Responsive: Mobile Layout", () => {
         'button[aria-label*="menu" i]',
         'button[aria-label*="menú" i]',
         'button[aria-label*="abrir" i]',
-      ].join(", "),
+      ].join(", ")
     );
 
     // Wait for any matching button to appear (handles async client-side rendering)
@@ -66,7 +66,10 @@ test.describe("Responsive: Mobile Layout", () => {
       // No hamburger button found — check pragmatic fallback
       const count = await menuButton.count();
       for (let i = 0; i < Math.min(count, 5); i++) {
-        const isVisible = await menuButton.nth(i).isVisible().catch(() => false);
+        const isVisible = await menuButton
+          .nth(i)
+          .isVisible()
+          .catch(() => false);
         if (isVisible) {
           foundVisible = true;
           break;
@@ -86,7 +89,10 @@ test.describe("Responsive: Mobile Layout", () => {
       const navCount = await desktopNav.count();
 
       if (navCount > 0) {
-        const isVisible = await desktopNav.first().isVisible().catch(() => false);
+        const isVisible = await desktopNav
+          .first()
+          .isVisible()
+          .catch(() => false);
         // On 375px viewport, the desktop nav should be hidden
         expect(!isVisible).toBe(true);
       } else {
@@ -98,17 +104,13 @@ test.describe("Responsive: Mobile Layout", () => {
     }
   });
 
-  test("content fits mobile viewport without horizontal overflow", async ({
-    page,
-  }) => {
+  test("content fits mobile viewport without horizontal overflow", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     try {
       // Check that the body doesn't overflow horizontally
-      const scrollWidth = await page
-        .evaluate(() => document.body.scrollWidth)
-        .catch(() => 0);
+      const scrollWidth = await page.evaluate(() => document.body.scrollWidth).catch(() => 0);
       const viewportWidth = 375;
 
       // Allow 5px tolerance for border/scrollbar
@@ -147,7 +149,13 @@ test.describe("Responsive: Mobile Navigation", () => {
       const hamburger = page.locator('button[aria-controls="mobile-menu"]');
       const exists = (await hamburger.count()) > 0;
 
-      if (exists && (await hamburger.first().isVisible().catch(() => false))) {
+      if (
+        exists &&
+        (await hamburger
+          .first()
+          .isVisible()
+          .catch(() => false))
+      ) {
         await hamburger.first().click();
         await page.waitForTimeout(300); // Allow animation
 
@@ -158,18 +166,14 @@ test.describe("Responsive: Mobile Navigation", () => {
           .catch(() => null);
 
         // Mobile menu dialog should appear
-        const mobileMenu = page.locator(
-          'nav#mobile-menu, [id="mobile-menu"], nav[role="dialog"]',
-        );
+        const mobileMenu = page.locator('nav#mobile-menu, [id="mobile-menu"], nav[role="dialog"]');
         const menuVisible = await mobileMenu
           .first()
           .isVisible()
           .catch(() => false);
 
         // Either aria-expanded changed or the dialog became visible
-        expect(
-          ariaExpanded === "true" || menuVisible || exists,
-        ).toBe(true);
+        expect(ariaExpanded === "true" || menuVisible || exists).toBe(true);
       } else {
         // Hamburger not visible — may be desktop project or different pattern
         await pragmaticFallback(page);
@@ -187,13 +191,19 @@ test.describe("Responsive: Mobile Navigation", () => {
       const hamburger = page.locator('button[aria-controls="mobile-menu"]');
       const exists = (await hamburger.count()) > 0;
 
-      if (exists && (await hamburger.first().isVisible().catch(() => false))) {
+      if (
+        exists &&
+        (await hamburger
+          .first()
+          .isVisible()
+          .catch(() => false))
+      ) {
         await hamburger.first().click();
         await page.waitForTimeout(300);
 
         // Mobile nav: nav#mobile-menu[role="dialog"][aria-modal="true"]
         const mobileNav = page.locator(
-          'nav#mobile-menu[role="dialog"], [role="dialog"]#mobile-menu',
+          'nav#mobile-menu[role="dialog"], [role="dialog"]#mobile-menu'
         );
         const dialogCount = await mobileNav.count();
 
@@ -223,7 +233,13 @@ test.describe("Responsive: Mobile Navigation", () => {
       const hamburger = page.locator('button[aria-controls="mobile-menu"]');
       const exists = (await hamburger.count()) > 0;
 
-      if (exists && (await hamburger.first().isVisible().catch(() => false))) {
+      if (
+        exists &&
+        (await hamburger
+          .first()
+          .isVisible()
+          .catch(() => false))
+      ) {
         // Open the menu
         await hamburger.first().click();
         await page.waitForTimeout(300);
@@ -238,9 +254,7 @@ test.describe("Responsive: Mobile Navigation", () => {
           .getAttribute("aria-expanded")
           .catch(() => null);
 
-        expect(ariaExpanded === "false" || ariaExpanded === null || exists).toBe(
-          true,
-        );
+        expect(ariaExpanded === "false" || ariaExpanded === null || exists).toBe(true);
       } else {
         await pragmaticFallback(page);
       }
@@ -257,14 +271,18 @@ test.describe("Responsive: Mobile Navigation", () => {
       const hamburger = page.locator('button[aria-controls="mobile-menu"]');
       const exists = (await hamburger.count()) > 0;
 
-      if (exists && (await hamburger.first().isVisible().catch(() => false))) {
+      if (
+        exists &&
+        (await hamburger
+          .first()
+          .isVisible()
+          .catch(() => false))
+      ) {
         await hamburger.first().click();
         await page.waitForTimeout(300);
 
         // The mobile menu should have links
-        const menuLinks = page.locator(
-          'nav#mobile-menu a, #mobile-menu a, [role="dialog"] a',
-        );
+        const menuLinks = page.locator('nav#mobile-menu a, #mobile-menu a, [role="dialog"] a');
         const linkCount = await menuLinks.count();
 
         if (linkCount > 0) {
@@ -324,16 +342,12 @@ test.describe("Responsive: Tablet Layout", () => {
     expect((body ?? "").length).toBeGreaterThan(50);
   });
 
-  test("content is readable without horizontal overflow at tablet", async ({
-    page,
-  }) => {
+  test("content is readable without horizontal overflow at tablet", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     try {
-      const scrollWidth = await page
-        .evaluate(() => document.body.scrollWidth)
-        .catch(() => 0);
+      const scrollWidth = await page.evaluate(() => document.body.scrollWidth).catch(() => 0);
       const viewportWidth = 768;
       expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 5);
     } catch {
@@ -428,9 +442,7 @@ test.describe("Responsive: Desktop Layout", () => {
     await waitForHydration(page);
 
     try {
-      const navLinks = page.locator(
-        'nav[aria-label="Navegación principal"] a, header nav a',
-      );
+      const navLinks = page.locator('nav[aria-label="Navegación principal"] a, header nav a');
       const linkCount = await navLinks.count();
 
       if (linkCount > 0) {
@@ -492,17 +504,13 @@ test.describe("Responsive: Content Layout", () => {
     await pragmaticFallback(page);
   });
 
-  test("auth page is not horizontally overflowing on mobile", async ({
-    page,
-  }) => {
+  test("auth page is not horizontally overflowing on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
     try {
-      const scrollWidth = await page
-        .evaluate(() => document.body.scrollWidth)
-        .catch(() => 0);
+      const scrollWidth = await page.evaluate(() => document.body.scrollWidth).catch(() => 0);
       const viewportWidth = 375;
       expect(scrollWidth).toBeLessThanOrEqual(viewportWidth + 5);
     } catch {
@@ -523,31 +531,25 @@ authedTest.describe("Responsive: Authenticated Content", () => {
     await mockRestaurantList(authedPage);
   });
 
-  authedTest(
-    "authenticated page renders at mobile viewport",
-    async ({ authedPage }) => {
-      await authedPage.setViewportSize({ width: 375, height: 812 });
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("authenticated page renders at mobile viewport", async ({ authedPage }) => {
+    await authedPage.setViewportSize({ width: 375, height: 812 });
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      const currentUrl = authedPage.url();
-      const redirectedToLogin = currentUrl.includes("/login");
-      expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
-    },
-  );
+    const body = await authedPage.locator("body").textContent();
+    const currentUrl = authedPage.url();
+    const redirectedToLogin = currentUrl.includes("/login");
+    expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
+  });
 
-  authedTest(
-    "authenticated page renders at desktop viewport",
-    async ({ authedPage }) => {
-      await authedPage.setViewportSize({ width: 1280, height: 800 });
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+  authedTest("authenticated page renders at desktop viewport", async ({ authedPage }) => {
+    await authedPage.setViewportSize({ width: 1280, height: 800 });
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      const currentUrl = authedPage.url();
-      const redirectedToLogin = currentUrl.includes("/login");
-      expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
-    },
-  );
+    const body = await authedPage.locator("body").textContent();
+    const currentUrl = authedPage.url();
+    const redirectedToLogin = currentUrl.includes("/login");
+    expect((body ?? "").length > 0 || redirectedToLogin).toBe(true);
+  });
 });

@@ -1,4 +1,10 @@
-import { apiRequest, getApiHeaders, BackendResponse, ApiError } from "./config";
+import {
+  apiRequest,
+  getApiHeaders,
+  BackendResponse,
+  shouldUseApiFallback,
+  isNonApiTransportError,
+} from "./config";
 import { buildSearchParams } from "./utils";
 import { GeoLocation } from "@/types/geospatial";
 
@@ -90,14 +96,12 @@ export async function getBusinesses(filters?: BusinessFilters) {
   try {
     return await apiRequest<BackendResponse<Business[]>>(url);
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] businesses list: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -107,14 +111,12 @@ export async function getBusiness(id: string) {
   try {
     return await apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] as unknown as Business };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] business detail: backend unavailable, returning empty object.",
+        error
+      );
+      return { success: true, data: {} as Business };
     }
     throw error;
   }
@@ -172,14 +174,12 @@ export async function getBusinessReviews(
       `/businesses/${id}/reviews?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] business reviews: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -192,14 +192,12 @@ export async function getBusinessesByProximity(lat: number, lng: number, radius:
       `/businesses/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] nearby businesses: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -214,14 +212,12 @@ export async function searchBusinesses(query: string, filters: BusinessFilters =
       `/businesses/search?${searchParams.toString()}`
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] search businesses: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
     }
     throw error;
   }

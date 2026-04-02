@@ -37,19 +37,13 @@ export function RecipeList({
   const [category, setCategory] = useState(initialCategory);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
 
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    error,
-    fetchNextPage,
-    hasNextPage,
-  } = useInfiniteRecipes({
-    limit: initialLimit,
-    search,
-    category,
-    difficulty,
-  });
+  const { data, isLoading, isFetchingNextPage, error, fetchNextPage, hasNextPage } =
+    useInfiniteRecipes({
+      limit: initialLimit,
+      search,
+      category,
+      difficulty,
+    });
 
   const allRecipes = data?.pages.flat() ?? [];
 

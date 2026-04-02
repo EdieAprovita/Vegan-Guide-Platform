@@ -50,14 +50,17 @@ export function useNearbyMarkets(params?: {
         return [];
       }
 
-      const response = await marketsApi.getNearbyMarkets({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params?.radius || 5,
-        limit: params?.limit || 20,
-        products: params?.products,
-        minRating: params?.minRating,
-      }, signal);
+      const response = await marketsApi.getNearbyMarkets(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params?.radius || 5,
+          limit: params?.limit || 20,
+          products: params?.products,
+          minRating: params?.minRating,
+        },
+        signal
+      );
 
       return extractListData<Market>(response);
     },
@@ -74,7 +77,7 @@ export function useMarketsByProducts(
     limit?: number;
     includeLocation?: boolean;
     enabled?: boolean;
-  },
+  }
 ) {
   const { userCoords } = useUserLocation();
 

@@ -23,15 +23,9 @@ jest.mock("next/link", () => ({
 
 // Mock lucide-react icons with accessible test ids
 jest.mock("lucide-react", () => ({
-  AlertTriangle: (props: Record<string, unknown>) => (
-    <svg data-testid="icon-alert-triangle" />
-  ),
-  RefreshCw: (props: Record<string, unknown>) => (
-    <svg data-testid="icon-refresh-cw" />
-  ),
-  Home: (props: Record<string, unknown>) => (
-    <svg data-testid="icon-home" />
-  ),
+  AlertTriangle: (props: Record<string, unknown>) => <svg data-testid="icon-alert-triangle" />,
+  RefreshCw: (props: Record<string, unknown>) => <svg data-testid="icon-refresh-cw" />,
+  Home: (props: Record<string, unknown>) => <svg data-testid="icon-home" />,
 }));
 
 // Mock i18n
@@ -101,9 +95,7 @@ describe("ErrorFallback", () => {
   it("renders the default description when none is provided", () => {
     render(<ErrorFallback {...defaultProps} />);
     expect(
-      screen.getByText(
-        "Ha ocurrido un error inesperado. Por favor intenta de nuevo."
-      )
+      screen.getByText("Ha ocurrido un error inesperado. Por favor intenta de nuevo.")
     ).toBeInTheDocument();
   });
 
@@ -153,9 +145,7 @@ describe("ErrorFallback", () => {
 
   it("renders a custom icon when provided", () => {
     const CustomIcon = () => <svg data-testid="custom-icon" />;
-    render(
-      <ErrorFallback {...defaultProps} icon={CustomIcon as unknown as LucideIcon} />
-    );
+    render(<ErrorFallback {...defaultProps} icon={CustomIcon as unknown as LucideIcon} />);
     expect(screen.getByTestId("custom-icon")).toBeInTheDocument();
     expect(screen.queryByTestId("icon-alert-triangle")).not.toBeInTheDocument();
   });

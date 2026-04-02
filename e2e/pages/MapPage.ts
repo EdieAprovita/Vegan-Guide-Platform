@@ -24,12 +24,8 @@ export class MapPage {
     this.searchInput = page.locator(
       'input[type="search"], input[placeholder*="earch"], input[placeholder*="uscar"]'
     );
-    this.filterCheckboxes = page.locator(
-      'input[type="checkbox"], [role="checkbox"]'
-    );
-    this.locationList = page.locator(
-      '[class*="location-list"], [class*="result"]'
-    );
+    this.filterCheckboxes = page.locator('input[type="checkbox"], [role="checkbox"]');
+    this.locationList = page.locator('[class*="location-list"], [class*="result"]');
   }
 
   /** Navigate to the map page */

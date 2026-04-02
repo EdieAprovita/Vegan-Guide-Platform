@@ -97,7 +97,9 @@ export async function getSanctuaries(params?: SanctuarySearchParams, signal?: Ab
   if (params?.radius) searchParams.append("radius", params.radius.toString());
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, { signal });
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
 export async function getSanctuary(id: string, signal?: AbortSignal) {
@@ -139,14 +141,17 @@ export async function addSanctuaryReview(id: string, review: SanctuaryReview, to
   });
 }
 
-export async function getNearbySanctuaries(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  typeofSanctuary?: string;
-  minRating?: number;
-}, signal?: AbortSignal) {
+export async function getNearbySanctuaries(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    typeofSanctuary?: string;
+    minRating?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
   searchParams.append("latitude", params.latitude.toString());
   searchParams.append("longitude", params.longitude.toString());
@@ -156,7 +161,9 @@ export async function getNearbySanctuaries(params: {
   if (params.minRating) searchParams.append("rating", params.minRating.toString());
   searchParams.append("sortBy", "distance");
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, { signal });
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
 export async function getSanctuariesByType(
@@ -181,20 +188,25 @@ export async function getSanctuariesByType(
     searchParams.append("sortBy", "distance");
   }
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, { signal });
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
+    signal,
+  });
 }
 
-export async function getAdvancedSanctuaries(params: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  typeofSanctuary?: string[];
-  minRating?: number;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  sortBy?: "distance" | "rating" | "sanctuaryName" | "createdAt";
-}, signal?: AbortSignal) {
+export async function getAdvancedSanctuaries(
+  params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    typeofSanctuary?: string[];
+    minRating?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    sortBy?: "distance" | "rating" | "sanctuaryName" | "createdAt";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.append("page", params.page.toString());
   if (params.limit) searchParams.append("limit", params.limit.toString());
@@ -208,5 +220,7 @@ export async function getAdvancedSanctuaries(params: {
   if (params.radius) searchParams.append("radius", params.radius.toString());
   if (params.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, { signal });
+  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
+    signal,
+  });
 }

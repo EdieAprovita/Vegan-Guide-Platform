@@ -49,13 +49,7 @@ function StatusBadge({
   );
 }
 
-function SectionRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function SectionRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -177,8 +171,7 @@ export function PWASettingsPanel() {
   const { sizeLabel, refresh: refreshSize } = useCacheSize();
 
   const [notifSupported, setNotifSupported] = useState(false);
-  const [permissionState, setPermissionState] =
-    useState<NotificationPermission>("default");
+  const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
   const [installingPWA, setInstallingPWA] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
   const [requestingPermission, setRequestingPermission] = useState(false);
@@ -218,9 +211,7 @@ export function PWASettingsPanel() {
       if (result === "granted") {
         toast.success("Permisos de notificación concedidos");
       } else if (result === "denied") {
-        toast.error(
-          "Permiso denegado. Actívalo desde la configuración del navegador."
-        );
+        toast.error("Permiso denegado. Actívalo desde la configuración del navegador.");
       }
     } finally {
       setRequestingPermission(false);
@@ -268,19 +259,15 @@ export function PWASettingsPanel() {
         </CardHeader>
         <CardContent className="space-y-4">
           <SectionRow label="Estado">
-            <StatusBadge
-              ok={isPWAInstalled}
-              labelOk="Instalada"
-              labelFail="No instalada"
-            />
+            <StatusBadge ok={isPWAInstalled} labelOk="Instalada" labelFail="No instalada" />
           </SectionRow>
 
           {canInstall && !isPWAInstalled && (
             <>
               <Separator />
               <p className="text-sm text-gray-500">
-                Instala Verde Guide como app nativa para acceso rápido, modo
-                offline y notificaciones push.
+                Instala Verde Guide como app nativa para acceso rápido, modo offline y
+                notificaciones push.
               </p>
               <Button
                 onClick={handleInstall}
@@ -320,8 +307,7 @@ export function PWASettingsPanel() {
         <CardContent className="space-y-4">
           {!notifSupported ? (
             <p className="text-sm text-gray-500">
-              Tu navegador no soporta notificaciones push. Usa un navegador
-              moderno para activarlas.
+              Tu navegador no soporta notificaciones push. Usa un navegador moderno para activarlas.
             </p>
           ) : (
             <>
@@ -334,9 +320,7 @@ export function PWASettingsPanel() {
                         ? "gap-1 bg-red-100 text-red-700 hover:bg-red-100"
                         : "gap-1"
                   }
-                  variant={
-                    permissionState === "default" ? "secondary" : "default"
-                  }
+                  variant={permissionState === "default" ? "secondary" : "default"}
                 >
                   {permissionState === "granted" ? (
                     <>
@@ -363,9 +347,7 @@ export function PWASettingsPanel() {
                     className="w-full"
                     variant="outline"
                   >
-                    {requestingPermission && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                    {requestingPermission && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Solicitar permiso de notificaciones
                   </Button>
                 </>
@@ -373,8 +355,8 @@ export function PWASettingsPanel() {
 
               {permissionState === "denied" && (
                 <p className="text-sm text-red-600">
-                  El permiso fue denegado. Para activarlo, ve a la configuración
-                  de tu navegador y permite las notificaciones para este sitio.
+                  El permiso fue denegado. Para activarlo, ve a la configuración de tu navegador y
+                  permite las notificaciones para este sitio.
                 </p>
               )}
 
@@ -382,10 +364,7 @@ export function PWASettingsPanel() {
                 <>
                   <Separator />
                   <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="push-toggle"
-                      className="cursor-pointer text-sm font-medium"
-                    >
+                    <Label htmlFor="push-toggle" className="cursor-pointer text-sm font-medium">
                       Suscripción push activa
                     </Label>
                     <PushToggle
@@ -418,8 +397,8 @@ export function PWASettingsPanel() {
           <Separator />
 
           <p className="text-sm text-gray-500">
-            Limpiar la caché libera espacio pero puede ralentizar la primera
-            carga y desactivar el modo offline temporalmente.
+            Limpiar la caché libera espacio pero puede ralentizar la primera carga y desactivar el
+            modo offline temporalmente.
           </p>
           <Button
             variant="outline"
@@ -448,8 +427,8 @@ export function PWASettingsPanel() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-amber-700">
-              Hay una nueva versión de Verde Guide disponible. Actualiza para
-              obtener las últimas mejoras y correcciones.
+              Hay una nueva versión de Verde Guide disponible. Actualiza para obtener las últimas
+              mejoras y correcciones.
             </p>
             <Button
               onClick={updateServiceWorker}
