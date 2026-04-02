@@ -3,7 +3,8 @@ import {
   getApiHeaders,
   BackendListResponse,
   BackendResponse,
-  ApiError,
+  shouldUseApiFallback,
+  isNonApiTransportError,
 } from "./config";
 import { buildSearchParams } from "./utils";
 import { GeoLocation } from "@/types/geospatial";
@@ -95,14 +96,9 @@ export async function getMarkets(params?: MarketSearchParams, signal?: AbortSign
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] markets list: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -112,14 +108,9 @@ export async function getMarket(id: string, signal?: AbortSignal) {
   try {
     return await apiRequest<BackendResponse<Market>>(`/markets/${id}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] as unknown as Market };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] market detail: backend unavailable, returning empty object.", error);
+      return { success: true, data: {} as Market };
     }
     throw error;
   }
@@ -180,14 +171,9 @@ export async function getNearbyMarkets(params: {
   try {
     return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] nearby markets: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -221,14 +207,9 @@ export async function getMarketsByProducts(
   try {
     return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] markets by products: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -263,14 +244,9 @@ export async function getAdvancedMarkets(params: {
   try {
     return await apiRequest<BackendListResponse<Market>>(`/markets?${searchParams.toString()}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] advanced markets: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
