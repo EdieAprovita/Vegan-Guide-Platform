@@ -81,7 +81,7 @@ describe("useDoctors", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["doctors", expect.objectContaining({ specialty: "Nutrition", page: 1 })],
+        queryKey: ["doctors", "list", expect.objectContaining({ specialty: "Nutrition", page: 1 })],
       })
     );
   });
@@ -98,7 +98,7 @@ describe("useDoctor", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["doctors", "d1"],
+        queryKey: ["doctors", "detail", "d1"],
         enabled: true,
       })
     );
@@ -121,7 +121,7 @@ describe("useNearbyDoctors", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: expect.arrayContaining(["nearbyDoctors"]),
+        queryKey: expect.arrayContaining(["doctors", "nearby"]),
       })
     );
   });
@@ -133,7 +133,7 @@ describe("useDoctorsBySpecialty", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: expect.arrayContaining(["doctorsBySpecialty", "Nutrition"]),
+        queryKey: expect.arrayContaining(["doctors", "bySpecialty", "Nutrition"]),
         enabled: true,
       })
     );
@@ -156,7 +156,7 @@ describe("useAdvancedDoctorSearch", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: expect.arrayContaining(["advancedDoctorSearch"]),
+        queryKey: expect.arrayContaining(["doctors", "search"]),
       })
     );
   });

@@ -17,54 +17,51 @@ function createKey<T extends readonly QueryKeyPart[]>(...parts: T): T {
 export const queryKeys = {
   restaurants: {
     all: createKey("restaurants"),
-    list: (params?: Record<string, unknown>) => createKey("restaurants", params ?? null),
-    detail: (id: string) => createKey("restaurants", id),
+    list: (params?: Record<string, unknown>) => createKey("restaurants", "list", params ?? null),
+    detail: (id: string) => createKey("restaurants", "detail", id),
     topRated: (limit: number) => createKey("restaurants", "topRated", limit),
-    nearbyAll: createKey("nearbyRestaurants"),
+    nearbyAll: createKey("restaurants", "nearby"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("nearbyRestaurants", coords ?? null, params ?? null),
-    byCuisineAll: createKey("restaurantsByCuisine"),
+      createKey("restaurants", "nearby", coords ?? null, params ?? null),
+    byCuisineAll: createKey("restaurants", "byCuisine"),
     byCuisine: (cuisine: string, coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("restaurantsByCuisine", cuisine, coords ?? null, params ?? null),
-    searchAll: createKey("advancedRestaurantSearch"),
+      createKey("restaurants", "byCuisine", cuisine, coords ?? null, params ?? null),
+    searchAll: createKey("restaurants", "search"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("advancedRestaurantSearch", coords ?? null, params ?? null),
+      createKey("restaurants", "search", coords ?? null, params ?? null),
   },
 
   doctors: {
     all: createKey("doctors"),
-    list: (params?: Record<string, unknown>) => createKey("doctors", params ?? null),
-    detail: (id: string) => createKey("doctors", id),
-    nearbyAll: createKey("nearbyDoctors"),
+    list: (params?: Record<string, unknown>) => createKey("doctors", "list", params ?? null),
+    detail: (id: string) => createKey("doctors", "detail", id),
+    nearbyAll: createKey("doctors", "nearby"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("nearbyDoctors", coords ?? null, params ?? null),
-    bySpecialtyAll: createKey("doctorsBySpecialty"),
+      createKey("doctors", "nearby", coords ?? null, params ?? null),
+    bySpecialtyAll: createKey("doctors", "bySpecialty"),
     bySpecialty: (
       specialty: string,
       coords?: Coordinates | null,
-      params?: Record<string, unknown>,
-    ) => createKey("doctorsBySpecialty", specialty, coords ?? null, params ?? null),
-    searchAll: createKey("advancedDoctorSearch"),
+      params?: Record<string, unknown>
+    ) => createKey("doctors", "bySpecialty", specialty, coords ?? null, params ?? null),
+    searchAll: createKey("doctors", "search"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("advancedDoctorSearch", coords ?? null, params ?? null),
+      createKey("doctors", "search", coords ?? null, params ?? null),
   },
 
   markets: {
     all: createKey("markets"),
-    list: (params?: Record<string, unknown>) => createKey("markets", params ?? null),
-    detail: (id: string) => createKey("markets", id),
-    nearbyAll: createKey("nearbyMarkets"),
+    list: (params?: Record<string, unknown>) => createKey("markets", "list", params ?? null),
+    detail: (id: string) => createKey("markets", "detail", id),
+    nearbyAll: createKey("markets", "nearby"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("nearbyMarkets", coords ?? null, params ?? null),
-    byProductsAll: createKey("marketsByProducts"),
-    byProducts: (
-      products: string,
-      coords?: Coordinates | null,
-      params?: Record<string, unknown>,
-    ) => createKey("marketsByProducts", products, coords ?? null, params ?? null),
-    searchAll: createKey("advancedMarketSearch"),
+      createKey("markets", "nearby", coords ?? null, params ?? null),
+    byProductsAll: createKey("markets", "byProducts"),
+    byProducts: (products: string, coords?: Coordinates | null, params?: Record<string, unknown>) =>
+      createKey("markets", "byProducts", products, coords ?? null, params ?? null),
+    searchAll: createKey("markets", "search"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("advancedMarketSearch", coords ?? null, params ?? null),
+      createKey("markets", "search", coords ?? null, params ?? null),
   },
 
   recipes: {
@@ -77,20 +74,20 @@ export const queryKeys = {
 
   sanctuaries: {
     all: createKey("sanctuaries"),
-    list: (params?: Record<string, unknown>) => createKey("sanctuaries", params ?? null),
-    detail: (id: string) => createKey("sanctuaries", id),
-    nearbyAll: createKey("nearbySanctuaries"),
+    list: (params?: Record<string, unknown>) => createKey("sanctuaries", "list", params ?? null),
+    detail: (id: string) => createKey("sanctuaries", "detail", id),
+    nearbyAll: createKey("sanctuaries", "nearby"),
     nearby: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("nearbySanctuaries", coords ?? null, params ?? null),
-    byTypeAll: createKey("sanctuariesByType"),
+      createKey("sanctuaries", "nearby", coords ?? null, params ?? null),
+    byTypeAll: createKey("sanctuaries", "byType"),
     byType: (
       typeofSanctuary: string,
       coords?: Coordinates | null,
-      params?: Record<string, unknown>,
-    ) => createKey("sanctuariesByType", typeofSanctuary, coords ?? null, params ?? null),
-    searchAll: createKey("advancedSanctuarySearch"),
+      params?: Record<string, unknown>
+    ) => createKey("sanctuaries", "byType", typeofSanctuary, coords ?? null, params ?? null),
+    searchAll: createKey("sanctuaries", "search"),
     search: (coords?: Coordinates | null, params?: Record<string, unknown>) =>
-      createKey("advancedSanctuarySearch", coords ?? null, params ?? null),
+      createKey("sanctuaries", "search", coords ?? null, params ?? null),
   },
 
   posts: {
@@ -118,8 +115,7 @@ export const queryKeys = {
     stats: (resourceType: string, resourceId: string) =>
       createKey("reviews", "stats", resourceType, resourceId),
     detail: (id: string) => createKey("reviews", "detail", id),
-    byEntity: (entityType: string, entityId: string) =>
-      createKey("reviews", entityType, entityId),
+    byEntity: (entityType: string, entityId: string) => createKey("reviews", entityType, entityId),
   },
 
   professions: {

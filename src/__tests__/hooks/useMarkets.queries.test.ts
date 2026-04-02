@@ -76,7 +76,8 @@ describe("market query hooks", () => {
     useNearbyMarkets({ radius: 8, products: "fruits", minRating: 3 });
 
     const config = queryConfigs[0];
-    expect(config.queryKey[0]).toBe("nearbyMarkets");
+    expect(config.queryKey[0]).toBe("markets");
+    expect(config.queryKey[1]).toBe("nearby");
 
     await config.queryFn();
     expect(marketsApi.getNearbyMarkets).toHaveBeenCalledWith({
@@ -161,8 +162,8 @@ describe("market query hooks", () => {
     mutationConfigs.forEach((config) => config.onSuccess());
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["nearbyMarkets"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["marketsByProducts"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["advancedMarketSearch"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "nearby"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "byProducts"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["markets", "search"] });
   });
 });

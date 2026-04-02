@@ -168,8 +168,8 @@ describe("sanctuary query hooks", () => {
     mutationConfigs.forEach((config) => config.onSuccess());
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuaries"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["nearbySanctuaries"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuariesByType"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["advancedSanctuarySearch"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuaries", "nearby"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuaries", "byType"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuaries", "search"] });
   });
 });

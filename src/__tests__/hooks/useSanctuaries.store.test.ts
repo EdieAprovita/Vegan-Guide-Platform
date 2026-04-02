@@ -57,7 +57,7 @@ describe("useSanctuaries query hook", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["sanctuaries", expect.any(Object)],
+        queryKey: ["sanctuaries", "list", expect.any(Object)],
       })
     );
   });
@@ -92,7 +92,7 @@ describe("useSanctuary single query", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["sanctuaries", "1"],
+        queryKey: ["sanctuaries", "detail", "1"],
         enabled: true,
       })
     );
