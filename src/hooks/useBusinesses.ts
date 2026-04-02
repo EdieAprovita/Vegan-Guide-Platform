@@ -11,23 +11,7 @@ import type {
   BusinessReview,
   BusinessFilters,
 } from "@/lib/api/businesses";
-
-// ---------------------------------------------------------------------------
-// Query key factory
-// ---------------------------------------------------------------------------
-
-export const businessKeys = {
-  all: ["businesses"] as const,
-  lists: () => [...businessKeys.all, "list"] as const,
-  list: (filters: BusinessFilters & { useUserLocation?: boolean } = {}) =>
-    [...businessKeys.lists(), filters] as const,
-  details: () => [...businessKeys.all, "detail"] as const,
-  detail: (id: string) => [...businessKeys.details(), id] as const,
-  nearby: (lat: number, lng: number, radius: number) =>
-    [...businessKeys.all, "nearby", lat, lng, radius] as const,
-  search: (query: string, filters: BusinessFilters = {}) =>
-    [...businessKeys.all, "search", query, filters] as const,
-};
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // ---------------------------------------------------------------------------
 // useBusinesses — list with optional geolocation injection
@@ -63,10 +47,8 @@ export function useBusinesses(
     return base;
   })();
 
-  const queryKey = businessKeys.list(resolvedFilters);
-
   const query = useQuery({
-    queryKey,
+    queryKey: queryKeys.businesses.list(resolvedFilters as Record<string, unknown>),
     queryFn: async () => {
       const response = await businessesApi.getBusinesses(resolvedFilters);
       const data = processBackendResponse<Business>(response);
@@ -92,7 +74,7 @@ export function useBusinesses(
 
 export function useBusiness(id?: string) {
   const query = useQuery({
-    queryKey: businessKeys.detail(id ?? ""),
+    queryKey: queryKeys.businesses.detail(id ?? ""),
     queryFn: async () => {
       const response = await businessesApi.getBusiness(id!);
       return processBackendResponse<Business>(response) as Business;
@@ -208,7 +190,7 @@ export function useBusinessMutations() {
   const queryClient = useQueryClient();
 
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: businessKeys.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.businesses.all });
   };
 
   const createMutation = useMutation({
@@ -231,7 +213,7 @@ export function useBusinessMutations() {
         ? businessesApi.updateBusiness(id, data, token)
         : businessesApi.updateBusiness(id, data),
     onSuccess: (_data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: businessKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.businesses.detail(id) });
       invalidateAll();
     },
   });
@@ -248,7 +230,7 @@ export function useBusinessMutations() {
         ? businessesApi.addBusinessReview(id, review, token)
         : businessesApi.addBusinessReview(id, review),
     onSuccess: (_data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: businessKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.businesses.detail(id) });
       invalidateAll();
     },
   });

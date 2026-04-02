@@ -5,11 +5,12 @@ import * as marketsApi from "@/lib/api/markets";
 import type { Market, CreateMarketData, MarketReview, MarketSearchParams } from "@/lib/api/markets";
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // Base list query
 export function useMarkets(params?: MarketSearchParams) {
   return useQuery({
-    queryKey: ["markets", params],
+    queryKey: queryKeys.markets.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await marketsApi.getMarkets(params);
       const data = processBackendResponse<Market>(response);
@@ -22,7 +23,7 @@ export function useMarkets(params?: MarketSearchParams) {
 // Single market query
 export function useMarket(id: string) {
   return useQuery({
-    queryKey: ["markets", id],
+    queryKey: queryKeys.markets.detail(id),
     queryFn: async () => {
       const response = await marketsApi.getMarket(id);
       return processBackendResponse<Market>(response) as Market;
@@ -43,7 +44,7 @@ export function useNearbyMarkets(params?: {
   const { userCoords, getCurrentPosition } = useUserLocation();
 
   return useQuery({
-    queryKey: ["nearbyMarkets", userCoords, params],
+    queryKey: queryKeys.markets.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         await getCurrentPosition();
@@ -74,12 +75,12 @@ export function useMarketsByProducts(
     limit?: number;
     includeLocation?: boolean;
     enabled?: boolean;
-  }
+  },
 ) {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["marketsByProducts", products, userCoords, params],
+    queryKey: queryKeys.markets.byProducts(products, userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const searchParams = {
         page: params?.page,
@@ -115,7 +116,7 @@ export function useAdvancedMarketSearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["advancedMarketSearch", userCoords, params],
+    queryKey: queryKeys.markets.search(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const searchParams = {
         search: params.search,
@@ -145,15 +146,17 @@ export function useAdvancedMarketSearch(params: {
 export function useMarketMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.markets.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.markets.nearbyAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.markets.byProductsAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.markets.searchAll });
+  };
+
   const createMarket = useMutation({
     mutationFn: ({ data, token }: { data: CreateMarketData; token?: string }) =>
       marketsApi.createMarket(data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["markets"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyMarkets"] });
-      queryClient.invalidateQueries({ queryKey: ["marketsByProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedMarketSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updateMarket = useMutation({
@@ -166,34 +169,19 @@ export function useMarketMutations() {
       data: Partial<CreateMarketData>;
       token?: string;
     }) => marketsApi.updateMarket(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["markets"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyMarkets"] });
-      queryClient.invalidateQueries({ queryKey: ["marketsByProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedMarketSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deleteMarket = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) =>
       marketsApi.deleteMarket(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["markets"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyMarkets"] });
-      queryClient.invalidateQueries({ queryKey: ["marketsByProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedMarketSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const addReview = useMutation({
     mutationFn: ({ id, review, token }: { id: string; review: MarketReview; token?: string }) =>
       marketsApi.addMarketReview(id, review, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["markets"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyMarkets"] });
-      queryClient.invalidateQueries({ queryKey: ["marketsByProducts"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedMarketSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {

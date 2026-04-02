@@ -16,17 +16,17 @@ import {
   getRestaurantReviewStats,
   createRestaurantReview,
 } from "@/lib/api/reviews";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // ---------------------------------------------------------------------------
-// Query key factory — keeps cache keys consistent across the module
+// reviewKeys — re-exported alias for backward compatibility with existing tests.
+// Delegates to the centralized queryKeys registry to eliminate divergence.
 // ---------------------------------------------------------------------------
 export const reviewKeys = {
-  all: ["reviews"] as const,
-  list: (resourceType: string, resourceId: string) =>
-    ["reviews", "list", resourceType, resourceId] as const,
-  stats: (resourceType: string, resourceId: string) =>
-    ["reviews", "stats", resourceType, resourceId] as const,
-  detail: (reviewId: string) => ["reviews", "detail", reviewId] as const,
+  all: queryKeys.reviews.all,
+  list: queryKeys.reviews.list,
+  stats: queryKeys.reviews.stats,
+  detail: queryKeys.reviews.detail,
 };
 
 // ---------------------------------------------------------------------------
@@ -99,7 +99,7 @@ export function useReviews({
   // ------------------------------------------------------------------
   // Infinite list query
   // ------------------------------------------------------------------
-  const listQueryKey = reviewKeys.list(resourceType, resourceId);
+  const listQueryKey = queryKeys.reviews.list(resourceType, resourceId);
 
   const {
     data: infiniteData,
@@ -131,7 +131,7 @@ export function useReviews({
   // ------------------------------------------------------------------
   // Stats query (restaurant only — other types derived client-side)
   // ------------------------------------------------------------------
-  const statsQueryKey = reviewKeys.stats(resourceType, resourceId);
+  const statsQueryKey = queryKeys.reviews.stats(resourceType, resourceId);
 
   const { data: serverStats } = useQuery({
     queryKey: statsQueryKey,
@@ -301,7 +301,7 @@ export function useReview(reviewId: string) {
   const isAuthenticated = status === "authenticated";
   const queryClient = useQueryClient();
 
-  const detailQueryKey = reviewKeys.detail(reviewId);
+  const detailQueryKey = queryKeys.reviews.detail(reviewId);
 
   const {
     data: review,

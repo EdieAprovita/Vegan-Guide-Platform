@@ -10,11 +10,12 @@ import type {
 } from "@/lib/api/restaurants";
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // Base list query
 export function useRestaurants(params?: RestaurantSearchParams) {
   return useQuery({
-    queryKey: ["restaurants", params],
+    queryKey: queryKeys.restaurants.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await restaurantsApi.getRestaurants(params);
       const data = processBackendResponse<Restaurant>(response);
@@ -27,7 +28,7 @@ export function useRestaurants(params?: RestaurantSearchParams) {
 // Single restaurant query
 export function useRestaurant(id: string) {
   return useQuery({
-    queryKey: ["restaurants", id],
+    queryKey: queryKeys.restaurants.detail(id),
     queryFn: async () => {
       const response = await restaurantsApi.getRestaurant(id);
       return processBackendResponse<Restaurant>(response) as Restaurant;
@@ -40,7 +41,7 @@ export function useRestaurant(id: string) {
 // Top-rated restaurants query
 export function useTopRatedRestaurants(limit = 10) {
   return useQuery({
-    queryKey: ["restaurants", "topRated", limit],
+    queryKey: queryKeys.restaurants.topRated(limit),
     queryFn: async () => {
       const response = await restaurantsApi.getTopRatedRestaurants(limit);
       const data = processBackendResponse<Restaurant>(response);
@@ -61,7 +62,7 @@ export function useNearbyRestaurants(params?: {
   const { userCoords, getCurrentPosition } = useUserLocation();
 
   return useQuery({
-    queryKey: ["nearbyRestaurants", userCoords, params],
+    queryKey: queryKeys.restaurants.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         await getCurrentPosition();
@@ -92,12 +93,16 @@ export function useRestaurantsByCuisine(
     limit?: number;
     includeLocation?: boolean;
     enabled?: boolean;
-  }
+  },
 ) {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["restaurantsByCuisine", cuisine, userCoords, params],
+    queryKey: queryKeys.restaurants.byCuisine(
+      cuisine,
+      userCoords,
+      params as Record<string, unknown>,
+    ),
     queryFn: async () => {
       const searchParams = {
         page: params?.page,
@@ -133,7 +138,7 @@ export function useAdvancedRestaurantSearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["advancedRestaurantSearch", userCoords, params],
+    queryKey: queryKeys.restaurants.search(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const searchParams = {
         search: params.search,
@@ -163,15 +168,17 @@ export function useAdvancedRestaurantSearch(params: {
 export function useRestaurantMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.nearbyAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.byCuisineAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.searchAll });
+  };
+
   const createRestaurant = useMutation({
     mutationFn: ({ data, token }: { data: CreateRestaurantData; token?: string }) =>
       restaurantsApi.createRestaurant(data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyRestaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurantsByCuisine"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedRestaurantSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updateRestaurant = useMutation({
@@ -184,34 +191,19 @@ export function useRestaurantMutations() {
       data: Partial<CreateRestaurantData>;
       token?: string;
     }) => restaurantsApi.updateRestaurant(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyRestaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurantsByCuisine"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedRestaurantSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deleteRestaurant = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) =>
       restaurantsApi.deleteRestaurant(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyRestaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurantsByCuisine"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedRestaurantSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const addReview = useMutation({
     mutationFn: ({ id, review, token }: { id: string; review: RestaurantReview; token?: string }) =>
       restaurantsApi.addRestaurantReview(id, review, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyRestaurants"] });
-      queryClient.invalidateQueries({ queryKey: ["restaurantsByCuisine"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedRestaurantSearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {

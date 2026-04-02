@@ -10,11 +10,12 @@ import type {
 } from "@/lib/api/sanctuaries";
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // Base list query
 export function useSanctuaries(params?: SanctuarySearchParams) {
   return useQuery({
-    queryKey: ["sanctuaries", params],
+    queryKey: queryKeys.sanctuaries.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await sanctuariesApi.getSanctuaries(params);
       const data = processBackendResponse<Sanctuary>(response);
@@ -27,7 +28,7 @@ export function useSanctuaries(params?: SanctuarySearchParams) {
 // Single sanctuary query
 export function useSanctuary(id: string) {
   return useQuery({
-    queryKey: ["sanctuaries", id],
+    queryKey: queryKeys.sanctuaries.detail(id),
     queryFn: async () => {
       const response = await sanctuariesApi.getSanctuary(id);
       return processBackendResponse<Sanctuary>(response) as Sanctuary;
@@ -48,7 +49,7 @@ export function useNearbySanctuaries(params?: {
   const { userCoords, getCurrentPosition } = useUserLocation();
 
   return useQuery({
-    queryKey: ["nearbySanctuaries", userCoords, params],
+    queryKey: queryKeys.sanctuaries.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       if (!userCoords) {
         await getCurrentPosition();
@@ -84,7 +85,7 @@ export function useSanctuariesByType(
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["sanctuariesByType", typeofSanctuary, userCoords, params],
+    queryKey: queryKeys.sanctuaries.byType(typeofSanctuary, userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const searchParams = {
         page: params?.page,
@@ -120,7 +121,7 @@ export function useAdvancedSanctuarySearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["advancedSanctuarySearch", userCoords, params],
+    queryKey: queryKeys.sanctuaries.search(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const searchParams = {
         search: params.search,
@@ -150,15 +151,17 @@ export function useAdvancedSanctuarySearch(params: {
 export function useSanctuaryMutations() {
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.nearbyAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.byTypeAll });
+    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.searchAll });
+  };
+
   const createSanctuary = useMutation({
     mutationFn: ({ data, token }: { data: CreateSanctuaryData; token?: string }) =>
       sanctuariesApi.createSanctuary(data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbySanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["sanctuariesByType"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedSanctuarySearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const updateSanctuary = useMutation({
@@ -171,34 +174,19 @@ export function useSanctuaryMutations() {
       data: Partial<CreateSanctuaryData>;
       token?: string;
     }) => sanctuariesApi.updateSanctuary(id, data, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbySanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["sanctuariesByType"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedSanctuarySearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const deleteSanctuary = useMutation({
     mutationFn: ({ id, token }: { id: string; token?: string }) =>
       sanctuariesApi.deleteSanctuary(id, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbySanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["sanctuariesByType"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedSanctuarySearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const addReview = useMutation({
     mutationFn: ({ id, review, token }: { id: string; review: SanctuaryReview; token?: string }) =>
       sanctuariesApi.addSanctuaryReview(id, review, token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbySanctuaries"] });
-      queryClient.invalidateQueries({ queryKey: ["sanctuariesByType"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedSanctuarySearch"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   return {

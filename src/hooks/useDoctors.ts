@@ -18,11 +18,12 @@ import {
 } from "@/lib/api/doctors";
 import { processBackendResponse } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 // Base list query
 export function useDoctors(params?: DoctorSearchParams) {
   return useQuery({
-    queryKey: ["doctors", params],
+    queryKey: queryKeys.doctors.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await getDoctors(params);
       const data = processBackendResponse<Doctor>(response);
@@ -35,7 +36,7 @@ export function useDoctors(params?: DoctorSearchParams) {
 // Single doctor query
 export function useDoctor(id: string) {
   return useQuery({
-    queryKey: ["doctors", id],
+    queryKey: queryKeys.doctors.detail(id),
     queryFn: async () => {
       const response = await getDoctor(id);
       return processBackendResponse<Doctor>(response) as Doctor;
@@ -56,7 +57,7 @@ export function useNearbyDoctors(params?: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["nearbyDoctors", userCoords, params],
+    queryKey: queryKeys.doctors.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const response = await getNearbyDoctors({
         latitude: userCoords!.lat,
@@ -83,12 +84,16 @@ export function useDoctorsBySpecialty(
     includeLocation?: boolean;
     radius?: number;
     enabled?: boolean;
-  }
+  },
 ) {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["doctorsBySpecialty", specialty, userCoords, params],
+    queryKey: queryKeys.doctors.bySpecialty(
+      specialty,
+      userCoords,
+      params as Record<string, unknown>,
+    ),
     queryFn: async () => {
       const apiParams: Parameters<typeof getDoctorsBySpecialty>[1] = {
         page: params?.page,
@@ -125,7 +130,7 @@ export function useAdvancedDoctorSearch(params: {
   const { userCoords } = useUserLocation();
 
   return useQuery({
-    queryKey: ["advancedDoctorSearch", userCoords, params],
+    queryKey: queryKeys.doctors.search(userCoords, params as Record<string, unknown>),
     queryFn: async () => {
       const apiParams: Parameters<typeof getAdvancedDoctors>[0] = {
         page: params.page || 1,
@@ -158,10 +163,10 @@ export function useDoctorMutations() {
   const create = useMutation({
     mutationFn: ({ data }: { data: CreateDoctorData }) => createDoctor(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["doctors"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyDoctors"] });
-      queryClient.invalidateQueries({ queryKey: ["doctorsBySpecialty"] });
-      queryClient.invalidateQueries({ queryKey: ["advancedDoctorSearch"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.bySpecialtyAll });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.searchAll });
     },
   });
 
@@ -169,16 +174,16 @@ export function useDoctorMutations() {
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateDoctorData> }) =>
       updateDoctor(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["doctors"] });
-      queryClient.invalidateQueries({ queryKey: ["doctors", variables.id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.detail(variables.id) });
     },
   });
 
   const remove = useMutation({
     mutationFn: ({ id }: { id: string }) => deleteDoctor(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["doctors"] });
-      queryClient.invalidateQueries({ queryKey: ["nearbyDoctors"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
     },
   });
 
@@ -186,8 +191,8 @@ export function useDoctorMutations() {
     mutationFn: ({ id, review }: { id: string; review: DoctorReview }) =>
       addDoctorReview(id, review),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["doctors", variables.id] });
-      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
     },
   });
 
