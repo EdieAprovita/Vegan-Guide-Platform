@@ -81,7 +81,7 @@ describe("useSanctuaries query hook", () => {
 
     renderHook(() => useSanctuaries());
 
-    await capturedConfig.queryFn();
+    await capturedConfig.queryFn({ signal: undefined });
     expect(sanctuariesApi.getSanctuaries).toHaveBeenCalled();
   });
 });

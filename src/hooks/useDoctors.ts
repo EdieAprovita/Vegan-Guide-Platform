@@ -24,8 +24,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 export function useDoctors(params?: DoctorSearchParams) {
   return useQuery({
     queryKey: queryKeys.doctors.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await getDoctors(params);
+    queryFn: async ({ signal }) => {
+      const response = await getDoctors(params, signal);
       return extractListData<Doctor>(response);
     },
     staleTime: 5 * 60 * 1000,
@@ -36,8 +36,8 @@ export function useDoctors(params?: DoctorSearchParams) {
 export function useDoctor(id: string) {
   return useQuery({
     queryKey: queryKeys.doctors.detail(id),
-    queryFn: async () => {
-      const response = await getDoctor(id);
+    queryFn: async ({ signal }) => {
+      const response = await getDoctor(id, signal);
       return extractItemData<Doctor>(response);
     },
     enabled: !!id,
@@ -57,7 +57,7 @@ export function useNearbyDoctors(params?: {
 
   return useQuery({
     queryKey: queryKeys.doctors.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await getNearbyDoctors({
         latitude: userCoords!.lat,
         longitude: userCoords!.lng,
@@ -65,7 +65,7 @@ export function useNearbyDoctors(params?: {
         limit: params?.limit || 20,
         specialty: params?.specialty,
         minRating: params?.minRating,
-      });
+      }, signal);
 
       return extractListData<Doctor>(response);
     },
@@ -93,7 +93,7 @@ export function useDoctorsBySpecialty(
       userCoords,
       params as Record<string, unknown>,
     ),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const apiParams: Parameters<typeof getDoctorsBySpecialty>[1] = {
         page: params?.page,
         limit: params?.limit,
@@ -105,7 +105,7 @@ export function useDoctorsBySpecialty(
         apiParams.radius = params.radius || 10;
       }
 
-      const response = await getDoctorsBySpecialty(specialty, apiParams);
+      const response = await getDoctorsBySpecialty(specialty, apiParams, signal);
       return extractListData<Doctor>(response);
     },
     enabled: params?.enabled !== false && !!specialty,
@@ -130,7 +130,7 @@ export function useAdvancedDoctorSearch(params: {
 
   return useQuery({
     queryKey: queryKeys.doctors.search(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const apiParams: Parameters<typeof getAdvancedDoctors>[0] = {
         page: params.page || 1,
         limit: params.limit || 12,
@@ -147,7 +147,7 @@ export function useAdvancedDoctorSearch(params: {
         apiParams.radius = params.radius || 10;
       }
 
-      const response = await getAdvancedDoctors(apiParams);
+      const response = await getAdvancedDoctors(apiParams, signal);
       return extractListData<Doctor>(response);
     },
     enabled: params.enabled !== false,
@@ -163,9 +163,6 @@ export function useDoctorMutations() {
     mutationFn: ({ data }: { data: CreateDoctorData }) => createDoctor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.bySpecialtyAll });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.searchAll });
     },
   });
 
@@ -182,7 +179,6 @@ export function useDoctorMutations() {
     mutationFn: ({ id }: { id: string }) => deleteDoctor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.doctors.nearbyAll });
     },
   });
 

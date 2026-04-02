@@ -79,7 +79,7 @@ describe("sanctuary query hooks", () => {
     useNearbySanctuaries({ radius: 4, typeofSanctuary: "wildlife" });
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(sanctuariesApi.getNearbySanctuaries).toHaveBeenCalledWith({
       latitude: 5,
       longitude: 6,
@@ -87,7 +87,7 @@ describe("sanctuary query hooks", () => {
       limit: 20,
       typeofSanctuary: "wildlife",
       minRating: undefined,
-    });
+    }, undefined);
   });
 
   it("requests geolocation when coordinates absent", async () => {
@@ -97,7 +97,7 @@ describe("sanctuary query hooks", () => {
     useNearbySanctuaries();
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(askLocation).toHaveBeenCalled();
     expect(sanctuariesApi.getNearbySanctuaries).not.toHaveBeenCalled();
   });
@@ -111,14 +111,14 @@ describe("sanctuary query hooks", () => {
     useSanctuariesByType("rescue", { includeLocation: true, limit: 2 });
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(sanctuariesApi.getSanctuariesByType).toHaveBeenCalledWith("rescue", {
       page: undefined,
       limit: 2,
       latitude: 5,
       longitude: 6,
       radius: 10,
-    });
+    }, undefined);
   });
 
   it("configures advanced sanctuary search", async () => {
@@ -137,7 +137,7 @@ describe("sanctuary query hooks", () => {
     });
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(sanctuariesApi.getAdvancedSanctuaries).toHaveBeenCalledWith({
       search: "haven",
       typeofSanctuary: ["wildlife"],
@@ -147,7 +147,7 @@ describe("sanctuary query hooks", () => {
       latitude: 5,
       longitude: 6,
       radius: 15,
-    });
+    }, undefined);
   });
 
   it("invalidates caches after sanctuary mutations", async () => {

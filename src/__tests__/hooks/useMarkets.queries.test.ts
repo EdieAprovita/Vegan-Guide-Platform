@@ -79,7 +79,7 @@ describe("market query hooks", () => {
     expect(config.queryKey[0]).toBe("markets");
     expect(config.queryKey[1]).toBe("nearby");
 
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(marketsApi.getNearbyMarkets).toHaveBeenCalledWith({
       latitude: 3,
       longitude: 4,
@@ -87,7 +87,7 @@ describe("market query hooks", () => {
       limit: 20,
       products: "fruits",
       minRating: 3,
-    });
+    }, undefined);
   });
 
   it("requests position when missing for nearby markets", async () => {
@@ -97,7 +97,7 @@ describe("market query hooks", () => {
     useNearbyMarkets();
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(askLocation).toHaveBeenCalled();
     expect(marketsApi.getNearbyMarkets).not.toHaveBeenCalled();
   });
@@ -108,14 +108,14 @@ describe("market query hooks", () => {
     useMarketsByProducts("tofu", { includeLocation: true, limit: 6 });
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(marketsApi.getMarketsByProducts).toHaveBeenCalledWith("tofu", {
       page: undefined,
       limit: 6,
       latitude: 3,
       longitude: 4,
       radius: 10,
-    });
+    }, undefined);
   });
 
   it("configures advanced market search", async () => {
@@ -131,7 +131,7 @@ describe("market query hooks", () => {
     });
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(marketsApi.getAdvancedMarkets).toHaveBeenCalledWith({
       search: "organic",
       products: ["greens"],
@@ -141,7 +141,7 @@ describe("market query hooks", () => {
       latitude: 3,
       longitude: 4,
       radius: 9,
-    });
+    }, undefined);
   });
 
   it("invalidates caches after market mutations", async () => {

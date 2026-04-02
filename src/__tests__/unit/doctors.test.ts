@@ -120,7 +120,9 @@ describe("Doctors API", () => {
 
       const result = await getDoctor("64f8e2a1c9d4b5e6f7890123");
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors/64f8e2a1c9d4b5e6f7890123");
+      expect(apiRequest).toHaveBeenCalledWith("/doctors/64f8e2a1c9d4b5e6f7890123", {
+        signal: undefined,
+      });
       expect(result).toEqual(mockResponse);
     });
   });
@@ -142,7 +144,8 @@ describe("Doctors API", () => {
       const result = await getNearbyDoctors(params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?latitude=4.6097&longitude=-74.0817&radius=10&limit=20&specialty=Nutrition&rating=4&sortBy=distance"
+        "/doctors?latitude=4.6097&longitude=-74.0817&radius=10&limit=20&specialty=Nutrition&rating=4&sortBy=distance",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });
@@ -159,7 +162,8 @@ describe("Doctors API", () => {
       const result = await getNearbyDoctors(params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?latitude=4.6097&longitude=-74.0817&sortBy=distance"
+        "/doctors?latitude=4.6097&longitude=-74.0817&sortBy=distance",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });
@@ -172,7 +176,9 @@ describe("Doctors API", () => {
 
       const result = await getDoctorsBySpecialty("Nutrition");
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition");
+      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition", {
+        signal: undefined,
+      });
       expect(result).toEqual(mockResponse);
     });
 
@@ -191,7 +197,8 @@ describe("Doctors API", () => {
       const result = await getDoctorsBySpecialty("Nutrition", params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?specialty=Nutrition&page=2&limit=15&latitude=4.6097&longitude=-74.0817&radius=20&sortBy=distance"
+        "/doctors?specialty=Nutrition&page=2&limit=15&latitude=4.6097&longitude=-74.0817&radius=20&sortBy=distance",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });
@@ -218,7 +225,8 @@ describe("Doctors API", () => {
       const result = await getAdvancedDoctors(params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?page=1&limit=12&search=vegan+nutrition&specialty=Nutrition&rating=4&languages=Spanish&languages=English&latitude=4.6097&longitude=-74.0817&radius=15&sortBy=rating"
+        "/doctors?page=1&limit=12&search=vegan+nutrition&specialty=Nutrition&rating=4&languages=Spanish&languages=English&latitude=4.6097&longitude=-74.0817&radius=15&sortBy=rating",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });
@@ -236,7 +244,8 @@ describe("Doctors API", () => {
       const result = await getAdvancedDoctors(params);
 
       expect(apiRequest).toHaveBeenCalledWith(
-        "/doctors?search=nutrition&specialty=Nutrition&sortBy=name"
+        "/doctors?search=nutrition&specialty=Nutrition&sortBy=name",
+        { signal: undefined }
       );
       expect(result).toEqual(mockResponse);
     });

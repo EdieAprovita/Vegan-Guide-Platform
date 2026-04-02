@@ -77,9 +77,10 @@ describe("useRecipes query hook", () => {
 
     renderHook(() => useRecipes({ search: "tacos" }));
 
-    await capturedConfig.queryFn();
+    await capturedConfig.queryFn({ signal: undefined });
     expect(recipesApi.getRecipes).toHaveBeenCalledWith(
-      expect.objectContaining({ search: "tacos" })
+      expect.objectContaining({ search: "tacos" }),
+      undefined
     );
   });
 });

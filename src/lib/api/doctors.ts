@@ -104,9 +104,9 @@ export async function getDoctors(params?: DoctorSearchParams, signal?: AbortSign
   }
 }
 
-export async function getDoctor(id: string) {
+export async function getDoctor(id: string, signal?: AbortSignal) {
   try {
-    return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`);
+    return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`, { signal });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
@@ -121,8 +121,9 @@ export async function getDoctor(id: string) {
   }
 }
 
-export async function searchDoctors(query: string) {
-  return apiRequest<BackendListResponse<Doctor>>(`/doctors?search=${query}`);
+export async function searchDoctors(query: string, signal?: AbortSignal) {
+  const searchParams = buildSearchParams({ search: query });
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, { signal });
 }
 
 export async function createDoctor(data: CreateDoctorData, token?: string) {
@@ -163,7 +164,7 @@ export async function getNearbyDoctors(params: {
   limit?: number;
   specialty?: string;
   minRating?: number;
-}) {
+}, signal?: AbortSignal) {
   const searchParams = buildSearchParams(
     {
       latitude: params.latitude,
@@ -178,7 +179,7 @@ export async function getNearbyDoctors(params: {
   );
 
   try {
-    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, { signal });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
@@ -201,7 +202,8 @@ export async function getDoctorsBySpecialty(
     latitude?: number;
     longitude?: number;
     radius?: number;
-  }
+  },
+  signal?: AbortSignal
 ) {
   // sortBy is conditionally added only when both coordinates are present
   const sortBy =
@@ -218,7 +220,7 @@ export async function getDoctorsBySpecialty(
   });
 
   try {
-    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, { signal });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)
@@ -244,7 +246,7 @@ export async function getAdvancedDoctors(params: {
   longitude?: number;
   radius?: number;
   sortBy?: "distance" | "rating" | "name" | "createdAt";
-}) {
+}, signal?: AbortSignal) {
   const searchParams = buildSearchParams(
     {
       page: params.page,
@@ -262,7 +264,7 @@ export async function getAdvancedDoctors(params: {
   );
 
   try {
-    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`);
+    return await apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, { signal });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       // Only return empty data for non-API errors (network timeouts, etc.)

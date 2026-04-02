@@ -16,8 +16,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 export function useSanctuaries(params?: SanctuarySearchParams) {
   return useQuery({
     queryKey: queryKeys.sanctuaries.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await sanctuariesApi.getSanctuaries(params);
+    queryFn: async ({ signal }) => {
+      const response = await sanctuariesApi.getSanctuaries(params, signal);
       return extractListData<Sanctuary>(response);
     },
     staleTime: 5 * 60 * 1000,
@@ -28,8 +28,8 @@ export function useSanctuaries(params?: SanctuarySearchParams) {
 export function useSanctuary(id: string) {
   return useQuery({
     queryKey: queryKeys.sanctuaries.detail(id),
-    queryFn: async () => {
-      const response = await sanctuariesApi.getSanctuary(id);
+    queryFn: async ({ signal }) => {
+      const response = await sanctuariesApi.getSanctuary(id, signal);
       return extractItemData<Sanctuary>(response);
     },
     enabled: !!id,
@@ -49,7 +49,7 @@ export function useNearbySanctuaries(params?: {
 
   return useQuery({
     queryKey: queryKeys.sanctuaries.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         await getCurrentPosition();
         return [];
@@ -62,7 +62,7 @@ export function useNearbySanctuaries(params?: {
         limit: params?.limit || 20,
         typeofSanctuary: params?.typeofSanctuary,
         minRating: params?.minRating,
-      });
+      }, signal);
 
       return extractListData<Sanctuary>(response);
     },
@@ -85,7 +85,7 @@ export function useSanctuariesByType(
 
   return useQuery({
     queryKey: queryKeys.sanctuaries.byType(typeofSanctuary, userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         page: params?.page,
         limit: params?.limit,
@@ -99,7 +99,7 @@ export function useSanctuariesByType(
         });
       }
 
-      const response = await sanctuariesApi.getSanctuariesByType(typeofSanctuary, searchParams);
+      const response = await sanctuariesApi.getSanctuariesByType(typeofSanctuary, searchParams, signal);
       return extractListData<Sanctuary>(response);
     },
     enabled: params?.enabled !== false && !!typeofSanctuary,
@@ -121,7 +121,7 @@ export function useAdvancedSanctuarySearch(params: {
 
   return useQuery({
     queryKey: queryKeys.sanctuaries.search(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         search: params.search,
         typeofSanctuary: params.typeofSanctuary,
@@ -138,7 +138,7 @@ export function useAdvancedSanctuarySearch(params: {
         });
       }
 
-      const response = await sanctuariesApi.getAdvancedSanctuaries(searchParams);
+      const response = await sanctuariesApi.getAdvancedSanctuaries(searchParams, signal);
       return extractListData<Sanctuary>(response);
     },
     enabled: params.enabled !== false,

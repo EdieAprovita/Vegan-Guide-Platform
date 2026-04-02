@@ -16,8 +16,8 @@ export function useRecipes(params?: {
 }) {
   return useQuery({
     queryKey: queryKeys.recipes.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await recipesApi.getRecipes(params);
+    queryFn: async ({ signal }) => {
+      const response = await recipesApi.getRecipes(params, signal);
       return extractListData<Recipe>(response);
     },
     staleTime: 5 * 60 * 1000,
@@ -62,8 +62,8 @@ export function useInfiniteRecipes(params?: {
 export function useRecipe(id: string) {
   return useQuery({
     queryKey: queryKeys.recipes.detail(id),
-    queryFn: async () => {
-      const response = await recipesApi.getRecipe(id);
+    queryFn: async ({ signal }) => {
+      const response = await recipesApi.getRecipe(id, signal);
       return extractItemData<Recipe>(response);
     },
     enabled: !!id,

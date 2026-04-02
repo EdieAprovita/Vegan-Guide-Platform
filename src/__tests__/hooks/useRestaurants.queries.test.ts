@@ -86,7 +86,7 @@ describe("restaurant query hooks", () => {
       { radius: 7, limit: 5, cuisine: "vegan", minRating: 4 },
     ]);
 
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(restaurantsApi.getNearbyRestaurants).toHaveBeenCalledWith({
       latitude: 1,
       longitude: 2,
@@ -94,7 +94,7 @@ describe("restaurant query hooks", () => {
       limit: 5,
       cuisine: "vegan",
       minRating: 4,
-    });
+    }, undefined);
   });
 
   it("requests geolocation when coordinates missing", async () => {
@@ -104,7 +104,7 @@ describe("restaurant query hooks", () => {
     useNearbyRestaurants({});
 
     const config = queryConfigs[0];
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(requestLocation).toHaveBeenCalled();
     expect(restaurantsApi.getNearbyRestaurants).not.toHaveBeenCalled();
   });
@@ -126,14 +126,14 @@ describe("restaurant query hooks", () => {
       { includeLocation: true, limit: 3 },
     ]);
 
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(restaurantsApi.getRestaurantsByCuisine).toHaveBeenCalledWith("vegan", {
       page: undefined,
       limit: 3,
       latitude: 1,
       longitude: 2,
       radius: 10,
-    });
+    }, undefined);
   });
 
   it("configures advanced restaurant search", async () => {
@@ -157,7 +157,7 @@ describe("restaurant query hooks", () => {
     expect(config.queryKey[0]).toBe("restaurants");
     expect(config.queryKey[1]).toBe("search");
 
-    await config.queryFn();
+    await config.queryFn({ signal: undefined });
     expect(restaurantsApi.getAdvancedRestaurants).toHaveBeenCalledWith({
       search: "salads",
       cuisine: ["vegan"],
@@ -167,7 +167,7 @@ describe("restaurant query hooks", () => {
       latitude: 1,
       longitude: 2,
       radius: 12,
-    });
+    }, undefined);
   });
 
   it("wraps restaurant mutations with invalidations", async () => {

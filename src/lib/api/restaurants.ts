@@ -218,12 +218,14 @@ function getMockRestaurants() {
   };
 }
 
-export async function getRestaurant(id: string) {
-  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`);
+export async function getRestaurant(id: string, signal?: AbortSignal) {
+  return apiRequest<BackendResponse<Restaurant>>(`/restaurants/${id}`, { signal });
 }
 
-export async function getTopRatedRestaurants(limit: number = 10) {
-  return apiRequest<BackendListResponse<Restaurant>>(`/restaurants/top-rated?limit=${limit}`);
+export async function getTopRatedRestaurants(limit: number = 10, signal?: AbortSignal) {
+  return apiRequest<BackendListResponse<Restaurant>>(`/restaurants/top-rated?limit=${limit}`, {
+    signal,
+  });
 }
 
 export async function createRestaurant(data: CreateRestaurantData, token?: string) {
@@ -261,14 +263,17 @@ export async function addRestaurantReview(id: string, review: RestaurantReview, 
   });
 }
 
-export async function getNearbyRestaurants(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  cuisine?: string;
-  minRating?: number;
-}) {
+export async function getNearbyRestaurants(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    cuisine?: string;
+    minRating?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = buildSearchParams(
     {
       latitude: params.latitude,
@@ -284,7 +289,8 @@ export async function getNearbyRestaurants(params: {
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
-      `/restaurants?${searchParams.toString()}`
+      `/restaurants?${searchParams.toString()}`,
+      { signal }
     );
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
@@ -310,7 +316,8 @@ export async function getRestaurantsByCuisine(
     latitude?: number;
     longitude?: number;
     radius?: number;
-  }
+  },
+  signal?: AbortSignal
 ) {
   // sortBy is conditionally added only when both coordinates are present
   const sortBy =
@@ -328,7 +335,8 @@ export async function getRestaurantsByCuisine(
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
-      `/restaurants?${searchParams.toString()}`
+      `/restaurants?${searchParams.toString()}`,
+      { signal }
     );
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).
@@ -346,17 +354,20 @@ export async function getRestaurantsByCuisine(
   }
 }
 
-export async function getAdvancedRestaurants(params: {
-  page?: number;
-  limit?: number;
-  search?: string;
-  cuisine?: string[];
-  minRating?: number;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
-}) {
+export async function getAdvancedRestaurants(
+  params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    cuisine?: string[];
+    minRating?: number;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    sortBy?: "distance" | "rating" | "restaurantName" | "createdAt";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = buildSearchParams(
     {
       page: params.page,
@@ -374,7 +385,8 @@ export async function getAdvancedRestaurants(params: {
 
   try {
     return await apiRequest<BackendListResponse<Restaurant>>(
-      `/restaurants?${searchParams.toString()}`
+      `/restaurants?${searchParams.toString()}`,
+      { signal }
     );
   } catch (error) {
     // In development and CI, return empty data on network errors (backend unavailable).

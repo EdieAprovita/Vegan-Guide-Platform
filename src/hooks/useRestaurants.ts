@@ -16,8 +16,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 export function useRestaurants(params?: RestaurantSearchParams) {
   return useQuery({
     queryKey: queryKeys.restaurants.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await restaurantsApi.getRestaurants(params);
+    queryFn: async ({ signal }) => {
+      const response = await restaurantsApi.getRestaurants(params, signal);
       return extractListData<Restaurant>(response);
     },
     staleTime: 5 * 60 * 1000,
@@ -28,8 +28,8 @@ export function useRestaurants(params?: RestaurantSearchParams) {
 export function useRestaurant(id: string) {
   return useQuery({
     queryKey: queryKeys.restaurants.detail(id),
-    queryFn: async () => {
-      const response = await restaurantsApi.getRestaurant(id);
+    queryFn: async ({ signal }) => {
+      const response = await restaurantsApi.getRestaurant(id, signal);
       return extractItemData<Restaurant>(response);
     },
     enabled: !!id,
@@ -41,8 +41,8 @@ export function useRestaurant(id: string) {
 export function useTopRatedRestaurants(limit = 10) {
   return useQuery({
     queryKey: queryKeys.restaurants.topRated(limit),
-    queryFn: async () => {
-      const response = await restaurantsApi.getTopRatedRestaurants(limit);
+    queryFn: async ({ signal }) => {
+      const response = await restaurantsApi.getTopRatedRestaurants(limit, signal);
       return extractListData<Restaurant>(response);
     },
     staleTime: 10 * 60 * 1000,
@@ -61,7 +61,7 @@ export function useNearbyRestaurants(params?: {
 
   return useQuery({
     queryKey: queryKeys.restaurants.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         await getCurrentPosition();
         return [];
@@ -74,7 +74,7 @@ export function useNearbyRestaurants(params?: {
         limit: params?.limit || 20,
         cuisine: params?.cuisine,
         minRating: params?.minRating,
-      });
+      }, signal);
 
       return extractListData<Restaurant>(response);
     },
@@ -101,7 +101,7 @@ export function useRestaurantsByCuisine(
       userCoords,
       params as Record<string, unknown>,
     ),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         page: params?.page,
         limit: params?.limit,
@@ -115,7 +115,7 @@ export function useRestaurantsByCuisine(
         });
       }
 
-      const response = await restaurantsApi.getRestaurantsByCuisine(cuisine, searchParams);
+      const response = await restaurantsApi.getRestaurantsByCuisine(cuisine, searchParams, signal);
       return extractListData<Restaurant>(response);
     },
     enabled: params?.enabled !== false && !!cuisine,
@@ -137,7 +137,7 @@ export function useAdvancedRestaurantSearch(params: {
 
   return useQuery({
     queryKey: queryKeys.restaurants.search(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         search: params.search,
         cuisine: params.cuisine,
@@ -154,7 +154,7 @@ export function useAdvancedRestaurantSearch(params: {
         });
       }
 
-      const response = await restaurantsApi.getAdvancedRestaurants(searchParams);
+      const response = await restaurantsApi.getAdvancedRestaurants(searchParams, signal);
       return extractListData<Restaurant>(response);
     },
     enabled: params.enabled !== false,

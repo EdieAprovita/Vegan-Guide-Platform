@@ -79,9 +79,10 @@ describe("useRestaurants query hook", () => {
 
     renderHook(() => useRestaurants({ search: "green" }));
 
-    await capturedConfig.queryFn();
+    await capturedConfig.queryFn({ signal: undefined });
     expect(restaurantsApi.getRestaurants).toHaveBeenCalledWith(
-      expect.objectContaining({ search: "green" })
+      expect.objectContaining({ search: "green" }),
+      undefined
     );
   });
 });
