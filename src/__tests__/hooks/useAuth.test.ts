@@ -2,7 +2,10 @@ import { renderHook, act } from "@testing-library/react";
 import { useAuthWithRouter } from "@/hooks/useAuth";
 import { useAuthStore } from "@/lib/store/auth";
 import * as authApi from "@/lib/api/auth";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { toast } from "sonner";
+
+const pushMock = jest.fn();
 
 jest.mock("next-auth/react", () => ({
   signIn: jest.fn(),
@@ -11,7 +14,7 @@ jest.mock("next-auth/react", () => ({
 }));
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 jest.mock("sonner", () => ({
@@ -20,7 +23,14 @@ jest.mock("sonner", () => ({
 
 jest.mock("@/lib/api/auth", () => ({
   register: jest.fn(),
+  forgotPassword: jest.fn(),
+  resetPassword: jest.fn(),
 }));
+
+const useSessionMock = useSession as jest.Mock;
+const signOutMock = signOut as jest.Mock;
+const toastSuccessMock = toast.success as jest.Mock;
+const toastErrorMock = toast.error as jest.Mock;
 
 describe("useAuthWithRouter login", () => {
   beforeEach(() => {
@@ -28,6 +38,7 @@ describe("useAuthWithRouter login", () => {
     state.setIsLoggingIn(false);
     state.setAuthModalOpen(true);
     jest.clearAllMocks();
+    useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
   });
 
   it("logs in successfully", async () => {
@@ -117,5 +128,100 @@ describe("useAuthWithRouter register", () => {
 
     expect(useAuthStore.getState().isRegistering).toBe(false);
     expect(useAuthStore.getState().authModalOpen).toBe(true);
+  });
+});
+
+describe("useAuthWithRouter additional error paths", () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    const state = useAuthStore.getState();
+    state.setIsSendingResetEmail(false);
+    state.setIsUpdatingProfile(false);
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("handles forgot password error and resets loading state", async () => {
+    (authApi.forgotPassword as jest.Mock).mockRejectedValue(new Error("reset failed"));
+
+    const { result } = renderHook(() => useAuthWithRouter());
+
+    await act(async () => {
+      await expect(
+        result.current.forgotPassword({
+          email: "test@example.com",
+        })
+      ).rejects.toThrow("reset failed");
+    });
+
+    expect(useAuthStore.getState().isSendingResetEmail).toBe(false);
+    expect(toastErrorMock).toHaveBeenCalled();
+  });
+
+  it("resets password and redirects to login", async () => {
+    (authApi.resetPassword as jest.Mock).mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useAuthWithRouter());
+
+    await act(async () => {
+      await result.current.resetPassword(
+        { password: "Password1", confirmPassword: "Password1" },
+        "token-123"
+      );
+    });
+
+    expect(pushMock).toHaveBeenCalledWith("/login");
+    expect(toastSuccessMock).toHaveBeenCalled();
+  });
+
+  it("throws not authenticated on profile update when session is missing", async () => {
+    useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
+    const { result } = renderHook(() => useAuthWithRouter());
+
+    await act(async () => {
+      await expect(
+        result.current.updateProfile({
+          username: "new-user",
+        })
+      ).rejects.toThrow("Not authenticated");
+    });
+  });
+
+  it("handles profile update API errors and clears loading state", async () => {
+    useSessionMock.mockReturnValue({
+      data: { user: { id: "u1", email: "test@example.com" } },
+      status: "authenticated",
+    });
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: "Profile update failed" }),
+    }) as unknown as typeof fetch;
+
+    const { result } = renderHook(() => useAuthWithRouter());
+
+    await act(async () => {
+      await expect(result.current.updateProfile({ username: "new-user" })).rejects.toThrow(
+        "Profile update failed"
+      );
+    });
+
+    expect(useAuthStore.getState().isUpdatingProfile).toBe(false);
+    expect(toastErrorMock).toHaveBeenCalled();
+  });
+
+  it("handles logout failure without throwing", async () => {
+    signOutMock.mockRejectedValue(new Error("logout failed"));
+    const { result } = renderHook(() => useAuthWithRouter());
+
+    await act(async () => {
+      await expect(result.current.logout()).resolves.toBeUndefined();
+    });
+
+    expect(toastErrorMock).toHaveBeenCalledWith("Logout failed. Please try again.");
   });
 });

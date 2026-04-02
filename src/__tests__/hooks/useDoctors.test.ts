@@ -90,6 +90,21 @@ describe("useDoctors", () => {
     const { result } = renderHook(() => useDoctors());
     expect(result.current.data).toEqual([mockDoctor]);
   });
+
+  it("forwards AbortSignal to getDoctors in queryFn", async () => {
+    (doctorsApi.getDoctors as jest.Mock).mockResolvedValue({ success: true, data: [mockDoctor] });
+    renderHook(() => useDoctors({ specialty: "Nutrition" }));
+
+    const queryOptions = useQueryMock.mock.calls[0][0];
+    const signal = new AbortController().signal;
+
+    await queryOptions.queryFn({ signal });
+
+    expect(doctorsApi.getDoctors).toHaveBeenCalledWith(
+      expect.objectContaining({ specialty: "Nutrition" }),
+      signal
+    );
+  });
 });
 
 describe("useDoctor", () => {
@@ -122,6 +137,21 @@ describe("useNearbyDoctors", () => {
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
         queryKey: expect.arrayContaining(["doctors", "nearby"]),
+      })
+    );
+  });
+
+  it("disables nearby query when user coordinates are unavailable", () => {
+    locationMock.mockReturnValue({
+      userCoords: null,
+      getCurrentPosition: jest.fn(),
+    });
+
+    renderHook(() => useNearbyDoctors({ radius: 7 }));
+
+    expect(useQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: false,
       })
     );
   });
@@ -173,5 +203,22 @@ describe("useDoctorMutations", () => {
     expect(result.current.update).toBeDefined();
     expect(result.current.remove).toBeDefined();
     expect(result.current.addReview).toBeDefined();
+  });
+
+  it("invalidates doctor lists and detail on update success", () => {
+    const invalidateQueries = jest.fn();
+    useQueryClientMock.mockReturnValue({ invalidateQueries });
+
+    renderHook(() => useDoctorMutations());
+
+    const updateMutationConfig = useMutationMock.mock.calls[1][0];
+    updateMutationConfig.onSuccess(undefined, { id: "doctor-1", data: {} });
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["doctors"],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["doctors", "detail", "doctor-1"],
+    });
   });
 });
