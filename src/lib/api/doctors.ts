@@ -122,7 +122,8 @@ export async function getDoctor(id: string, signal?: AbortSignal) {
 }
 
 export async function searchDoctors(query: string, signal?: AbortSignal) {
-  return apiRequest<BackendListResponse<Doctor>>(`/doctors?search=${query}`, { signal });
+  const searchParams = buildSearchParams({ search: query });
+  return apiRequest<BackendListResponse<Doctor>>(`/doctors?${searchParams.toString()}`, { signal });
 }
 
 export async function createDoctor(data: CreateDoctorData, token?: string) {

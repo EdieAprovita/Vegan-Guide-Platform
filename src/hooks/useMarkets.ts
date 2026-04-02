@@ -11,8 +11,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 export function useMarkets(params?: MarketSearchParams) {
   return useQuery({
     queryKey: queryKeys.markets.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await marketsApi.getMarkets(params);
+    queryFn: async ({ signal }) => {
+      const response = await marketsApi.getMarkets(params, signal);
       return extractListData<Market>(response);
     },
     staleTime: 5 * 60 * 1000,
@@ -23,8 +23,8 @@ export function useMarkets(params?: MarketSearchParams) {
 export function useMarket(id: string) {
   return useQuery({
     queryKey: queryKeys.markets.detail(id),
-    queryFn: async () => {
-      const response = await marketsApi.getMarket(id);
+    queryFn: async ({ signal }) => {
+      const response = await marketsApi.getMarket(id, signal);
       return extractItemData<Market>(response);
     },
     enabled: !!id,
@@ -44,7 +44,7 @@ export function useNearbyMarkets(params?: {
 
   return useQuery({
     queryKey: queryKeys.markets.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         await getCurrentPosition();
         return [];
@@ -57,7 +57,7 @@ export function useNearbyMarkets(params?: {
         limit: params?.limit || 20,
         products: params?.products,
         minRating: params?.minRating,
-      });
+      }, signal);
 
       return extractListData<Market>(response);
     },
@@ -80,7 +80,7 @@ export function useMarketsByProducts(
 
   return useQuery({
     queryKey: queryKeys.markets.byProducts(products, userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         page: params?.page,
         limit: params?.limit,
@@ -94,7 +94,7 @@ export function useMarketsByProducts(
         });
       }
 
-      const response = await marketsApi.getMarketsByProducts(products, searchParams);
+      const response = await marketsApi.getMarketsByProducts(products, searchParams, signal);
       return extractListData<Market>(response);
     },
     enabled: params?.enabled !== false && !!products,
@@ -116,7 +116,7 @@ export function useAdvancedMarketSearch(params: {
 
   return useQuery({
     queryKey: queryKeys.markets.search(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams = {
         search: params.search,
         products: params.products,
@@ -133,7 +133,7 @@ export function useAdvancedMarketSearch(params: {
         });
       }
 
-      const response = await marketsApi.getAdvancedMarkets(searchParams);
+      const response = await marketsApi.getAdvancedMarkets(searchParams, signal);
       return extractListData<Market>(response);
     },
     enabled: params.enabled !== false,

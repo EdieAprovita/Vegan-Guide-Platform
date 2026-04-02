@@ -78,9 +78,10 @@ describe("useMarkets query hook", () => {
 
     renderHook(() => useMarkets({ search: "fresh" }));
 
-    await capturedConfig.queryFn();
+    await capturedConfig.queryFn({ signal: undefined });
     expect(marketsApi.getMarkets).toHaveBeenCalledWith(
-      expect.objectContaining({ search: "fresh" })
+      expect.objectContaining({ search: "fresh" }),
+      undefined
     );
   });
 });
