@@ -19,13 +19,7 @@ jest.mock("next-auth/react", () => ({
 
 // Mock the HelpfulVotes sub-component to simplify testing
 jest.mock("@/components/features/reviews/helpful-votes", () => ({
-  HelpfulVotes: ({
-    reviewId,
-    helpfulCount,
-  }: {
-    reviewId: string;
-    helpfulCount: number;
-  }) => (
+  HelpfulVotes: ({ reviewId, helpfulCount }: { reviewId: string; helpfulCount: number }) => (
     <div data-testid="helpful-votes" data-review-id={reviewId}>
       helpful-votes:{helpfulCount}
     </div>
@@ -40,8 +34,9 @@ jest.mock("@/components/ui/card", () => require("@/__tests__/setup/mock-componen
 jest.mock("@/components/ui/badge", () => require("@/__tests__/setup/mock-components").badgeMock);
 jest.mock("@/components/ui/button", () => require("@/__tests__/setup/mock-components").buttonMock);
 jest.mock("@/components/ui/avatar", () => require("@/__tests__/setup/mock-components").avatarMock);
-jest.mock("@/components/ui/dropdown-menu", () =>
-  require("@/__tests__/setup/mock-components").dropdownMenuMock
+jest.mock(
+  "@/components/ui/dropdown-menu",
+  () => require("@/__tests__/setup/mock-components").dropdownMenuMock
 );
 
 // ---------------------------------------------------------------------------
@@ -130,10 +125,7 @@ describe("ReviewCard (full view)", () => {
 
   it("passes reviewId to HelpfulVotes", () => {
     render(<ReviewCard {...defaultProps} />);
-    expect(screen.getByTestId("helpful-votes")).toHaveAttribute(
-      "data-review-id",
-      "review-abc123"
-    );
+    expect(screen.getByTestId("helpful-votes")).toHaveAttribute("data-review-id", "review-abc123");
   });
 
   it("renders the shortened review ID in the footer", () => {

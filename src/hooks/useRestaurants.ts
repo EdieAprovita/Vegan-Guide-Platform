@@ -67,14 +67,17 @@ export function useNearbyRestaurants(params?: {
         return [];
       }
 
-      const response = await restaurantsApi.getNearbyRestaurants({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params?.radius || 5,
-        limit: params?.limit || 20,
-        cuisine: params?.cuisine,
-        minRating: params?.minRating,
-      }, signal);
+      const response = await restaurantsApi.getNearbyRestaurants(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params?.radius || 5,
+          limit: params?.limit || 20,
+          cuisine: params?.cuisine,
+          minRating: params?.minRating,
+        },
+        signal
+      );
 
       return extractListData<Restaurant>(response);
     },
@@ -91,7 +94,7 @@ export function useRestaurantsByCuisine(
     limit?: number;
     includeLocation?: boolean;
     enabled?: boolean;
-  },
+  }
 ) {
   const { userCoords } = useUserLocation();
 
@@ -99,7 +102,7 @@ export function useRestaurantsByCuisine(
     queryKey: queryKeys.restaurants.byCuisine(
       cuisine,
       userCoords,
-      params as Record<string, unknown>,
+      params as Record<string, unknown>
     ),
     queryFn: async ({ signal }) => {
       const searchParams = {

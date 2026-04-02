@@ -105,9 +105,7 @@ describe("RecipeCard", () => {
   });
 
   it("has displayName set to RecipeCard", () => {
-    const { RecipeCard: RC } = jest.requireActual(
-      "@/components/features/recipes/recipe-card"
-    );
+    const { RecipeCard: RC } = jest.requireActual("@/components/features/recipes/recipe-card");
     expect(RC.displayName).toBe("RecipeCard");
   });
 });

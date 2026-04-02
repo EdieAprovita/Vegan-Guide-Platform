@@ -184,9 +184,7 @@ test.describe("Auth: Register", () => {
     // Try to select user role
     try {
       await registerPage.roleSelect.selectOption("user");
-      const selected = await registerPage.roleSelect.evaluate(
-        (el: HTMLSelectElement) => el.value
-      );
+      const selected = await registerPage.roleSelect.evaluate((el: HTMLSelectElement) => el.value);
       expect(selected).toBe("user");
     } catch {
       // Role select might not exist if role is fixed/implicit

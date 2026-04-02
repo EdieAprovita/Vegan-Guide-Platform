@@ -19,10 +19,10 @@ export class DoctorPage extends BaseResourcePage {
 
     // Use data-testid for reliable selection; fallback to id-based selection
     this.specialtyFilter = page.locator(
-      '[data-testid="specialty-filter"], [id*="specialty"], select[aria-label*="specialty" i]',
+      '[data-testid="specialty-filter"], [id*="specialty"], select[aria-label*="specialty" i]'
     );
     this.ratingFilter = page.locator(
-      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]',
+      '[data-testid="rating-filter"], [id*="rating"], select[aria-label*="rating" i]'
     );
     this.addDoctorButton = page.getByRole("button", {
       name: /add doctor|agregar doctor/i,
@@ -32,7 +32,7 @@ export class DoctorPage extends BaseResourcePage {
   /** Check if any cards have a specialty badge displayed */
   async hasSpecialtyBadges(): Promise<boolean> {
     const badges = this.page.locator(
-      '[aria-label*="specialty"], [class*="badge"][class*="specialty"], [data-testid*="specialty"]',
+      '[aria-label*="specialty"], [class*="badge"][class*="specialty"], [data-testid*="specialty"]'
     );
     return (await badges.count()) > 0;
   }

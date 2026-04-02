@@ -105,8 +105,7 @@ test.describe("Auth: Profile Update", () => {
     // useEffect runs after the initial React paint — if we register the waiter after
     // goto() the request may already be in-flight and we could miss it.
     const profileGetResponsePromise = authedPage.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      (resp) => resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
       { timeout: 15000 }
     );
 
@@ -403,8 +402,7 @@ test.describe("Auth: Profile Update", () => {
     // asynchronously after the React paint; capturing the response explicitly
     // avoids a race between the effect running and our toHaveValue assertion.
     const profileGetResponsePromise = authedPage.waitForResponse(
-      (resp) =>
-        resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
+      (resp) => resp.url().includes("/api/user/profile") && resp.request().method() === "GET",
       { timeout: 15000 }
     );
 

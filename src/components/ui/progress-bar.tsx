@@ -27,7 +27,10 @@ export function ProgressBar({ value, label, className, barClassName }: ProgressB
       className={cn("bg-primary/10 h-1.5 w-full overflow-hidden rounded-full", className)}
     >
       <div
-        className={cn("h-full rounded-full bg-emerald-500 transition-all duration-500", barClassName)}
+        className={cn(
+          "h-full rounded-full bg-emerald-500 transition-all duration-500",
+          barClassName
+        )}
         style={{ width: `${clamped}%` }}
       />
     </div>

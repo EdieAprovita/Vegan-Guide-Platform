@@ -80,14 +80,17 @@ describe("sanctuary query hooks", () => {
 
     const config = queryConfigs[0];
     await config.queryFn({ signal: undefined });
-    expect(sanctuariesApi.getNearbySanctuaries).toHaveBeenCalledWith({
-      latitude: 5,
-      longitude: 6,
-      radius: 4,
-      limit: 20,
-      typeofSanctuary: "wildlife",
-      minRating: undefined,
-    }, undefined);
+    expect(sanctuariesApi.getNearbySanctuaries).toHaveBeenCalledWith(
+      {
+        latitude: 5,
+        longitude: 6,
+        radius: 4,
+        limit: 20,
+        typeofSanctuary: "wildlife",
+        minRating: undefined,
+      },
+      undefined
+    );
   });
 
   it("requests geolocation when coordinates absent", async () => {
@@ -112,13 +115,17 @@ describe("sanctuary query hooks", () => {
 
     const config = queryConfigs[0];
     await config.queryFn({ signal: undefined });
-    expect(sanctuariesApi.getSanctuariesByType).toHaveBeenCalledWith("rescue", {
-      page: undefined,
-      limit: 2,
-      latitude: 5,
-      longitude: 6,
-      radius: 10,
-    }, undefined);
+    expect(sanctuariesApi.getSanctuariesByType).toHaveBeenCalledWith(
+      "rescue",
+      {
+        page: undefined,
+        limit: 2,
+        latitude: 5,
+        longitude: 6,
+        radius: 10,
+      },
+      undefined
+    );
   });
 
   it("configures advanced sanctuary search", async () => {
@@ -138,16 +145,19 @@ describe("sanctuary query hooks", () => {
 
     const config = queryConfigs[0];
     await config.queryFn({ signal: undefined });
-    expect(sanctuariesApi.getAdvancedSanctuaries).toHaveBeenCalledWith({
-      search: "haven",
-      typeofSanctuary: ["wildlife"],
-      minRating: 5,
-      sortBy: "distance",
-      limit: 50,
-      latitude: 5,
-      longitude: 6,
-      radius: 15,
-    }, undefined);
+    expect(sanctuariesApi.getAdvancedSanctuaries).toHaveBeenCalledWith(
+      {
+        search: "haven",
+        typeofSanctuary: ["wildlife"],
+        minRating: 5,
+        sortBy: "distance",
+        limit: 50,
+        latitude: 5,
+        longitude: 6,
+        radius: 15,
+      },
+      undefined
+    );
   });
 
   it("invalidates caches after sanctuary mutations", async () => {

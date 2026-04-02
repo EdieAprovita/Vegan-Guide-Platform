@@ -68,9 +68,7 @@ export function useResourceList<T>({
   // -------------------------------------------------------------------------
   // Core state
   // -------------------------------------------------------------------------
-  const [items, setItems] = useState<T[]>(
-    Array.isArray(initialItems) ? initialItems : []
-  );
+  const [items, setItems] = useState<T[]>(Array.isArray(initialItems) ? initialItems : []);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -89,12 +87,11 @@ export function useResourceList<T>({
 
   // Build the initial filter value map from the provided FilterConfig array.
   // Each key maps to an empty string (no filter applied).
-  const [filterValues, setFilterValues] = useState<Record<string, string>>(
-    () =>
-      filters.reduce<Record<string, string>>((acc, f) => {
-        acc[f.key] = "";
-        return acc;
-      }, {})
+  const [filterValues, setFilterValues] = useState<Record<string, string>>(() =>
+    filters.reduce<Record<string, string>>((acc, f) => {
+      acc[f.key] = "";
+      return acc;
+    }, {})
   );
 
   // -------------------------------------------------------------------------
@@ -116,8 +113,7 @@ export function useResourceList<T>({
       // - For a fresh fetch (isLoadMore=false): always page 1.
       // - For load-more: currentPage if provided, else current page + 1.
       //   We read from the ref to get the latest value without a stale closure.
-      const targetPage =
-        currentPage ?? (isLoadMore ? pageRef.current + 1 : 1);
+      const targetPage = currentPage ?? (isLoadMore ? pageRef.current + 1 : 1);
 
       try {
         setLoading(true);
@@ -154,18 +150,12 @@ export function useResourceList<T>({
           data = (response as { data: T[] }).data;
         } else {
           // Unexpected shape — treat as empty to avoid rendering garbage.
-          console.warn(
-            `useResourceList: unexpected response shape for "${errorLabel}"`,
-            response
-          );
+          console.warn(`useResourceList: unexpected response shape for "${errorLabel}"`, response);
           data = [];
         }
 
         if (isLoadMore) {
-          setItems((prev) => [
-            ...(Array.isArray(prev) ? prev : []),
-            ...data,
-          ]);
+          setItems((prev) => [...(Array.isArray(prev) ? prev : []), ...data]);
           setPage(targetPage);
         } else {
           setItems(data);

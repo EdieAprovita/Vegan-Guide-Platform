@@ -37,25 +37,22 @@ export class BaseResourcePage {
 
     // List page
     this.heading = page.locator("h1");
-    const extraSearch = config.extraSearchSelector
-      ? `, ${config.extraSearchSelector}`
-      : "";
+    const extraSearch = config.extraSearchSelector ? `, ${config.extraSearchSelector}` : "";
     this.searchInput = page.locator(
-      `input[type="search"], input[placeholder*="earch"]${extraSearch}`,
+      `input[type="search"], input[placeholder*="earch"]${extraSearch}`
     );
     this.cards = page.locator(config.cardSelector);
     this.loadMoreButton = page.getByRole("button", {
       name: /load more|cargar más|ver más/i,
     });
     // Scope search button to form context to avoid matching unrelated buttons
-    this.searchButton = page.locator(
-      'form, [role="search"], .search-form',
-    ).locator('button:has-text(/search|buscar/i)').first();
+    this.searchButton = page
+      .locator('form, [role="search"], .search-form')
+      .locator("button:has-text(/search|buscar/i)")
+      .first();
 
     // Detail page
-    this.backButton = page.locator(
-      'button[aria-label*="Volver"], a[aria-label*="Volver"]',
-    );
+    this.backButton = page.locator('button[aria-label*="Volver"], a[aria-label*="Volver"]');
     this.detailContainer = page.locator("main .container, main");
   }
 
@@ -107,9 +104,7 @@ export class BaseResourcePage {
 
   /** Check if the list page has loaded with content */
   async hasContent(): Promise<boolean> {
-    return (
-      ((await this.page.locator("body").textContent())?.length ?? 0) > 50
-    );
+    return ((await this.page.locator("body").textContent())?.length ?? 0) > 50;
   }
 
   /** Get the page title/heading text */

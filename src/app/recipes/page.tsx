@@ -59,11 +59,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
               Back to Home
             </Link>
           </Button>
-          <Button
-            asChild
-            size="sm"
-            className="bg-emerald-600 text-white hover:bg-emerald-700"
-          >
+          <Button asChild size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">
             <Link href="/recipes/new" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Create Recipe

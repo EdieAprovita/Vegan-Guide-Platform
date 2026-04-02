@@ -18,9 +18,7 @@ export function LoadingSpinner() {
         role="status"
         aria-label={t("common.loading")}
       />
-      <p className="text-sm font-medium tracking-wide text-emerald-700">
-        {t("common.loading")}
-      </p>
+      <p className="text-sm font-medium tracking-wide text-emerald-700">{t("common.loading")}</p>
     </div>
   );
 }

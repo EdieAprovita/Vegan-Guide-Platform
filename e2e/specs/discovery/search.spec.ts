@@ -8,7 +8,12 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors, assertNoInfiniteRedirect } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+} from "../../helpers/test-utils";
 
 /**
  * Search E2E Test Suite
@@ -55,7 +60,7 @@ test.describe("Search: Advanced Search Page", () => {
     } else {
       // Broaden: any text or search input anywhere on the page
       const fallbackInput = page.locator(
-        'input[type="text"], input[type="search"], input[placeholder]',
+        'input[type="text"], input[type="search"], input[placeholder]'
       );
       const fallbackCount = await fallbackInput.count();
       // Pragmatic: at least one input exists
@@ -221,9 +226,7 @@ test.describe("Search: Search Results", () => {
         expect(resultCount).toBeGreaterThanOrEqual(1);
       } else {
         // No article/result-card elements: check for empty or no-results message
-        const noResultsVisible = await searchPage.noResultsMessage
-          .isVisible()
-          .catch(() => false);
+        const noResultsVisible = await searchPage.noResultsMessage.isVisible().catch(() => false);
         if (noResultsVisible) {
           expect(noResultsVisible).toBe(true);
         } else {
@@ -334,57 +337,49 @@ authedTest.describe("Search: Authenticated Search", () => {
     await mockGoogleMaps(authedPage);
   });
 
-  authedTest(
-    "authenticated user can access search page",
-    async ({ authedPage }) => {
-      const searchPage = new SearchPage(authedPage);
-      await searchPage.gotoSearch();
-      await waitForHydration(authedPage);
+  authedTest("authenticated user can access search page", async ({ authedPage }) => {
+    const searchPage = new SearchPage(authedPage);
+    await searchPage.gotoSearch();
+    await waitForHydration(authedPage);
 
-      // Page must render content
-      await pragmaticFallback(authedPage);
+    // Page must render content
+    await pragmaticFallback(authedPage);
 
-      // Must NOT be redirected to login
-      const currentUrl = authedPage.url();
-      expect(currentUrl).not.toContain("/login");
-    },
-  );
+    // Must NOT be redirected to login
+    const currentUrl = authedPage.url();
+    expect(currentUrl).not.toContain("/login");
+  });
 
-  authedTest(
-    "authenticated user can perform search",
-    async ({ authedPage }) => {
-      const searchPage = new SearchPage(authedPage);
-      await searchPage.gotoSearch();
-      await waitForHydration(authedPage);
+  authedTest("authenticated user can perform search", async ({ authedPage }) => {
+    const searchPage = new SearchPage(authedPage);
+    await searchPage.gotoSearch();
+    await waitForHydration(authedPage);
 
-      try {
-        const inputVisible = await searchPage.searchInput
-          .isVisible()
-          .catch(() => false);
+    try {
+      const inputVisible = await searchPage.searchInput.isVisible().catch(() => false);
 
-        if (inputVisible) {
-          await searchPage.searchInput.fill("restaurante vegano");
-          await searchPage.searchInput.press("Enter");
-        } else {
-          // Fallback: use any visible text/search input
-          const fallbackInput = authedPage
-            .locator('input[type="text"], input[type="search"], input[placeholder]')
-            .first();
-          const fallbackVisible = await fallbackInput.isVisible().catch(() => false);
-          if (fallbackVisible) {
-            await fallbackInput.fill("restaurante vegano");
-            await fallbackInput.press("Enter");
-          }
+      if (inputVisible) {
+        await searchPage.searchInput.fill("restaurante vegano");
+        await searchPage.searchInput.press("Enter");
+      } else {
+        // Fallback: use any visible text/search input
+        const fallbackInput = authedPage
+          .locator('input[type="text"], input[type="search"], input[placeholder]')
+          .first();
+        const fallbackVisible = await fallbackInput.isVisible().catch(() => false);
+        if (fallbackVisible) {
+          await fallbackInput.fill("restaurante vegano");
+          await fallbackInput.press("Enter");
         }
-
-        await waitForHydration(authedPage);
-
-        // Page must remain operational after the search
-        await pragmaticFallback(authedPage);
-      } catch {
-        // Interaction guard: page must still be rendered
-        await pragmaticFallback(authedPage);
       }
-    },
-  );
+
+      await waitForHydration(authedPage);
+
+      // Page must remain operational after the search
+      await pragmaticFallback(authedPage);
+    } catch {
+      // Interaction guard: page must still be rendered
+      await pragmaticFallback(authedPage);
+    }
+  });
 });

@@ -24,9 +24,7 @@ export async function GET(req: NextRequest) {
 
   // Validate timeRange against an explicit allowlist to prevent query-string injection.
   const rawTimeRange = req.nextUrl.searchParams.get("timeRange");
-  const timeRange = ALLOWED_TIME_RANGES.has(rawTimeRange ?? "")
-    ? (rawTimeRange as string)
-    : "30d";
+  const timeRange = ALLOWED_TIME_RANGES.has(rawTimeRange ?? "") ? (rawTimeRange as string) : "30d";
 
   try {
     // Delegate to the shared analytics lib to keep fetch/response handling consistent.
@@ -34,9 +32,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("Analytics proxy error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch analytics" },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 502 });
   }
 }

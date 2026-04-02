@@ -27,7 +27,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     Sentry.withScope((scope) => {
       scope.setTag("digest", error.digest ?? "unknown");
       scope.setExtra("path", typeof window !== "undefined" ? window.location.pathname : "unknown");
-      scope.setExtra("userAgent", typeof navigator !== "undefined" ? navigator.userAgent : "unknown");
+      scope.setExtra(
+        "userAgent",
+        typeof navigator !== "undefined" ? navigator.userAgent : "unknown"
+      );
       scope.setExtra("timestamp", new Date().toISOString());
       Sentry.captureException(error);
     });
@@ -40,11 +43,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           {/* Logo mark */}
           <div className="mb-8 flex flex-col items-center gap-3">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-200">
-              <Leaf
-                className="h-10 w-10 text-white"
-                aria-hidden="true"
-                strokeWidth={1.5}
-              />
+              <Leaf className="h-10 w-10 text-white" aria-hidden="true" strokeWidth={1.5} />
             </div>
             <span className="text-sm font-semibold tracking-widest text-emerald-600 uppercase">
               Verde Guide

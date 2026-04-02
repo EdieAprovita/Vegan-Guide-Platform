@@ -16,7 +16,11 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * Ratings E2E Test Suite
@@ -48,12 +52,10 @@ test.describe("Ratings: Display on Resource Cards", () => {
     try {
       // Look for rating-related elements: star icons, numeric values, "rating" text
       const ratingNumbers = page.locator(
-        '[aria-label*="rating" i], [aria-label*="Rating" i], [class*="rating"], [class*="star"]',
+        '[aria-label*="rating" i], [aria-label*="Rating" i], [class*="rating"], [class*="star"]'
       );
       const starSvgs = page.locator('svg[class*="star" i], svg.fill-primary');
-      const ratingText = page.locator(
-        "text=/4\\.\\d|5\\.\\d|3\\.\\d|rating/i",
-      );
+      const ratingText = page.locator("text=/4\\.\\d|5\\.\\d|3\\.\\d|rating/i");
 
       const hasRatingElements =
         (await ratingNumbers.count()) > 0 ||
@@ -137,14 +139,11 @@ test.describe("Ratings: Detail Page Rating Display", () => {
     try {
       // Look for any rating-related content: numbers like 4.5, star elements, or "rating" text
       const ratingValue = page.locator(
-        '[class*="rating"], [aria-label*="rating" i], .text-3xl, text=/4\\.\\d|4|5/i',
+        '[class*="rating"], [aria-label*="rating" i], .text-3xl, text=/4\\.\\d|4|5/i'
       );
-      const starElements = page.locator(
-        'svg[class*="star" i], svg.fill-primary, [class*="star"]',
-      );
+      const starElements = page.locator('svg[class*="star" i], svg.fill-primary, [class*="star"]');
 
-      const hasRatingContent =
-        (await ratingValue.count()) > 0 || (await starElements.count()) > 0;
+      const hasRatingContent = (await ratingValue.count()) > 0 || (await starElements.count()) > 0;
 
       if (hasRatingContent) {
         expect(hasRatingContent).toBe(true);
@@ -168,14 +167,11 @@ test.describe("Ratings: Detail Page Rating Display", () => {
     try {
       // Look for rating content: numeric score, star icons, or review count
       const ratingValue = page.locator(
-        '[class*="rating"], [aria-label*="rating" i], .text-3xl, text=/4\\.\\d|4|5/i',
+        '[class*="rating"], [aria-label*="rating" i], .text-3xl, text=/4\\.\\d|4|5/i'
       );
-      const starElements = page.locator(
-        'svg[class*="star" i], svg.fill-primary, [class*="star"]',
-      );
+      const starElements = page.locator('svg[class*="star" i], svg.fill-primary, [class*="star"]');
 
-      const hasRatingContent =
-        (await ratingValue.count()) > 0 || (await starElements.count()) > 0;
+      const hasRatingContent = (await ratingValue.count()) > 0 || (await starElements.count()) > 0;
 
       if (hasRatingContent) {
         expect(hasRatingContent).toBe(true);
@@ -214,9 +210,7 @@ test.describe("Ratings: Helpful Votes", () => {
     await mockGoogleMaps(page);
   });
 
-  test("helpful vote buttons are visible or auth required", async ({
-    page,
-  }) => {
+  test("helpful vote buttons are visible or auth required", async ({ page }) => {
     const reviewPage = new ReviewPage(page);
     await page.goto("/restaurants/rest-001");
     await waitForHydration(page);
@@ -225,14 +219,11 @@ test.describe("Ratings: Helpful Votes", () => {
       // Look for "útil" text (Spanish for "helpful") or thumbs-up icons
       const utilText = page.locator("text=/útil/i");
       const thumbsUp = page.locator(
-        'button svg[data-icon*="thumb"], button[aria-label*="útil" i], button[aria-label*="helpful" i]',
+        'button svg[data-icon*="thumb"], button[aria-label*="útil" i], button[aria-label*="helpful" i]'
       );
-      const authContent = page.locator(
-        "text=/inicia sesión|login|iniciar sesión/i",
-      );
+      const authContent = page.locator("text=/inicia sesión|login|iniciar sesión/i");
 
-      const hasVoteUI =
-        (await utilText.count()) > 0 || (await thumbsUp.count()) > 0;
+      const hasVoteUI = (await utilText.count()) > 0 || (await thumbsUp.count()) > 0;
       const hasAuthPrompt = (await authContent.count()) > 0;
       const hasContent = await reviewPage.hasContent();
 
@@ -243,9 +234,7 @@ test.describe("Ratings: Helpful Votes", () => {
     }
   });
 
-  test("unauthenticated users see vote UI or login prompt", async ({
-    page,
-  }) => {
+  test("unauthenticated users see vote UI or login prompt", async ({ page }) => {
     await page.goto("/restaurants/rest-001");
     await waitForHydration(page);
 
@@ -259,56 +248,50 @@ test.describe("Ratings: Helpful Votes", () => {
 /* ------------------------------------------------------------------ */
 
 authedTest.describe("Ratings: Helpful Votes Authenticated", () => {
-  authedTest(
-    "authenticated user can see helpful vote buttons",
-    async ({ authedPage }) => {
-      await mockRestaurantDetail(authedPage);
-      await mockRestaurantReviews(authedPage);
-      await mockReviewHelpful(authedPage);
-      await mockReviewStats(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user can see helpful vote buttons", async ({ authedPage }) => {
+    await mockRestaurantDetail(authedPage);
+    await mockRestaurantReviews(authedPage);
+    await mockReviewHelpful(authedPage);
+    await mockReviewStats(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      try {
-        const body = await authedPage.locator("body").textContent();
-        const currentUrl = authedPage.url();
-
-        const hasContent = (body ?? "").length > 50;
-        const redirectedToLogin = currentUrl.includes("/login");
-
-        // Either content loaded or was redirected to login (both are valid outcomes)
-        expect(hasContent || redirectedToLogin).toBe(true);
-      } catch {
-        expect(authedPage.url()).toBeTruthy();
-      }
-    },
-  );
-
-  authedTest(
-    "authenticated user has access to review interaction",
-    async ({ authedPage }) => {
-      await mockRestaurantDetail(authedPage);
-      await mockRestaurantReviews(authedPage);
-      await mockReviewHelpful(authedPage);
-      await mockReviewStats(authedPage);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
-
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
-
+    try {
       const body = await authedPage.locator("body").textContent();
       const currentUrl = authedPage.url();
 
-      const hasContent = (body ?? "").length > 100;
-      const onRestaurantPage = currentUrl.includes("/restaurants");
+      const hasContent = (body ?? "").length > 50;
+      const redirectedToLogin = currentUrl.includes("/login");
 
-      expect(hasContent || onRestaurantPage).toBe(true);
-    },
-  );
+      // Either content loaded or was redirected to login (both are valid outcomes)
+      expect(hasContent || redirectedToLogin).toBe(true);
+    } catch {
+      expect(authedPage.url()).toBeTruthy();
+    }
+  });
+
+  authedTest("authenticated user has access to review interaction", async ({ authedPage }) => {
+    await mockRestaurantDetail(authedPage);
+    await mockRestaurantReviews(authedPage);
+    await mockReviewHelpful(authedPage);
+    await mockReviewStats(authedPage);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
+
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
+
+    const body = await authedPage.locator("body").textContent();
+    const currentUrl = authedPage.url();
+
+    const hasContent = (body ?? "").length > 100;
+    const onRestaurantPage = currentUrl.includes("/restaurants");
+
+    expect(hasContent || onRestaurantPage).toBe(true);
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -334,9 +317,7 @@ test.describe("Ratings: Cross-Resource Rating Consistency", () => {
 
     // Verify no redirect loop and page has content
     const hasContent = (body ?? "").length > 0;
-    const noRedirectLoop =
-      !currentUrl.includes("/login") ||
-      currentUrl.includes("/restaurants");
+    const noRedirectLoop = !currentUrl.includes("/login") || currentUrl.includes("/restaurants");
 
     expect(hasContent).toBe(true);
     expect(noRedirectLoop).toBe(true);
@@ -350,8 +331,7 @@ test.describe("Ratings: Cross-Resource Rating Consistency", () => {
     const currentUrl = page.url();
 
     const hasContent = (body ?? "").length > 0;
-    const noRedirectLoop =
-      !currentUrl.includes("/login") || currentUrl.includes("/recipes");
+    const noRedirectLoop = !currentUrl.includes("/login") || currentUrl.includes("/recipes");
 
     expect(hasContent).toBe(true);
     expect(noRedirectLoop).toBe(true);
@@ -365,8 +345,7 @@ test.describe("Ratings: Cross-Resource Rating Consistency", () => {
     const currentUrl = page.url();
 
     const hasContent = (body ?? "").length > 0;
-    const noRedirectLoop =
-      !currentUrl.includes("/login") || currentUrl.includes("/doctors");
+    const noRedirectLoop = !currentUrl.includes("/login") || currentUrl.includes("/doctors");
 
     expect(hasContent).toBe(true);
     expect(noRedirectLoop).toBe(true);
@@ -380,8 +359,7 @@ test.describe("Ratings: Cross-Resource Rating Consistency", () => {
     const currentUrl = page.url();
 
     const hasContent = (body ?? "").length > 0;
-    const noRedirectLoop =
-      !currentUrl.includes("/login") || currentUrl.includes("/markets");
+    const noRedirectLoop = !currentUrl.includes("/login") || currentUrl.includes("/markets");
 
     expect(hasContent).toBe(true);
     expect(noRedirectLoop).toBe(true);

@@ -271,9 +271,7 @@ export const ReviewSystem = ({
                         handleHelpfulClick(review._id, review.helpful?.includes(user?.id || ""))
                       }
                       className={`flex items-center gap-1 ${
-                        review.helpful?.includes(user?.id || "")
-                          ? "bg-green-50 text-green-600"
-                          : ""
+                        review.helpful?.includes(user?.id || "") ? "bg-green-50 text-green-600" : ""
                       }`}
                       disabled={!isAuthenticated}
                     >

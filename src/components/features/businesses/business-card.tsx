@@ -28,7 +28,7 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
   return (
     <article
       aria-label={`Negocio: ${business.namePlace}`}
-      className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm group transition-shadow duration-300 hover:shadow-lg"
+      className="bg-card text-card-foreground group flex flex-col gap-6 rounded-xl border shadow-sm transition-shadow duration-300 hover:shadow-lg"
     >
       {/* Image header */}
       <div className="relative p-0">
@@ -41,9 +41,9 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 backdrop-blur-sm">
-            <Star aria-hidden="true" className="h-4 w-4 fill-primary text-primary" />
+            <Star aria-hidden="true" className="fill-primary text-primary h-4 w-4" />
             <span
-              className="text-sm font-semibold text-foreground"
+              className="text-foreground text-sm font-semibold"
               aria-label={`Calificación: ${business.rating?.toFixed(1) ?? "N/A"} de 5`}
             >
               {business.rating?.toFixed(1) || "N/A"}
@@ -59,16 +59,16 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
 
       <CardContent className="space-y-3 p-4">
         <div>
-          <h3 className="mb-1 line-clamp-1 text-lg font-semibold text-foreground leading-none">
+          <h3 className="text-foreground mb-1 line-clamp-1 text-lg leading-none font-semibold">
             {business.namePlace}
           </h3>
-          <div className="mb-2 flex items-center gap-1 text-muted-foreground">
+          <div className="text-muted-foreground mb-2 flex items-center gap-1">
             <MapPin aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
             <span className="line-clamp-1 text-sm">{business.address}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center justify-between text-sm">
           <div className="flex items-center gap-1">
             <Users aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
             <span>{business.numReviews || 0} reviews</span>
@@ -81,7 +81,7 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
 
         {Boolean(business.budget) && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Presupuesto:</span>
+            <span className="text-muted-foreground text-sm">Presupuesto:</span>
             <Badge variant="outline" className="text-xs">
               ${business.budget.toLocaleString()}
             </Badge>

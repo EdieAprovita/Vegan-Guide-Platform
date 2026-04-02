@@ -2,7 +2,10 @@ import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "@/components/auth/login-form";
-import { expectValidationBlocked, expectValidationMessage } from "@/test-utils/auth-form-test-utils";
+import {
+  expectValidationBlocked,
+  expectValidationMessage,
+} from "@/test-utils/auth-form-test-utils";
 
 jest.mock("@/components/ui/form", () => require("@/test-utils/shadcn-form-mocks").createFormMock());
 jest.mock("@/components/ui/button", () =>
@@ -130,17 +133,14 @@ describe("LoginForm", () => {
       },
     ];
 
-    test.each(validationCases)(
-      "does not call onSubmit when $name",
-      async ({ fill }) => {
-        const user = userEvent.setup();
-        const props = buildProps();
-        render(<LoginForm {...props} />);
-        await fill(user);
-        await user.click(screen.getByRole("button", { name: "Sign In" }));
-        await expectValidationBlocked(props.onSubmit);
-      }
-    );
+    test.each(validationCases)("does not call onSubmit when $name", async ({ fill }) => {
+      const user = userEvent.setup();
+      const props = buildProps();
+      render(<LoginForm {...props} />);
+      await fill(user);
+      await user.click(screen.getByRole("button", { name: "Sign In" }));
+      await expectValidationBlocked(props.onSubmit);
+    });
 
     const errorMessageCases = [
       {
@@ -157,7 +157,8 @@ describe("LoginForm", () => {
           await user.type(screen.getByPlaceholderText("Enter your email"), "user@example.com");
           await user.type(screen.getByPlaceholderText("Enter your password"), "password1");
         },
-        message: "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       },
     ];
 

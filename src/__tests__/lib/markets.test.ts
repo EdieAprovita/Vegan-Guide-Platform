@@ -106,7 +106,9 @@ describe("createMarket", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/markets`);
     expect(options.method).toBe("POST");
-    expect(JSON.parse(options.body as string)).toMatchObject({ marketName: "Green Farmers Market" });
+    expect(JSON.parse(options.body as string)).toMatchObject({
+      marketName: "Green Farmers Market",
+    });
     expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
     expect(result).toEqual(payload);
   });

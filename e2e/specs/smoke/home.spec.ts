@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  waitForHydration,
-  mockNextImages,
-  collectConsoleErrors,
-} from "../../helpers/test-utils";
+import { waitForHydration, mockNextImages, collectConsoleErrors } from "../../helpers/test-utils";
 
 /**
  * Smoke test: Landing page / Homepage

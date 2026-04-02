@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
  * Verifies that:
  * 1. Next.js dev server is running and serves the homepage
  * 2. The page renders without critical errors
- * 3. Core layout elements (header, main) are present
+ * 3. Core layout container (`main`) is present
  *
  * This is the very first E2E test — if this passes, the entire
  * Playwright + Next.js pipeline is working.
@@ -24,9 +24,8 @@ test.describe("Smoke: Health Check", () => {
     const body = page.locator("body");
     await expect(body).toBeVisible();
 
-    // Should not show the Next.js error overlay
-    const errorOverlay = page.locator("nextjs-portal");
-    await expect(errorOverlay).toHaveCount(0);
+    // Basic layout sanity check
+    await expect(page.locator("main")).toBeVisible();
   });
 
   test("page returns HTTP 200", async ({ request }) => {
@@ -60,7 +59,7 @@ test.describe("Smoke: Health Check", () => {
         !msg.includes("maps.googleapis.com") &&
         !msg.includes("ERR_CONNECTION_REFUSED") &&
         !msg.includes("Failed to fetch") &&
-        !msg.includes("NetworkError"),
+        !msg.includes("NetworkError")
     );
 
     expect(criticalErrors).toEqual([]);

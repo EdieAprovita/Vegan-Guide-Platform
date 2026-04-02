@@ -33,9 +33,7 @@ export function setupStoreTest<T extends Record<string, unknown>>(
     store.setState(initialState);
   };
 
-  const consoleErrorSpy = jest
-    .spyOn(console, "error")
-    .mockImplementation(() => {});
+  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
   beforeEach(() => {
     resetStore();
