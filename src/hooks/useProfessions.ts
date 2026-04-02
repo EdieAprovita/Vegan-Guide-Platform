@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserLocation } from "@/hooks/useGeolocation";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import * as professionsApi from "@/lib/api/professions";
 import type {
   Profession,
@@ -41,7 +41,7 @@ export function useNearbyProfessions(params: {
         rating: params.rating,
       });
 
-      return processBackendResponse<Profession>(response) as Profession[];
+      return extractListData<Profession>(response);
     },
     enabled: !!userCoords && params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -75,7 +75,7 @@ export function useProfessionsByCategory(params: {
       }
 
       const response = await professionsApi.getProfessionsByCategory(searchParams);
-      return processBackendResponse<Profession>(response) as Profession[];
+      return extractListData<Profession>(response);
     },
     enabled: !!params.category && params.enabled !== false,
     staleTime: 3 * 60 * 1000, // 3 minutes
@@ -88,7 +88,7 @@ export function useProfessions(params?: ProfessionSearchParams & { enabled?: boo
     queryKey: queryKeys.professions.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await professionsApi.getProfessions(params);
-      return processBackendResponse<Profession>(response) as Profession[];
+      return extractListData<Profession>(response);
     },
     enabled: params?.enabled !== false,
     staleTime: 3 * 60 * 1000, // 3 minutes
@@ -101,7 +101,7 @@ export function useProfession(id: string, enabled: boolean = true) {
     queryKey: queryKeys.professions.detail(id),
     queryFn: async () => {
       const response = await professionsApi.getProfession(id);
-      return processBackendResponse<Profession>(response) as Profession;
+      return extractItemData<Profession>(response);
     },
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -137,7 +137,7 @@ export function useNearbyProfessionalProfiles(params: {
         availability: params.availability,
       });
 
-      return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile[];
+      return extractListData<ProfessionalProfile>(response);
     },
     enabled: !!userCoords && params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -179,7 +179,7 @@ export function useAdvancedProfessionalProfileSearch(params: {
       }
 
       const response = await professionsApi.getAdvancedProfessionalProfiles(searchParams);
-      return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile[];
+      return extractListData<ProfessionalProfile>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -194,7 +194,7 @@ export function useProfessionalProfiles(
     queryKey: queryKeys.professionalProfiles.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await professionsApi.getProfessionalProfiles(params);
-      return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile[];
+      return extractListData<ProfessionalProfile>(response);
     },
     enabled: params?.enabled !== false,
     staleTime: 3 * 60 * 1000, // 3 minutes
@@ -207,7 +207,7 @@ export function useProfessionalProfile(id: string, enabled: boolean = true) {
     queryKey: queryKeys.professionalProfiles.detail(id),
     queryFn: async () => {
       const response = await professionsApi.getProfessionalProfile(id);
-      return processBackendResponse<ProfessionalProfile>(response) as ProfessionalProfile;
+      return extractItemData<ProfessionalProfile>(response);
     },
     enabled: !!id && enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes

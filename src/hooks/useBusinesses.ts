@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserLocation } from "./useGeolocation";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import * as businessesApi from "@/lib/api/businesses";
 import type {
   Business,
@@ -51,8 +51,7 @@ export function useBusinesses(
     queryKey: queryKeys.businesses.list(resolvedFilters as Record<string, unknown>),
     queryFn: async () => {
       const response = await businessesApi.getBusinesses(resolvedFilters);
-      const data = processBackendResponse<Business>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Business>(response);
     },
     enabled: filters?.autoFetch !== false,
     staleTime: 5 * 60 * 1000,
@@ -77,7 +76,7 @@ export function useBusiness(id?: string) {
     queryKey: queryKeys.businesses.detail(id ?? ""),
     queryFn: async () => {
       const response = await businessesApi.getBusiness(id!);
-      return processBackendResponse<Business>(response) as Business;
+      return extractItemData<Business>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,

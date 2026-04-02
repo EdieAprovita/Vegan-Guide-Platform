@@ -8,7 +8,7 @@ import type {
   SanctuaryReview,
   SanctuarySearchParams,
 } from "@/lib/api/sanctuaries";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -18,8 +18,7 @@ export function useSanctuaries(params?: SanctuarySearchParams) {
     queryKey: queryKeys.sanctuaries.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await sanctuariesApi.getSanctuaries(params);
-      const data = processBackendResponse<Sanctuary>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Sanctuary>(response);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -31,7 +30,7 @@ export function useSanctuary(id: string) {
     queryKey: queryKeys.sanctuaries.detail(id),
     queryFn: async () => {
       const response = await sanctuariesApi.getSanctuary(id);
-      return processBackendResponse<Sanctuary>(response) as Sanctuary;
+      return extractItemData<Sanctuary>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -65,7 +64,7 @@ export function useNearbySanctuaries(params?: {
         minRating: params?.minRating,
       });
 
-      return processBackendResponse<Sanctuary>(response) as Sanctuary[];
+      return extractListData<Sanctuary>(response);
     },
     enabled: params?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -101,7 +100,7 @@ export function useSanctuariesByType(
       }
 
       const response = await sanctuariesApi.getSanctuariesByType(typeofSanctuary, searchParams);
-      return processBackendResponse<Sanctuary>(response) as Sanctuary[];
+      return extractListData<Sanctuary>(response);
     },
     enabled: params?.enabled !== false && !!typeofSanctuary,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -140,7 +139,7 @@ export function useAdvancedSanctuarySearch(params: {
       }
 
       const response = await sanctuariesApi.getAdvancedSanctuaries(searchParams);
-      return processBackendResponse<Sanctuary>(response) as Sanctuary[];
+      return extractListData<Sanctuary>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes

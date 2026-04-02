@@ -3,7 +3,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as recipesApi from "@/lib/api/recipes";
 import type { Recipe, CreateRecipeData, RecipeReview } from "@/lib/api/recipes";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { queryKeys } from "@/lib/api/queryKeys";
 
 // Base list query
@@ -18,8 +18,7 @@ export function useRecipes(params?: {
     queryKey: queryKeys.recipes.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await recipesApi.getRecipes(params);
-      const data = processBackendResponse<Recipe>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Recipe>(response);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -49,8 +48,7 @@ export function useInfiniteRecipes(params?: {
         category: params?.category,
         difficulty: params?.difficulty,
       });
-      const data = processBackendResponse<Recipe>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Recipe>(response);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
@@ -66,7 +64,7 @@ export function useRecipe(id: string) {
     queryKey: queryKeys.recipes.detail(id),
     queryFn: async () => {
       const response = await recipesApi.getRecipe(id);
-      return processBackendResponse<Recipe>(response) as Recipe;
+      return extractItemData<Recipe>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
