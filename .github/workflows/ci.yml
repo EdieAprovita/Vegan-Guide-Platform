@@ -143,6 +143,7 @@ jobs:
           # intercepts same-origin requests — cross-origin calls to any other
           # host bypass the interceptor entirely and cause 503 in tests.
           NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
+          BUILD_ALLOW_API_FALLBACK: 1
 
       # Upload the .next build output so the E2E job can reuse it
       # without rebuilding (saves ~60-90s per run).

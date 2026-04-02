@@ -3,7 +3,8 @@ import {
   getApiHeaders,
   BackendListResponse,
   BackendResponse,
-  ApiError,
+  shouldUseApiFallback,
+  isNonApiTransportError,
 } from "./config";
 import { buildSearchParams } from "./utils";
 import { GeoLocation } from "@/types/geospatial";
@@ -91,14 +92,9 @@ export async function getDoctors(params?: DoctorSearchParams, signal?: AbortSign
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] doctors list: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -108,14 +104,9 @@ export async function getDoctor(id: string, signal?: AbortSignal) {
   try {
     return await apiRequest<BackendResponse<Doctor>>(`/doctors/${id}`, { signal });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] as unknown as Doctor };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] doctor detail: backend unavailable, returning empty object.", error);
+      return { success: true, data: {} as Doctor };
     }
     throw error;
   }
@@ -186,14 +177,9 @@ export async function getNearbyDoctors(
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] nearby doctors: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -229,14 +215,9 @@ export async function getDoctorsBySpecialty(
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] doctors by specialty: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
@@ -278,14 +259,9 @@ export async function getAdvancedDoctors(
       signal,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      // Only return empty data for non-API errors (network timeouts, etc.)
-      // ApiError extends Error, so if it's an ApiError it will have error.status
-      const isApiError = (error as any)?.status !== undefined;
-      if (!isApiError) {
-        console.warn("[DEV/CI] Network/timeout error, returning empty data:", error);
-        return { success: true, data: [] };
-      }
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn("[API Fallback] advanced doctors: backend unavailable, returning empty data.", error);
+      return { success: true, data: [] };
     }
     throw error;
   }
