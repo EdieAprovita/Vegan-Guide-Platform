@@ -59,7 +59,7 @@ restaurantes, mercados, doctores especializados, recetas y más.
 - **TypeScript** - Tipado estático
 - **Tailwind CSS** - Framework de CSS utility-first
 - **Shadcn/ui** - Componentes de UI modernos
-- **NextAuth.js** - Autenticación
+- **Auth.js (NextAuth)** - Autenticación
 - **React Hook Form** - Manejo de formularios
 - **Zod** - Validación de esquemas
 
@@ -110,9 +110,10 @@ cp .env.example .env.local
 Edita `.env.local` con tus configuraciones:
 
 ```env
-NEXTAUTH_SECRET=your-secret-key
+AUTH_SECRET=your-secret-key
+NEXTAUTH_SECRET=$AUTH_SECRET
 NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
 ```
 
 4. **Ejecutar en desarrollo**
@@ -132,8 +133,11 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ```
 src/
 ├── app/                    # App Router de Next.js
-│   ├── (auth)/            # Rutas de autenticación
 │   ├── api/               # API routes
+│   ├── login/             # Inicio de sesión
+│   ├── register/          # Registro de usuarios
+│   ├── forgot-password/   # Recuperación de contraseña
+│   ├── reset-password/    # Restablecimiento de contraseña
 │   ├── doctors/           # Páginas de doctores
 │   ├── markets/           # Páginas de mercados
 │   ├── recipes/           # Páginas de recetas
@@ -175,11 +179,12 @@ npm run type-check
 
 ### Variables de Entorno
 
-| Variable              | Descripción                 | Requerido |
-| --------------------- | --------------------------- | --------- |
-| `NEXTAUTH_SECRET`     | Clave secreta para NextAuth | ✅        |
-| `NEXTAUTH_URL`        | URL base de la aplicación   | ✅        |
-| `NEXT_PUBLIC_API_URL` | URL de la API backend       | ✅        |
+| Variable              | Descripción                                                | Requerido |
+| --------------------- | ---------------------------------------------------------- | --------- |
+| `AUTH_SECRET`         | Secreto principal de autenticación                         | ✅        |
+| `NEXTAUTH_SECRET`     | Alias legado de `AUTH_SECRET`                              | Opcional  |
+| `NEXTAUTH_URL`        | URL base de callbacks de autenticación                     | ✅        |
+| `NEXT_PUBLIC_API_URL` | URL de la API backend (ej. `http://localhost:5001/api/v1`) | ✅        |
 
 ### Configuración de Tailwind
 
@@ -233,7 +238,7 @@ docker run -p 3000:3000 vegan-guide
 
 ## 🔐 Autenticación
 
-El proyecto usa NextAuth.js con:
+El proyecto usa Auth.js (paquete `next-auth`) con:
 
 - Autenticación por credenciales
 - JWT tokens

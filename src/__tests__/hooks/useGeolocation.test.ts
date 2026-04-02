@@ -61,7 +61,9 @@ describe("useGeolocation error and mapping paths", () => {
     const { result } = renderHook(() => useGeolocation({ retryAttempts: 1, retryDelay: 1 }));
 
     await act(async () => {
-      await expect(result.current.getCurrentPosition()).rejects.toThrow("Acceso a la ubicación denegado");
+      await expect(result.current.getCurrentPosition()).rejects.toThrow(
+        "Acceso a la ubicación denegado"
+      );
     });
 
     expect(getCurrentPosition).toHaveBeenCalled();
