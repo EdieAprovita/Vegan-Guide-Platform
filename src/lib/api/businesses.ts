@@ -97,7 +97,10 @@ export async function getBusinesses(filters?: BusinessFilters) {
     return await apiRequest<BackendResponse<Business[]>>(url);
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] businesses list: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] businesses list: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -109,7 +112,10 @@ export async function getBusiness(id: string) {
     return await apiRequest<BackendResponse<Business>>(`/businesses/${id}`);
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] business detail: backend unavailable, returning empty object.", error);
+      console.warn(
+        "[API Fallback] business detail: backend unavailable, returning empty object.",
+        error
+      );
       return { success: true, data: {} as Business };
     }
     throw error;
@@ -169,7 +175,10 @@ export async function getBusinessReviews(
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] business reviews: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] business reviews: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -184,7 +193,10 @@ export async function getBusinessesByProximity(lat: number, lng: number, radius:
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] nearby businesses: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] nearby businesses: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -201,7 +213,10 @@ export async function searchBusinesses(query: string, filters: BusinessFilters =
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] search businesses: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] search businesses: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;

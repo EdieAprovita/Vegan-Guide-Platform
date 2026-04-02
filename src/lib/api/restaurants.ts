@@ -94,7 +94,10 @@ export async function getRestaurants(params?: RestaurantSearchParams, signal?: A
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] restaurants list: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] restaurants list: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -288,7 +291,10 @@ export async function getNearbyRestaurants(
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] nearby restaurants: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] nearby restaurants: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -373,7 +379,10 @@ export async function getAdvancedRestaurants(
     );
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] advanced restaurants: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] advanced restaurants: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;

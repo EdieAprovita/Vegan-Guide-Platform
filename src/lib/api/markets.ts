@@ -97,7 +97,10 @@ export async function getMarkets(params?: MarketSearchParams, signal?: AbortSign
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] markets list: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] markets list: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -109,7 +112,10 @@ export async function getMarket(id: string, signal?: AbortSignal) {
     return await apiRequest<BackendResponse<Market>>(`/markets/${id}`, { signal });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] market detail: backend unavailable, returning empty object.", error);
+      console.warn(
+        "[API Fallback] market detail: backend unavailable, returning empty object.",
+        error
+      );
       return { success: true, data: {} as Market };
     }
     throw error;
@@ -177,7 +183,10 @@ export async function getNearbyMarkets(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] nearby markets: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] nearby markets: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -215,7 +224,10 @@ export async function getMarketsByProducts(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] markets by products: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] markets by products: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
@@ -257,7 +269,10 @@ export async function getAdvancedMarkets(
     });
   } catch (error) {
     if (shouldUseApiFallback() && isNonApiTransportError(error)) {
-      console.warn("[API Fallback] advanced markets: backend unavailable, returning empty data.", error);
+      console.warn(
+        "[API Fallback] advanced markets: backend unavailable, returning empty data.",
+        error
+      );
       return { success: true, data: [] };
     }
     throw error;
