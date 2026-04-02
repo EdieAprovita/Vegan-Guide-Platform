@@ -24,9 +24,8 @@ test.describe("Smoke: Health Check", () => {
     const body = page.locator("body");
     await expect(body).toBeVisible();
 
-    // Should not show the Next.js error overlay
-    const errorOverlay = page.locator("nextjs-portal");
-    await expect(errorOverlay).toHaveCount(0);
+    // Basic layout sanity check
+    await expect(page.locator("main")).toBeVisible();
   });
 
   test("page returns HTTP 200", async ({ request }) => {

@@ -177,6 +177,54 @@ jobs:
   # is being stabilised. Change to false once the suite is green
   # for 5+ consecutive runs.
   # ─────────────────────────────────────────────
+  smoke:
+    name: Smoke E2E (Chromium)
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .next/
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        run: npx playwright test e2e/specs/smoke/health.spec.ts --project=chromium
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          AUTH_URL: http://localhost:3000
+          NEXTAUTH_URL: http://localhost:3000
+          AUTH_SECRET: ci-placeholder-secret-not-used-in-production
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
+          NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
+          CI: true
+
+      - name: Upload Smoke Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-report
+          path: |
+            playwright-report/
+            e2e-results.xml
+          retention-days: 7
+
   e2e:
     name: E2E Tests (Chromium)
     runs-on: ubuntu-latest
@@ -184,7 +232,7 @@ jobs:
     # The build job already depends on quality, so the quality gate is still
     # enforced transitively. Wall time is not materially affected because the
     # build job finishes in ~90s, well before Playwright browser install completes.
-    needs: [build]
+    needs: [build, smoke]
     # Run E2E only on pull requests (not on push to main).
     if: github.event_name == 'pull_request'
     # Hard ceiling: 351 tests at workers=2 complete in ~12 minutes, plus
