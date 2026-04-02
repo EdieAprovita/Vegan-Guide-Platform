@@ -57,7 +57,7 @@ describe("useRecipes query hook", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["recipes", expect.objectContaining({ search: "tacos" })],
+        queryKey: ["recipes", "list", expect.objectContaining({ search: "tacos" })],
       })
     );
   });
@@ -95,7 +95,7 @@ describe("useRecipe single query", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["recipes", "r1"],
+        queryKey: ["recipes", "detail", "r1"],
         enabled: true,
       })
     );
