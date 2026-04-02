@@ -55,7 +55,7 @@ describe("useRestaurants query hook", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["restaurants", expect.objectContaining({ search: "green" })],
+        queryKey: ["restaurants", "list", expect.objectContaining({ search: "green" })],
       })
     );
   });
@@ -92,7 +92,7 @@ describe("useRestaurant single query", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["restaurants", "1"],
+        queryKey: ["restaurants", "detail", "1"],
         enabled: true,
       })
     );

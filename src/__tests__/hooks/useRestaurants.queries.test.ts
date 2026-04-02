@@ -80,7 +80,8 @@ describe("restaurant query hooks", () => {
     expect(useQueryMock).toHaveBeenCalled();
     const config = queryConfigs[0];
     expect(config.queryKey).toEqual([
-      "nearbyRestaurants",
+      "restaurants",
+      "nearby",
       { lat: 1, lng: 2 },
       { radius: 7, limit: 5, cuisine: "vegan", minRating: 4 },
     ]);
@@ -118,7 +119,8 @@ describe("restaurant query hooks", () => {
 
     const config = queryConfigs[0];
     expect(config.queryKey).toEqual([
-      "restaurantsByCuisine",
+      "restaurants",
+      "byCuisine",
       "vegan",
       { lat: 1, lng: 2 },
       { includeLocation: true, limit: 3 },
@@ -152,7 +154,8 @@ describe("restaurant query hooks", () => {
     useAdvancedRestaurantSearch(params);
 
     const config = queryConfigs[0];
-    expect(config.queryKey[0]).toBe("advancedRestaurantSearch");
+    expect(config.queryKey[0]).toBe("restaurants");
+    expect(config.queryKey[1]).toBe("search");
 
     await config.queryFn();
     expect(restaurantsApi.getAdvancedRestaurants).toHaveBeenCalledWith({
@@ -185,10 +188,8 @@ describe("restaurant query hooks", () => {
 
     mutationConfigs.forEach((config) => config.onSuccess());
 
+    expect(invalidateQueries).toHaveBeenCalledTimes(4);
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurants"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["nearbyRestaurants"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["restaurantsByCuisine"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["advancedRestaurantSearch"] });
 
     expect(createRestaurant).toBeDefined();
     expect(updateRestaurant).toBeDefined();

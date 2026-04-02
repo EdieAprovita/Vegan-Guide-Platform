@@ -170,9 +170,6 @@ export function useRestaurantMutations() {
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.nearbyAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.byCuisineAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.restaurants.searchAll });
   };
 
   const createRestaurant = useMutation({

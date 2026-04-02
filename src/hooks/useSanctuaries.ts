@@ -153,9 +153,6 @@ export function useSanctuaryMutations() {
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.nearbyAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.byTypeAll });
-    queryClient.invalidateQueries({ queryKey: queryKeys.sanctuaries.searchAll });
   };
 
   const createSanctuary = useMutation({

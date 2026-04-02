@@ -54,7 +54,7 @@ describe("useMarkets query hook", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["markets", expect.objectContaining({ search: "fresh" })],
+        queryKey: ["markets", "list", expect.objectContaining({ search: "fresh" })],
       })
     );
   });
@@ -91,7 +91,7 @@ describe("useMarket single query", () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ["markets", "1"],
+        queryKey: ["markets", "detail", "1"],
         enabled: true,
       })
     );

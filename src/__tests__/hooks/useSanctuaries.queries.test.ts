@@ -167,9 +167,7 @@ describe("sanctuary query hooks", () => {
 
     mutationConfigs.forEach((config) => config.onSuccess());
 
+    expect(invalidateQueries).toHaveBeenCalledTimes(4);
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuaries"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["nearbySanctuaries"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["sanctuariesByType"] });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["advancedSanctuarySearch"] });
   });
 });
