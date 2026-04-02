@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as postsApi from "@/lib/api/posts";
 import type { Post, CreatePostData, CreateCommentData, PostSearchParams } from "@/lib/api/posts";
 import { useUserLocation } from "@/hooks/useGeolocation";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { queryKeys } from "@/lib/api/queryKeys";
 
 interface Comment {
@@ -24,8 +24,7 @@ export function usePosts(params?: PostSearchParams) {
     queryKey: queryKeys.posts.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await postsApi.getPosts(params);
-      const data = processBackendResponse<Post>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Post>(response);
     },
     staleTime: 2 * 60 * 1000,
   });
@@ -37,7 +36,7 @@ export function usePost(id: string) {
     queryKey: queryKeys.posts.detail(id),
     queryFn: async () => {
       const response = await postsApi.getPost(id);
-      return processBackendResponse<Post>(response) as Post;
+      return extractItemData<Post>(response);
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
@@ -70,7 +69,7 @@ export function useNearbyPosts(params: {
         visibility: params.visibility,
       });
 
-      return processBackendResponse<Post>(response) as Post[];
+      return extractListData<Post>(response);
     },
     enabled: !!userCoords && params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -104,7 +103,7 @@ export function usePostsByTags(params: {
       }
 
       const response = await postsApi.getPostsByTags(searchParams);
-      return processBackendResponse<Post>(response) as Post[];
+      return extractListData<Post>(response);
     },
     enabled: !!params.tags && params.enabled !== false,
     staleTime: 3 * 60 * 1000, // 3 minutes
@@ -146,7 +145,7 @@ export function useAdvancedPostSearch(params: {
       }
 
       const response = await postsApi.getAdvancedPosts(searchParams);
-      return processBackendResponse<Post>(response) as Post[];
+      return extractListData<Post>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 2 * 60 * 1000, // 2 minutes

@@ -36,6 +36,7 @@ export function extractBackendListData<T>(response: BackendListResponse<T>): T[]
 }
 
 // Helper universal para procesar respuestas del backend (maneja ambos formatos)
+/** @deprecated Use extractListData, extractItemData, or extractPaginatedData instead */
 export function processBackendResponse<T>(response: unknown): T[] | T {
   if (response && typeof response === "object" && "data" in response) {
     return (response as { data: T[] | T }).data;
@@ -44,6 +45,56 @@ export function processBackendResponse<T>(response: unknown): T[] | T {
     return response as T[];
   }
   return response as T;
+}
+
+/**
+ * Typed extractor for list responses. Throws if the response shape is invalid
+ * so callers get a clear error instead of silently receiving `undefined`.
+ */
+export function extractListData<T>(response: unknown): T[] {
+  if (response && typeof response === "object" && "data" in response) {
+    const data = (response as { data: unknown }).data;
+    if (Array.isArray(data)) return data as T[];
+  }
+  if (Array.isArray(response)) return response as T[];
+  throw new Error("Invalid list response shape: expected array in data field");
+}
+
+/**
+ * Typed extractor for single-item responses. Throws if the response shape
+ * is invalid.
+ */
+export function extractItemData<T>(response: unknown): T {
+  if (response && typeof response === "object" && "data" in response) {
+    const data = (response as { data: unknown }).data;
+    if (data !== undefined && data !== null) {
+      return data as T;
+    }
+    throw new Error("Invalid item response shape: data field is null or undefined");
+  }
+  throw new Error("Invalid item response shape: expected data field");
+}
+
+/**
+ * Typed extractor for paginated responses. Returns both the data array and
+ * pagination metadata.
+ */
+export function extractPaginatedData<T>(response: unknown): PaginatedResponse<T> {
+  if (response && typeof response === "object" && "data" in response) {
+    const r = response as Record<string, unknown>;
+    if (!Array.isArray(r.data)) {
+      throw new Error("Invalid paginated response shape: expected data to be an array");
+    }
+    return {
+      data: r.data as T[],
+      totalPages: typeof r.totalPages === "number" ? r.totalPages : 1,
+      currentPage: typeof r.currentPage === "number" ? r.currentPage : 1,
+      totalCount: typeof r.totalCount === "number" ? r.totalCount : 0,
+      hasNextPage: typeof r.hasNextPage === "boolean" ? r.hasNextPage : false,
+      hasPrevPage: typeof r.hasPrevPage === "boolean" ? r.hasPrevPage : false,
+    };
+  }
+  throw new Error("Invalid paginated response shape: expected data and pagination fields");
 }
 
 // Tipos para manejo de errores

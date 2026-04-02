@@ -8,7 +8,7 @@ import type {
   RestaurantReview,
   RestaurantSearchParams,
 } from "@/lib/api/restaurants";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -18,8 +18,7 @@ export function useRestaurants(params?: RestaurantSearchParams) {
     queryKey: queryKeys.restaurants.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await restaurantsApi.getRestaurants(params);
-      const data = processBackendResponse<Restaurant>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Restaurant>(response);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -31,7 +30,7 @@ export function useRestaurant(id: string) {
     queryKey: queryKeys.restaurants.detail(id),
     queryFn: async () => {
       const response = await restaurantsApi.getRestaurant(id);
-      return processBackendResponse<Restaurant>(response) as Restaurant;
+      return extractItemData<Restaurant>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -44,8 +43,7 @@ export function useTopRatedRestaurants(limit = 10) {
     queryKey: queryKeys.restaurants.topRated(limit),
     queryFn: async () => {
       const response = await restaurantsApi.getTopRatedRestaurants(limit);
-      const data = processBackendResponse<Restaurant>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Restaurant>(response);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -78,7 +76,7 @@ export function useNearbyRestaurants(params?: {
         minRating: params?.minRating,
       });
 
-      return processBackendResponse<Restaurant>(response) as Restaurant[];
+      return extractListData<Restaurant>(response);
     },
     enabled: params?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -118,7 +116,7 @@ export function useRestaurantsByCuisine(
       }
 
       const response = await restaurantsApi.getRestaurantsByCuisine(cuisine, searchParams);
-      return processBackendResponse<Restaurant>(response) as Restaurant[];
+      return extractListData<Restaurant>(response);
     },
     enabled: params?.enabled !== false && !!cuisine,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -157,7 +155,7 @@ export function useAdvancedRestaurantSearch(params: {
       }
 
       const response = await restaurantsApi.getAdvancedRestaurants(searchParams);
-      return processBackendResponse<Restaurant>(response) as Restaurant[];
+      return extractListData<Restaurant>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes

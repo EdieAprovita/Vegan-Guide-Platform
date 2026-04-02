@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractItemData } from "@/lib/api/config";
 import type { Recipe } from "@/lib/api/recipes";
 
 export default function NewRecipePage() {
@@ -18,7 +18,7 @@ export default function NewRecipePage() {
   const handleSubmit = async (data: CreateRecipeData) => {
     try {
       const response = await createRecipe.mutateAsync(data);
-      const recipe = processBackendResponse<Recipe>(response) as Recipe;
+      const recipe = extractItemData<Recipe>(response);
       toast.success("Recipe created successfully!");
       router.push(`/recipes/${recipe._id}`);
     } catch (error) {

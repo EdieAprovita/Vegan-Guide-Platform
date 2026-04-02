@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketsApi from "@/lib/api/markets";
 import type { Market, CreateMarketData, MarketReview, MarketSearchParams } from "@/lib/api/markets";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -13,8 +13,7 @@ export function useMarkets(params?: MarketSearchParams) {
     queryKey: queryKeys.markets.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await marketsApi.getMarkets(params);
-      const data = processBackendResponse<Market>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Market>(response);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -26,7 +25,7 @@ export function useMarket(id: string) {
     queryKey: queryKeys.markets.detail(id),
     queryFn: async () => {
       const response = await marketsApi.getMarket(id);
-      return processBackendResponse<Market>(response) as Market;
+      return extractItemData<Market>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -60,7 +59,7 @@ export function useNearbyMarkets(params?: {
         minRating: params?.minRating,
       });
 
-      return processBackendResponse<Market>(response) as Market[];
+      return extractListData<Market>(response);
     },
     enabled: params?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -96,7 +95,7 @@ export function useMarketsByProducts(
       }
 
       const response = await marketsApi.getMarketsByProducts(products, searchParams);
-      return processBackendResponse<Market>(response) as Market[];
+      return extractListData<Market>(response);
     },
     enabled: params?.enabled !== false && !!products,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -135,7 +134,7 @@ export function useAdvancedMarketSearch(params: {
       }
 
       const response = await marketsApi.getAdvancedMarkets(searchParams);
-      return processBackendResponse<Market>(response) as Market[];
+      return extractListData<Market>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes

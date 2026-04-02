@@ -16,7 +16,7 @@ import {
   DoctorReview,
   CreateDoctorData,
 } from "@/lib/api/doctors";
-import { processBackendResponse } from "@/lib/api/config";
+import { extractListData, extractItemData } from "@/lib/api/config";
 import { useUserLocation } from "@/hooks/useGeolocation";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -26,8 +26,7 @@ export function useDoctors(params?: DoctorSearchParams) {
     queryKey: queryKeys.doctors.list(params as Record<string, unknown>),
     queryFn: async () => {
       const response = await getDoctors(params);
-      const data = processBackendResponse<Doctor>(response);
-      return Array.isArray(data) ? data : [];
+      return extractListData<Doctor>(response);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -39,7 +38,7 @@ export function useDoctor(id: string) {
     queryKey: queryKeys.doctors.detail(id),
     queryFn: async () => {
       const response = await getDoctor(id);
-      return processBackendResponse<Doctor>(response) as Doctor;
+      return extractItemData<Doctor>(response);
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -68,7 +67,7 @@ export function useNearbyDoctors(params?: {
         minRating: params?.minRating,
       });
 
-      return processBackendResponse<Doctor>(response) as Doctor[];
+      return extractListData<Doctor>(response);
     },
     enabled: params?.enabled !== false && !!userCoords,
     staleTime: 5 * 60 * 1000,
@@ -107,7 +106,7 @@ export function useDoctorsBySpecialty(
       }
 
       const response = await getDoctorsBySpecialty(specialty, apiParams);
-      return processBackendResponse<Doctor>(response) as Doctor[];
+      return extractListData<Doctor>(response);
     },
     enabled: params?.enabled !== false && !!specialty,
     staleTime: 10 * 60 * 1000,
@@ -149,7 +148,7 @@ export function useAdvancedDoctorSearch(params: {
       }
 
       const response = await getAdvancedDoctors(apiParams);
-      return processBackendResponse<Doctor>(response) as Doctor[];
+      return extractListData<Doctor>(response);
     },
     enabled: params.enabled !== false,
     staleTime: 5 * 60 * 1000,
