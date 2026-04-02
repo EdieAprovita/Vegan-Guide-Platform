@@ -9,9 +9,6 @@ import { buildSearchParams } from "./utils";
 import { Review } from "@/types";
 import { GeoLocation } from "@/types/geospatial";
 
-// WARNING: Mock data is ONLY used in development for network/timeout failures (not HTTP errors).
-// ApiError (4xx/5xx responses) and production errors always propagate to error boundaries.
-
 export interface Restaurant {
   _id: string;
   restaurantName: string;
@@ -105,117 +102,6 @@ export async function getRestaurants(params?: RestaurantSearchParams, signal?: A
     }
     throw error;
   }
-}
-
-// Mock data function for development
-function getMockRestaurants() {
-  const mockRestaurants: Restaurant[] = [
-    {
-      _id: "1",
-      restaurantName: "Green Garden Bistro",
-      name: "Green Garden Bistro",
-      address: "123 Vegan St",
-      city: "Plant City",
-      country: "USA",
-      phone: "+1-555-0123",
-      website: "https://greengardenbistro.com",
-      location: {
-        type: "Point",
-        coordinates: [40.7128, -74.006],
-      },
-      author: {
-        _id: "user1",
-        username: "veganchef",
-        photo: "/default-avatar.jpg",
-      },
-      contact: [
-        {
-          phone: "+1-555-0123",
-          facebook: "greengardenbistro",
-          instagram: "@greengardenbistro",
-        },
-      ],
-      cuisine: ["Vegan", "Mediterranean", "Organic"],
-      image: "/placeholder-recipe.jpg",
-      rating: 4.8,
-      numReviews: 127,
-      reviews: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      _id: "2",
-      restaurantName: "Plant Power Kitchen",
-      name: "Plant Power Kitchen",
-      address: "456 Healthy Ave",
-      city: "Wellness Town",
-      country: "USA",
-      phone: "+1-555-0456",
-      website: "https://plantpowerkitchen.com",
-      location: {
-        type: "Point",
-        coordinates: [40.7614, -73.9776],
-      },
-      author: {
-        _id: "user2",
-        username: "plantpowerfan",
-        photo: "/default-avatar.jpg",
-      },
-      contact: [
-        {
-          phone: "+1-555-0456",
-          facebook: "plantpowerkitchen",
-          instagram: "@plantpowerkitchen",
-        },
-      ],
-      cuisine: ["Vegan", "Raw", "Gluten-free"],
-      image: "/placeholder-recipe.jpg",
-      rating: 4.6,
-      numReviews: 89,
-      reviews: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      _id: "3",
-      restaurantName: "Harvest Moon Cafe",
-      name: "Harvest Moon Cafe",
-      address: "789 Organic Blvd",
-      city: "Fresh Fields",
-      country: "USA",
-      phone: "+1-555-0789",
-      website: "https://harvestmooncafe.com",
-      location: {
-        type: "Point",
-        coordinates: [40.7489, -73.9857],
-      },
-      author: {
-        _id: "user3",
-        username: "harvestlover",
-        photo: "/default-avatar.jpg",
-      },
-      contact: [
-        {
-          phone: "+1-555-0789",
-          facebook: "harvestmooncafe",
-          instagram: "@harvestmooncafe",
-        },
-      ],
-      cuisine: ["Vegetarian", "Vegan", "Farm-to-table"],
-      image: "/placeholder-recipe.jpg",
-      rating: 4.7,
-      numReviews: 156,
-      reviews: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ];
-
-  return {
-    success: true,
-    message: "Restaurants fetched successfully (mock data)",
-    data: mockRestaurants,
-  };
 }
 
 export async function getRestaurant(id: string, signal?: AbortSignal) {
