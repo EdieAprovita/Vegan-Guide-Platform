@@ -26,7 +26,12 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors, tryOpenMobileMenu } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  tryOpenMobileMenu,
+} from "../../helpers/test-utils";
 import { LoginPage } from "../../pages/LoginPage";
 import { RegisterPage } from "../../pages/RegisterPage";
 import { RestaurantPage } from "../../pages/RestaurantPage";
@@ -87,15 +92,9 @@ test.describe("User Journey: New User Onboarding", () => {
     await waitForHydration(page);
 
     try {
-      const usernameVisible = await registerPage.usernameInput
-        .isVisible()
-        .catch(() => false);
-      const emailVisible = await registerPage.emailInput
-        .isVisible()
-        .catch(() => false);
-      const passwordVisible = await registerPage.passwordInput
-        .isVisible()
-        .catch(() => false);
+      const usernameVisible = await registerPage.usernameInput.isVisible().catch(() => false);
+      const emailVisible = await registerPage.emailInput.isVisible().catch(() => false);
+      const passwordVisible = await registerPage.passwordInput.isVisible().catch(() => false);
 
       expect(usernameVisible || emailVisible || passwordVisible).toBe(true);
     } catch {
@@ -142,9 +141,7 @@ test.describe("User Journey: New User Onboarding", () => {
     // Should have navigation links to resources
     // Check for existing nav links (may be hidden in mobile menu)
     await tryOpenMobileMenu(page);
-    const navLinks = page.locator(
-      'a[href="/restaurants"], a[href="/recipes"], a[href="/doctors"]',
-    );
+    const navLinks = page.locator('a[href="/restaurants"], a[href="/recipes"], a[href="/doctors"]');
     const navCount = await navLinks.count();
     expect(navCount).toBeGreaterThan(0);
   });
@@ -154,9 +151,7 @@ test.describe("User Journey: New User Onboarding", () => {
     await waitForHydration(page);
 
     const loginPage = new LoginPage(page);
-    const emailVisible = await loginPage.emailInput
-      .isVisible()
-      .catch(() => false);
+    const emailVisible = await loginPage.emailInput.isVisible().catch(() => false);
 
     expect(emailVisible || page.url().includes("/login")).toBe(true);
   });
@@ -207,9 +202,7 @@ test.describe("User Journey: Discovery Flow", () => {
     await waitForHydration(page);
 
     try {
-      const resultLink = page
-        .locator('a[href*="/restaurants/"]')
-        .first();
+      const resultLink = page.locator('a[href*="/restaurants/"]').first();
       const linkExists = (await resultLink.count()) > 0;
 
       if (linkExists) {
@@ -229,9 +222,7 @@ test.describe("User Journey: Discovery Flow", () => {
     }
   });
 
-  test("user can navigate from restaurant list to detail and back", async ({
-    page,
-  }) => {
+  test("user can navigate from restaurant list to detail and back", async ({ page }) => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -252,9 +243,7 @@ test.describe("User Journey: Discovery Flow", () => {
     expect(page.url()).toContain("/restaurants");
   });
 
-  test("full discovery: home → search → detail flow without errors", async ({
-    page,
-  }) => {
+  test("full discovery: home → search → detail flow without errors", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -324,9 +313,7 @@ test.describe("User Journey: Content Browsing", () => {
     expect((body ?? "").length).toBeGreaterThan(50);
   });
 
-  test("multi-resource browsing: restaurants → recipes → doctors", async ({
-    page,
-  }) => {
+  test("multi-resource browsing: restaurants → recipes → doctors", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
     // Visit restaurants
@@ -360,9 +347,7 @@ test.describe("User Journey: Content Browsing", () => {
     await pragmaticFallback(page);
   });
 
-  test("navigate between four resource types without crashes", async ({
-    page,
-  }) => {
+  test("navigate between four resource types without crashes", async ({ page }) => {
     const routes = ["/restaurants", "/recipes", "/doctors", "/markets"];
 
     for (const route of routes) {
@@ -380,20 +365,17 @@ test.describe("User Journey: Content Browsing", () => {
 authedTest.describe("User Journey: Auth Round-trip", () => {
   authedTest.slow();
 
-  authedTest(
-    "authenticated user can access profile after login",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated user can access profile after login", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const onProfile = authedPage.url().includes("/profile");
-      const onLogin = authedPage.url().includes("/login");
-      expect(onProfile || onLogin).toBe(true);
-    },
-  );
+    const onProfile = authedPage.url().includes("/profile");
+    const onLogin = authedPage.url().includes("/login");
+    expect(onProfile || onLogin).toBe(true);
+  });
 
   authedTest(
     "authenticated user can navigate between protected and public routes",
@@ -417,52 +399,44 @@ authedTest.describe("User Journey: Auth Round-trip", () => {
 
       const url = authedPage.url();
       expect(url.includes("/profile") || url.includes("/login")).toBe(true);
-    },
+    }
   );
 
-  authedTest(
-    "session persists across multiple page navigations",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
-      await mockRestaurantList(authedPage, 3);
-      await mockRecipeList(authedPage, 3);
+  authedTest("session persists across multiple page navigations", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
+    await mockRestaurantList(authedPage, 3);
+    await mockRecipeList(authedPage, 3);
 
-      const routes = ["/", "/restaurants", "/recipes", "/"];
+    const routes = ["/", "/restaurants", "/recipes", "/"];
 
-      for (const route of routes) {
-        await authedPage.goto(route, { waitUntil: "domcontentloaded" });
-        await authedPage.waitForTimeout(1000);
-        // Should never redirect to login while authenticated
-        expect(authedPage.url()).not.toContain("/login");
-      }
-    },
-  );
+    for (const route of routes) {
+      await authedPage.goto(route, { waitUntil: "domcontentloaded" });
+      await authedPage.waitForTimeout(1000);
+      // Should never redirect to login while authenticated
+      expect(authedPage.url()).not.toContain("/login");
+    }
+  });
 
-  authedTest(
-    "auth state does not leak tokens into page HTML",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+  authedTest("auth state does not leak tokens into page HTML", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
 
-      const html = await authedPage.content();
-      expect(html).not.toContain("mock-jwt-token");
-      expect(html).not.toContain("mock-refresh-token");
-    },
-  );
+    const html = await authedPage.content();
+    expect(html).not.toContain("mock-jwt-token");
+    expect(html).not.toContain("mock-refresh-token");
+  });
 
   authedTest(
     "session API returns valid response for authenticated user",
     async ({ authedPage }) => {
       await mockNextImages(authedPage);
 
-      const response = await authedPage.request.get(
-        "http://localhost:3000/api/auth/session",
-      );
+      const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
 
       // request.get() bypasses page-level route mocks, so accept any valid status
       expect([200, 401, 404, 500]).toContain(response.status());
-    },
+    }
   );
 });
 
@@ -486,9 +460,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
     await mockMapLocations(page);
   });
 
-  test("full app tour: home → restaurants → recipes → doctors → markets", async ({
-    page,
-  }) => {
+  test("full app tour: home → restaurants → recipes → doctors → markets", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
     const routes = ["/", "/restaurants", "/recipes", "/doctors", "/markets"];
@@ -502,9 +474,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
     checker.check();
   });
 
-  test("navigating to search page from any resource list works", async ({
-    page,
-  }) => {
+  test("navigating to search page from any resource list works", async ({ page }) => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -541,15 +511,7 @@ test.describe("User Journey: Cross-Resource Navigation", () => {
   test("rapid navigation between resources does not crash", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
-    const routes = [
-      "/",
-      "/restaurants",
-      "/recipes",
-      "/doctors",
-      "/markets",
-      "/search",
-      "/",
-    ];
+    const routes = ["/", "/restaurants", "/recipes", "/doctors", "/markets", "/search", "/"];
 
     for (const route of routes) {
       try {

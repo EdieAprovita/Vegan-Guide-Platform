@@ -251,9 +251,7 @@ describe("ResourceList – Load More button", () => {
   it("has aria-label on the Load More button with emptyLabel", () => {
     setMockState({ mounted: true, items, loading: false, hasMore: true });
     render(<ResourceList {...defaultProps} emptyLabel="restaurants" />);
-    expect(
-      screen.getByRole("button", { name: /cargar mas restaurants/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cargar mas restaurants/i })).toBeInTheDocument();
   });
 });
 
@@ -275,9 +273,7 @@ describe("ResourceList – filter bar", () => {
   it("passes the searchPlaceholder to the filter bar", () => {
     setMockState({ mounted: true, items, loading: false });
     render(<ResourceList {...defaultProps} searchPlaceholder="Search restaurants..." />);
-    expect(
-      screen.getByPlaceholderText("Search restaurants...")
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search restaurants...")).toBeInTheDocument();
   });
 
   it("calls setSearch when user types in the search input", () => {
@@ -296,10 +292,7 @@ describe("ResourceList – custom gridClassName", () => {
   it("applies a custom gridClassName to the card grid container", () => {
     setMockState({ mounted: true, items, loading: false, hasMore: false });
     render(
-      <ResourceList
-        {...defaultProps}
-        gridClassName="grid grid-cols-1 gap-4 xl:grid-cols-4"
-      />
+      <ResourceList {...defaultProps} gridClassName="grid grid-cols-1 gap-4 xl:grid-cols-4" />
     );
     const grid = document.querySelector(".xl\\:grid-cols-4");
     expect(grid).toBeInTheDocument();

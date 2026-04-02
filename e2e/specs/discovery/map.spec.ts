@@ -9,7 +9,12 @@ import {
   mockDoctorList,
   mockMarketList,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors, assertNoInfiniteRedirect } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+} from "../../helpers/test-utils";
 
 /**
  * Map & Discovery E2E Test Suite

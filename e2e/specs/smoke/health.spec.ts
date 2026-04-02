@@ -60,7 +60,7 @@ test.describe("Smoke: Health Check", () => {
         !msg.includes("maps.googleapis.com") &&
         !msg.includes("ERR_CONNECTION_REFUSED") &&
         !msg.includes("Failed to fetch") &&
-        !msg.includes("NetworkError"),
+        !msg.includes("NetworkError")
     );
 
     expect(criticalErrors).toEqual([]);

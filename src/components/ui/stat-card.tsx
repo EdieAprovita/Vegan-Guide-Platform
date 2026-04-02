@@ -33,14 +33,7 @@ interface StatCardProps {
  * - An optional color-coded trend badge (green = positive, red = negative)
  * - An optional mini progress bar showing relative value
  */
-export function StatCard({
-  label,
-  value,
-  trend,
-  icon: Icon,
-  progress,
-  className,
-}: StatCardProps) {
+export function StatCard({ label, value, trend, icon: Icon, progress, className }: StatCardProps) {
   const hasTrend = trend !== null && trend !== undefined;
   const isPositive = hasTrend && (trend as number) >= 0;
 
@@ -60,7 +53,7 @@ export function StatCard({
           <div
             className={cn(
               "flex items-center gap-1 text-xs font-medium",
-              isPositive ? "text-emerald-600" : "text-red-600",
+              isPositive ? "text-emerald-600" : "text-red-600"
             )}
           >
             {isPositive ? (
@@ -77,11 +70,7 @@ export function StatCard({
 
         {/* Mini progress bar */}
         {progress !== undefined && (
-          <ProgressBar
-            value={progress}
-            label={`${label} progress`}
-            className="mt-1"
-          />
+          <ProgressBar value={progress} label={`${label} progress`} className="mt-1" />
         )}
       </CardContent>
     </Card>

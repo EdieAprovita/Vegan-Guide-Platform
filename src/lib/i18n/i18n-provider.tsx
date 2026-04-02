@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { translations, type Locale, type TranslationKeys } from "./translations";
 
 // ---------------------------------------------------------------------------
@@ -18,8 +12,8 @@ type DotPath<T, Prefix extends string = ""> = {
   [K in keyof T]: T[K] extends Record<string, unknown>
     ? DotPath<T[K], Prefix extends "" ? `${string & K}` : `${Prefix}.${string & K}`>
     : Prefix extends ""
-    ? `${string & K}`
-    : `${Prefix}.${string & K}`;
+      ? `${string & K}`
+      : `${Prefix}.${string & K}`;
 }[keyof T];
 
 export type TranslationPath = DotPath<TranslationKeys>;
@@ -73,11 +67,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     setLocaleState(next);
   }, []);
 
-  return (
-    <LocaleContext.Provider value={{ locale, setLocale }}>
-      {children}
-    </LocaleContext.Provider>
-  );
+  return <LocaleContext.Provider value={{ locale, setLocale }}>{children}</LocaleContext.Provider>;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +113,7 @@ export function useTranslation() {
       }
       return key;
     },
-    [locale],
+    [locale]
   );
 
   return { t, locale };

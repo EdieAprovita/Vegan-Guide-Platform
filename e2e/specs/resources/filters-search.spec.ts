@@ -51,7 +51,7 @@ test.describe("Resource Filters: Restaurants", () => {
         '[aria-label*="filter" i]',
         '[aria-label*="filtro" i]',
         '[data-testid*="filter"]',
-      ].join(", "),
+      ].join(", ")
     );
 
     const filterCount = await filterElements.count();
@@ -72,9 +72,7 @@ test.describe("Resource Filters: Restaurants", () => {
 
     // Attempt an empty search — the page must remain functional
     try {
-      const searchVisible = await restaurantPage.searchInput
-        .isVisible()
-        .catch(() => false);
+      const searchVisible = await restaurantPage.searchInput.isVisible().catch(() => false);
 
       if (searchVisible) {
         await restaurantPage.searchInput.fill("");
@@ -119,7 +117,7 @@ test.describe("Resource Filters: Recipes", () => {
         '[aria-label*="filter" i]',
         '[aria-label*="filtro" i]',
         '[data-testid*="filter"]',
-      ].join(", "),
+      ].join(", ")
     );
 
     const filterCount = await filterElements.count();
@@ -137,9 +135,7 @@ test.describe("Resource Filters: Recipes", () => {
     await waitForHydration(page);
 
     try {
-      const searchVisible = await recipePage.searchInput
-        .isVisible()
-        .catch(() => false);
+      const searchVisible = await recipePage.searchInput.isVisible().catch(() => false);
 
       if (searchVisible) {
         await recipePage.searchInput.fill("");
@@ -182,7 +178,7 @@ test.describe("Resource Filters: Doctors", () => {
         '[aria-label*="filter" i]',
         '[aria-label*="filtro" i]',
         '[data-testid*="filter"]',
-      ].join(", "),
+      ].join(", ")
     );
 
     const filterCount = await filterElements.count();
@@ -200,9 +196,7 @@ test.describe("Resource Filters: Doctors", () => {
     await waitForHydration(page);
 
     try {
-      const searchVisible = await doctorPage.searchInput
-        .isVisible()
-        .catch(() => false);
+      const searchVisible = await doctorPage.searchInput.isVisible().catch(() => false);
 
       if (searchVisible) {
         await doctorPage.searchInput.fill("");
@@ -245,7 +239,7 @@ test.describe("Resource Filters: Markets", () => {
         '[aria-label*="filter" i]',
         '[aria-label*="filtro" i]',
         '[data-testid*="filter"]',
-      ].join(", "),
+      ].join(", ")
     );
 
     const filterCount = await filterElements.count();
@@ -263,9 +257,7 @@ test.describe("Resource Filters: Markets", () => {
     await waitForHydration(page);
 
     try {
-      const searchVisible = await marketPage.searchInput
-        .isVisible()
-        .catch(() => false);
+      const searchVisible = await marketPage.searchInput.isVisible().catch(() => false);
 
       if (searchVisible) {
         await marketPage.searchInput.fill("");
@@ -323,7 +315,7 @@ test.describe("Cross-Resource Search", () => {
     const broadSearchSelector = [
       'input[type="search"]',
       'input[type="text"]',
-      'input[placeholder]',
+      "input[placeholder]",
       '[role="searchbox"]',
     ].join(", ");
 
@@ -337,8 +329,7 @@ test.describe("Cross-Resource Search", () => {
 
       // Pragmatic: a search input is preferred, but a non-empty rendered page
       // is acceptable when the implementation defers to URL params or a global bar.
-      const pageIsUsable =
-        searchCount >= 1 || (bodyText ?? "").length > 50;
+      const pageIsUsable = searchCount >= 1 || (bodyText ?? "").length > 50;
 
       expect(pageIsUsable).toBe(true);
     }

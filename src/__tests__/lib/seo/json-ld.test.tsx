@@ -169,7 +169,7 @@ describe("OrganizationJsonLd", () => {
     render(<OrganizationJsonLd />);
     const logo = getJsonLdData()["logo"] as Record<string, unknown>;
     expect(logo["@type"]).toBe("ImageObject");
-    expect((logo["url"] as string)).toContain("logo-512.png");
+    expect(logo["url"] as string).toContain("logo-512.png");
   });
 
   it("includes a description", () => {
@@ -217,9 +217,9 @@ describe("BreadcrumbJsonLd", () => {
     render(<BreadcrumbJsonLd items={items} />);
     const elements = getJsonLdData()["itemListElement"] as Array<Record<string, unknown>>;
     expect(elements[0]["name"]).toBe("Home");
-    expect((elements[0]["item"] as string)).toContain("/");
+    expect(elements[0]["item"] as string).toContain("/");
     expect(elements[1]["name"]).toBe("Restaurants");
-    expect((elements[2]["name"])).toBe("The Green Plate");
+    expect(elements[2]["name"]).toBe("The Green Plate");
   });
 });
 
@@ -249,11 +249,7 @@ describe("RestaurantJsonLd", () => {
   });
 
   it("includes address when provided", () => {
-    render(
-      <RestaurantJsonLd
-        restaurant={{ restaurantName: "R", address: "123 Main St" }}
-      />
-    );
+    render(<RestaurantJsonLd restaurant={{ restaurantName: "R", address: "123 Main St" }} />);
     const addr = getJsonLdData()["address"] as Record<string, unknown>;
     expect(addr["streetAddress"]).toBe("123 Main St");
   });
@@ -264,11 +260,7 @@ describe("RestaurantJsonLd", () => {
   });
 
   it("includes aggregateRating when rating is provided", () => {
-    render(
-      <RestaurantJsonLd
-        restaurant={{ restaurantName: "R", rating: 4.5, numReviews: 20 }}
-      />
-    );
+    render(<RestaurantJsonLd restaurant={{ restaurantName: "R", rating: 4.5, numReviews: 20 }} />);
     const aggRating = getJsonLdData()["aggregateRating"] as Record<string, unknown>;
     expect(aggRating["ratingValue"]).toBe(4.5);
     expect(aggRating["reviewCount"]).toBe(20);
@@ -286,9 +278,7 @@ describe("RestaurantJsonLd", () => {
 
   it("uses provided cuisine array", () => {
     render(
-      <RestaurantJsonLd
-        restaurant={{ restaurantName: "R", cuisine: ["Mexican", "Italian"] }}
-      />
+      <RestaurantJsonLd restaurant={{ restaurantName: "R", cuisine: ["Mexican", "Italian"] }} />
     );
     expect(getJsonLdData()["servesCuisine"]).toEqual(["Mexican", "Italian"]);
   });
@@ -360,15 +350,9 @@ describe("RecipeJsonLd", () => {
 
   it("includes recipeIngredient when ingredients are provided", () => {
     render(
-      <RecipeJsonLd
-        recipe={{ title: "Tacos", ingredients: ["tortilla", "beans", "salsa"] }}
-      />
+      <RecipeJsonLd recipe={{ title: "Tacos", ingredients: ["tortilla", "beans", "salsa"] }} />
     );
-    expect(getJsonLdData()["recipeIngredient"]).toEqual([
-      "tortilla",
-      "beans",
-      "salsa",
-    ]);
+    expect(getJsonLdData()["recipeIngredient"]).toEqual(["tortilla", "beans", "salsa"]);
   });
 });
 
@@ -389,9 +373,7 @@ describe("LocalBusinessJsonLd", () => {
 
   it("uses a custom businessType when provided", () => {
     render(
-      <LocalBusinessJsonLd
-        business={{ name: "Green Market", businessType: "GroceryStore" }}
-      />
+      <LocalBusinessJsonLd business={{ name: "Green Market", businessType: "GroceryStore" }} />
     );
     expect(getJsonLdData()["@type"]).toBe("GroceryStore");
   });
@@ -402,21 +384,13 @@ describe("LocalBusinessJsonLd", () => {
   });
 
   it("includes address when provided", () => {
-    render(
-      <LocalBusinessJsonLd
-        business={{ name: "Green Market", address: "789 Park Ave" }}
-      />
-    );
+    render(<LocalBusinessJsonLd business={{ name: "Green Market", address: "789 Park Ave" }} />);
     const addr = getJsonLdData()["address"] as Record<string, unknown>;
     expect(addr["streetAddress"]).toBe("789 Park Ave");
   });
 
   it("includes aggregateRating when rating is provided", () => {
-    render(
-      <LocalBusinessJsonLd
-        business={{ name: "GM", rating: 4.0, numReviews: 50 }}
-      />
-    );
+    render(<LocalBusinessJsonLd business={{ name: "GM", rating: 4.0, numReviews: 50 }} />);
     const aggRating = getJsonLdData()["aggregateRating"] as Record<string, unknown>;
     expect(aggRating["ratingValue"]).toBe(4.0);
     expect(aggRating["reviewCount"]).toBe(50);
@@ -459,17 +433,13 @@ describe("DoctorJsonLd", () => {
   });
 
   it("includes address when provided", () => {
-    render(
-      <DoctorJsonLd doctor={{ name: "Dr. Lopez", address: "111 Health Blvd" }} />
-    );
+    render(<DoctorJsonLd doctor={{ name: "Dr. Lopez", address: "111 Health Blvd" }} />);
     const addr = getJsonLdData()["address"] as Record<string, unknown>;
     expect(addr["streetAddress"]).toBe("111 Health Blvd");
   });
 
   it("includes aggregateRating when rating is provided", () => {
-    render(
-      <DoctorJsonLd doctor={{ name: "Dr. Lopez", rating: 4.9, numReviews: 25 }} />
-    );
+    render(<DoctorJsonLd doctor={{ name: "Dr. Lopez", rating: 4.9, numReviews: 25 }} />);
     const aggRating = getJsonLdData()["aggregateRating"] as Record<string, unknown>;
     expect(aggRating["ratingValue"]).toBe(4.9);
     expect(aggRating["reviewCount"]).toBe(25);
@@ -481,9 +451,7 @@ describe("DoctorJsonLd", () => {
   });
 
   it("includes url when provided", () => {
-    render(
-      <DoctorJsonLd doctor={{ name: "Dr. Lopez", url: "https://drlopez.com" }} />
-    );
+    render(<DoctorJsonLd doctor={{ name: "Dr. Lopez", url: "https://drlopez.com" }} />);
     expect(getJsonLdData()["url"]).toBe("https://drlopez.com");
   });
 });

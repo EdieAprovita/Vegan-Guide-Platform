@@ -36,7 +36,7 @@ export default function SearchLoading() {
         </div>
 
         {/* Large search bar */}
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           <Skeleton className="h-12 w-full rounded-lg" />
 
           {/* Category filter pills */}
@@ -56,7 +56,7 @@ export default function SearchLoading() {
         </div>
 
         {/* Results section */}
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           {/* Results count */}
           <Skeleton className="h-4 w-40" />
           {/* Result items */}
@@ -68,7 +68,7 @@ export default function SearchLoading() {
         </div>
 
         {/* Tips panel */}
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+        <div className="space-y-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <Skeleton className="h-5 w-52" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (

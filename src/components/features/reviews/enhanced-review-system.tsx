@@ -70,8 +70,7 @@ export const EnhancedReviewSystem = ({
   };
 
   const stats = hookStats || calculateStats();
-  const userHasReviewed =
-    isAuthenticated && reviews.some((review) => review.user._id === user?.id);
+  const userHasReviewed = isAuthenticated && reviews.some((review) => review.user._id === user?.id);
 
   const handleAddReview = async (reviewData: { rating: number; comment: string }) => {
     if (onReviewSubmit) {

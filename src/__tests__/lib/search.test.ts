@@ -108,9 +108,9 @@ describe("searchUnified", () => {
   it("throws on non-ok response", async () => {
     mockError(500, "Search service unavailable");
 
-    await expect(searchUnified({ filters: { query: "vegan" } as SearchParams["filters"] })).rejects.toThrow(
-      "Search service unavailable"
-    );
+    await expect(
+      searchUnified({ filters: { query: "vegan" } as SearchParams["filters"] })
+    ).rejects.toThrow("Search service unavailable");
   });
 });
 
@@ -201,10 +201,7 @@ describe("getPopularSearches", () => {
 
     const result = await getPopularSearches();
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${BASE}/search/popular`,
-      expect.any(Object)
-    );
+    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/search/popular`, expect.any(Object));
     expect(result).toEqual(payload);
   });
 
@@ -218,7 +215,10 @@ describe("getPopularSearches", () => {
 // ---------------------------------------------------------------------------
 describe("getSearchAggregations", () => {
   it("calls /search/aggregations without params when no filters are given", async () => {
-    const payload = { success: true, data: { resourceTypes: {}, locations: [], priceRanges: [], ratings: {} } };
+    const payload = {
+      success: true,
+      data: { resourceTypes: {}, locations: [], priceRanges: [], ratings: {} },
+    };
     mockOkJson(payload);
 
     await getSearchAggregations();

@@ -9,16 +9,13 @@ export class RestaurantPage extends BaseResourcePage {
   constructor(page: Page) {
     super(page, {
       slug: "restaurants",
-      cardSelector:
-        'article[aria-label*="Restaurante"], article[aria-label*="Restaurant"]',
+      cardSelector: 'article[aria-label*="Restaurante"], article[aria-label*="Restaurant"]',
     });
   }
 
   /** Check if any cards have a rating displayed */
   async hasRatings(): Promise<boolean> {
-    const ratingElements = this.page.locator(
-      '[aria-label*="rating"], [aria-label*="Rating"]',
-    );
+    const ratingElements = this.page.locator('[aria-label*="rating"], [aria-label*="Rating"]');
     const starIcons = this.page.locator('svg.fill-primary, [class*="star"]');
     return (await ratingElements.count()) > 0 || (await starIcons.count()) > 0;
   }

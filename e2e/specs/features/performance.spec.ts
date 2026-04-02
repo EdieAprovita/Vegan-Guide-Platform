@@ -17,7 +17,11 @@ import {
   jsonResponse,
   errorResponse,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+} from "../../helpers/test-utils";
 
 /**
  * Phase 7D: Performance & Metrics E2E Tests
@@ -118,9 +122,7 @@ test.describe("Performance: Core Web Vitals", () => {
     await mockRestaurantList(page, 3);
   });
 
-  test("Largest Contentful Paint on home page is under 8 seconds", async ({
-    page,
-  }) => {
+  test("Largest Contentful Paint on home page is under 8 seconds", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -161,9 +163,7 @@ test.describe("Performance: Core Web Vitals", () => {
     }
   });
 
-  test("Cumulative Layout Shift on home page is under 0.25", async ({
-    page,
-  }) => {
+  test("Cumulative Layout Shift on home page is under 0.25", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -213,17 +213,13 @@ test.describe("Performance: Core Web Vitals", () => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
-    const nodeCount = await page.evaluate(
-      () => document.querySelectorAll("*").length,
-    );
+    const nodeCount = await page.evaluate(() => document.querySelectorAll("*").length);
 
     expect(nodeCount).toBeLessThan(3000);
     expect(nodeCount).toBeGreaterThan(0);
   });
 
-  test("no layout shift after initial hydration on restaurant page", async ({
-    page,
-  }) => {
+  test("no layout shift after initial hydration on restaurant page", async ({ page }) => {
     await mockRestaurantDetail(page);
 
     await page.goto("/restaurants/rest-001", {
@@ -284,9 +280,7 @@ test.describe("Performance: Navigation Performance", () => {
     await mockMarketList(page, 3);
   });
 
-  test("client-side navigation between lists is fast (< 5s)", async ({
-    page,
-  }) => {
+  test("client-side navigation between lists is fast (< 5s)", async ({ page }) => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 
@@ -327,9 +321,7 @@ test.describe("Performance: Navigation Performance", () => {
     expect(elapsed).toBeLessThan(10000);
   });
 
-  test("multiple sequential navigations complete without degradation", async ({
-    page,
-  }) => {
+  test("multiple sequential navigations complete without degradation", async ({ page }) => {
     const routes = ["/", "/restaurants", "/recipes", "/doctors", "/markets"];
     const times: number[] = [];
 
@@ -358,14 +350,7 @@ test.describe("Performance: Navigation Performance", () => {
   test("rapid page switches do not cause memory issues", async ({ page }) => {
     const checker = collectConsoleErrors(page);
 
-    const routes = [
-      "/restaurants",
-      "/recipes",
-      "/restaurants",
-      "/doctors",
-      "/markets",
-      "/",
-    ];
+    const routes = ["/restaurants", "/recipes", "/restaurants", "/doctors", "/markets", "/"];
 
     for (const route of routes) {
       try {
@@ -395,9 +380,7 @@ test.describe("Performance: Resource Efficiency", () => {
     await mockGoogleMaps(page);
   });
 
-  test("restaurant list does not make excessive API calls", async ({
-    page,
-  }) => {
+  test("restaurant list does not make excessive API calls", async ({ page }) => {
     let apiCallCount = 0;
 
     await page.route("**/api/v1/restaurants*", (route) => {
@@ -413,7 +396,7 @@ test.describe("Performance: Resource Efficiency", () => {
               photo: "/placeholder.jpg",
               address: "Test address",
             },
-          ]),
+          ])
         );
       }
       return route.continue();
@@ -533,9 +516,7 @@ test.describe("Performance: Caching Behaviour", () => {
   });
 
   test("manifest.json is accessible for PWA", async ({ page }) => {
-    const response = await page.request.get(
-      "http://localhost:3000/manifest.json",
-    );
+    const response = await page.request.get("http://localhost:3000/manifest.json");
 
     // Manifest should be available
     if (response.status() === 200) {
@@ -573,9 +554,7 @@ test.describe("Performance: Caching Behaviour", () => {
     expect(typeof hasCachedAsset).toBe("boolean");
   });
 
-  test("page reload loads content from cache or refetch successfully", async ({
-    page,
-  }) => {
+  test("page reload loads content from cache or refetch successfully", async ({ page }) => {
     await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
     await waitForHydration(page);
 

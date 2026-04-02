@@ -87,14 +87,17 @@ describe("restaurant query hooks", () => {
     ]);
 
     await config.queryFn({ signal: undefined });
-    expect(restaurantsApi.getNearbyRestaurants).toHaveBeenCalledWith({
-      latitude: 1,
-      longitude: 2,
-      radius: 7,
-      limit: 5,
-      cuisine: "vegan",
-      minRating: 4,
-    }, undefined);
+    expect(restaurantsApi.getNearbyRestaurants).toHaveBeenCalledWith(
+      {
+        latitude: 1,
+        longitude: 2,
+        radius: 7,
+        limit: 5,
+        cuisine: "vegan",
+        minRating: 4,
+      },
+      undefined
+    );
   });
 
   it("requests geolocation when coordinates missing", async () => {
@@ -127,13 +130,17 @@ describe("restaurant query hooks", () => {
     ]);
 
     await config.queryFn({ signal: undefined });
-    expect(restaurantsApi.getRestaurantsByCuisine).toHaveBeenCalledWith("vegan", {
-      page: undefined,
-      limit: 3,
-      latitude: 1,
-      longitude: 2,
-      radius: 10,
-    }, undefined);
+    expect(restaurantsApi.getRestaurantsByCuisine).toHaveBeenCalledWith(
+      "vegan",
+      {
+        page: undefined,
+        limit: 3,
+        latitude: 1,
+        longitude: 2,
+        radius: 10,
+      },
+      undefined
+    );
   });
 
   it("configures advanced restaurant search", async () => {
@@ -158,16 +165,19 @@ describe("restaurant query hooks", () => {
     expect(config.queryKey[1]).toBe("search");
 
     await config.queryFn({ signal: undefined });
-    expect(restaurantsApi.getAdvancedRestaurants).toHaveBeenCalledWith({
-      search: "salads",
-      cuisine: ["vegan"],
-      minRating: 4,
-      sortBy: "distance",
-      limit: 50,
-      latitude: 1,
-      longitude: 2,
-      radius: 12,
-    }, undefined);
+    expect(restaurantsApi.getAdvancedRestaurants).toHaveBeenCalledWith(
+      {
+        search: "salads",
+        cuisine: ["vegan"],
+        minRating: 4,
+        sortBy: "distance",
+        limit: 50,
+        latitude: 1,
+        longitude: 2,
+        radius: 12,
+      },
+      undefined
+    );
   });
 
   it("wraps restaurant mutations with invalidations", async () => {

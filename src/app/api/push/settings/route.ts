@@ -23,7 +23,8 @@ export async function PUT(request: NextRequest) {
       method: "PUT",
       body: validationResult.data,
       label: "push/settings",
-      todoNote: "TODO: Remove 202 fallback once PUT /users/push-settings (PR #123) is confirmed reachable from this proxy",
+      todoNote:
+        "TODO: Remove 202 fallback once PUT /users/push-settings (PR #123) is confirmed reachable from this proxy",
       successMessage: "Notification settings updated",
     });
   } catch (error) {

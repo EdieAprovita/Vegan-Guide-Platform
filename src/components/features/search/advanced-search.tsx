@@ -257,8 +257,7 @@ export const AdvancedSearch = () => {
                 const resourceLabel = RESOURCE_TYPES.find((rt) => rt.id === type)?.label ?? type;
                 return (
                   <Badge key={type} variant="secondary" className="flex items-center gap-1">
-                    {RESOURCE_TYPES.find((rt) => rt.id === type)?.emoji}{" "}
-                    {resourceLabel}
+                    {RESOURCE_TYPES.find((rt) => rt.id === type)?.emoji} {resourceLabel}
                     <button
                       type="button"
                       onClick={() => handleResourceTypeToggle(type, false)}
@@ -409,10 +408,7 @@ export const AdvancedSearch = () => {
             {/* Rating and Budget */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label
-                  htmlFor="advanced-min-rating"
-                  className="text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="advanced-min-rating" className="text-sm font-medium text-gray-700">
                   Calificación mínima
                 </label>
                 <Select
@@ -434,10 +430,7 @@ export const AdvancedSearch = () => {
               </div>
 
               <div className="space-y-2">
-                <label
-                  id="advanced-budget-label"
-                  className="text-sm font-medium text-gray-700"
-                >
+                <label id="advanced-budget-label" className="text-sm font-medium text-gray-700">
                   Rango de presupuesto: ${budgetRange[0]} - ${budgetRange[1]}
                 </label>
                 <Slider

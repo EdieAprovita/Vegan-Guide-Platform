@@ -26,7 +26,12 @@ import {
 // ============================================================
 // Helper that extracts all error messages from a ZodError
 // ============================================================
-function parseErrors(schema: { safeParse: (v: unknown) => { success: boolean; error?: { errors: { message: string }[] } } }, data: unknown): string[] {
+function parseErrors(
+  schema: {
+    safeParse: (v: unknown) => { success: boolean; error?: { errors: { message: string }[] } };
+  },
+  data: unknown
+): string[] {
   const result = schema.safeParse(data);
   if (result.success) return [];
   return result.error?.errors.map((e) => e.message) ?? [];

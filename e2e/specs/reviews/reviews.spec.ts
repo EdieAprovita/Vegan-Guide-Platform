@@ -11,7 +11,12 @@ import {
   mockNextImages,
   mockGoogleMaps,
 } from "../../helpers/api-mocks";
-import { waitForHydration, pragmaticFallback, collectConsoleErrors, assertNoInfiniteRedirect } from "../../helpers/test-utils";
+import {
+  waitForHydration,
+  pragmaticFallback,
+  collectConsoleErrors,
+  assertNoInfiniteRedirect,
+} from "../../helpers/test-utils";
 
 /**
  * Reviews E2E Test Suite
@@ -51,11 +56,10 @@ test.describe("Reviews: Display on Resource Pages", () => {
     await restaurantPage.gotoDetail("rest-001");
     await waitForHydration(page);
 
-    const body = await page.locator("body").textContent() ?? "";
+    const body = (await page.locator("body").textContent()) ?? "";
 
     // Accept any review-related term in either language
-    const hasReviewText =
-      /review|reseña|calificación|Rating/i.test(body) || body.length > 0;
+    const hasReviewText = /review|reseña|calificación|Rating/i.test(body) || body.length > 0;
     expect(hasReviewText).toBe(true);
   });
 
@@ -67,7 +71,7 @@ test.describe("Reviews: Display on Resource Pages", () => {
     try {
       // Look for numeric rating values or star-related elements
       const ratingNumbers = page.locator(
-        '[class*="rating"], [aria-label*="rating" i], [aria-label*="Rating" i], .text-3xl',
+        '[class*="rating"], [aria-label*="rating" i], [aria-label*="Rating" i], .text-3xl'
       );
       const starIcons = page.locator('svg[class*="star" i], [class*="star"]');
       const ratingCount = await ratingNumbers.count();
@@ -159,7 +163,7 @@ test.describe("Reviews: Review Form Accessibility", () => {
             'a:has-text("Login")',
             'a:has-text("Iniciar sesión")',
             '[aria-label*="login" i]',
-          ].join(", "),
+          ].join(", ")
         );
         const authPromptCount = await authPrompt.count();
         // Either a review form or an auth prompt is present — or page simply loaded
@@ -187,54 +191,45 @@ authedTest.describe("Reviews: Review Form Submission", () => {
     await mockGoogleMaps(authedPage);
   });
 
-  authedTest(
-    "authenticated user can see review form",
-    async ({ authedPage }) => {
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+  authedTest("authenticated user can see review form", async ({ authedPage }) => {
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      const currentUrl = authedPage.url();
-      const body = await authedPage.locator("body").textContent();
-      const hasContent = (body ?? "").length > 0;
-      const redirectedToLogin = currentUrl.includes("/login");
+    const currentUrl = authedPage.url();
+    const body = await authedPage.locator("body").textContent();
+    const hasContent = (body ?? "").length > 0;
+    const redirectedToLogin = currentUrl.includes("/login");
 
-      // Either the page loaded with content or it redirected to login (both valid outcomes)
-      expect(hasContent || redirectedToLogin).toBe(true);
-    },
-  );
+    // Either the page loaded with content or it redirected to login (both valid outcomes)
+    expect(hasContent || redirectedToLogin).toBe(true);
+  });
 
-  authedTest(
-    "review form submit is accessible when authenticated",
-    async ({ authedPage }) => {
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+  authedTest("review form submit is accessible when authenticated", async ({ authedPage }) => {
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      try {
-        const reviewForm = authedPage.locator("form:has(#comment)");
-        const formExists = (await reviewForm.count()) > 0;
+    try {
+      const reviewForm = authedPage.locator("form:has(#comment)");
+      const formExists = (await reviewForm.count()) > 0;
 
-        if (formExists) {
-          expect(formExists).toBe(true);
-        } else {
-          // Pragmatic fallback: verify the restaurant page itself rendered content
-          await pragmaticFallback(authedPage);
-        }
-      } catch {
+      if (formExists) {
+        expect(formExists).toBe(true);
+      } else {
+        // Pragmatic fallback: verify the restaurant page itself rendered content
         await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 
-  authedTest(
-    "authenticated user can view restaurant with reviews",
-    async ({ authedPage }) => {
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+  authedTest("authenticated user can view restaurant with reviews", async ({ authedPage }) => {
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      const body = await authedPage.locator("body").textContent();
-      expect((body ?? "").length).toBeGreaterThan(100);
-    },
-  );
+    const body = await authedPage.locator("body").textContent();
+    expect((body ?? "").length).toBeGreaterThan(100);
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -251,67 +246,61 @@ authedTest.describe("Reviews: Review Validation", () => {
     await mockGoogleMaps(authedPage);
   });
 
-  authedTest(
-    "comment field has proper attributes",
-    async ({ authedPage }) => {
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+  authedTest("comment field has proper attributes", async ({ authedPage }) => {
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      try {
-        const commentInput = authedPage.locator("#comment");
-        const commentExists = (await commentInput.count()) > 0;
+    try {
+      const commentInput = authedPage.locator("#comment");
+      const commentExists = (await commentInput.count()) > 0;
 
-        if (commentExists) {
-          // If the field is present, verify it has expected constraint attributes
-          const minLength = await commentInput.getAttribute("minlength");
-          const maxLength = await commentInput.getAttribute("maxlength");
-          // Either constraints are defined or the field simply exists
-          expect(minLength !== null || maxLength !== null || commentExists).toBe(true);
-        } else {
-          // If the form is auth-gated or uses a different selector, check for any textarea
-          const anyTextarea = authedPage.locator("textarea");
-          const textareaCount = await anyTextarea.count();
-          const body = await authedPage.locator("body").textContent();
-          expect(textareaCount >= 0 || (body ?? "").length > 0).toBe(true);
-        }
-      } catch {
-        await pragmaticFallback(authedPage);
+      if (commentExists) {
+        // If the field is present, verify it has expected constraint attributes
+        const minLength = await commentInput.getAttribute("minlength");
+        const maxLength = await commentInput.getAttribute("maxlength");
+        // Either constraints are defined or the field simply exists
+        expect(minLength !== null || maxLength !== null || commentExists).toBe(true);
+      } else {
+        // If the form is auth-gated or uses a different selector, check for any textarea
+        const anyTextarea = authedPage.locator("textarea");
+        const textareaCount = await anyTextarea.count();
+        const body = await authedPage.locator("body").textContent();
+        expect(textareaCount >= 0 || (body ?? "").length > 0).toBe(true);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 
-  authedTest(
-    "character counter appears on comment interaction",
-    async ({ authedPage }) => {
-      await authedPage.goto("/restaurants/rest-001");
-      await waitForHydration(authedPage);
+  authedTest("character counter appears on comment interaction", async ({ authedPage }) => {
+    await authedPage.goto("/restaurants/rest-001");
+    await waitForHydration(authedPage);
 
-      try {
-        const commentInput = authedPage.locator("#comment");
-        const commentExists = (await commentInput.count()) > 0;
+    try {
+      const commentInput = authedPage.locator("#comment");
+      const commentExists = (await commentInput.count()) > 0;
 
-        if (commentExists) {
-          await commentInput.fill("Excelente restaurante, muy recomendado para veganos.");
+      if (commentExists) {
+        await commentInput.fill("Excelente restaurante, muy recomendado para veganos.");
 
-          // Character counter renders as "{n}/500 caracteres"
-          const charCounter = authedPage.locator("text=/\\d+\\/500 caracteres/");
-          const counterVisible = (await charCounter.count()) > 0;
+        // Character counter renders as "{n}/500 caracteres"
+        const charCounter = authedPage.locator("text=/\\d+\\/500 caracteres/");
+        const counterVisible = (await charCounter.count()) > 0;
 
-          if (counterVisible) {
-            expect(counterVisible).toBe(true);
-          } else {
-            // Counter may use a different format — page still has content
-            await pragmaticFallback(authedPage);
-          }
+        if (counterVisible) {
+          expect(counterVisible).toBe(true);
         } else {
-          // Form not present (auth-gated) — pragmatic pass
+          // Counter may use a different format — page still has content
           await pragmaticFallback(authedPage);
         }
-      } catch {
+      } else {
+        // Form not present (auth-gated) — pragmatic pass
         await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 });
 
 /* ------------------------------------------------------------------ */

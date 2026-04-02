@@ -70,9 +70,7 @@ test.describe("Smoke: PWA & Service Worker", () => {
     for (const path of iconPaths) {
       const response = await request.get(path);
       if (response.status() === 200) {
-        expect(["image/png", "image/svg+xml"]).toContain(
-          response.headers()["content-type"],
-        );
+        expect(["image/png", "image/svg+xml"]).toContain(response.headers()["content-type"]);
         foundIcon = true;
         break;
       }

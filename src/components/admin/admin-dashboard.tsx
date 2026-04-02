@@ -157,7 +157,8 @@ export function AdminDashboard() {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600">
-            Welcome back, {user?.name ?? user?.email}. Here&apos;s what&apos;s happening with your platform.
+            Welcome back, {user?.name ?? user?.email}. Here&apos;s what&apos;s happening with your
+            platform.
           </p>
         </div>
 

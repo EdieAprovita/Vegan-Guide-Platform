@@ -11,9 +11,10 @@ export async function generateMetadata({ params }: MarketDetailPageProps): Promi
   try {
     const response = await getMarket(id);
     const market = response.data;
-    const productsPreview = Array.isArray(market.products) && market.products.length > 0
-      ? market.products.slice(0, 3).join(", ")
-      : null;
+    const productsPreview =
+      Array.isArray(market.products) && market.products.length > 0
+        ? market.products.slice(0, 3).join(", ")
+        : null;
     return {
       title: `${market.marketName} | Verde Guide`,
       description: productsPreview

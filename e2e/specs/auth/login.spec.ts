@@ -119,8 +119,7 @@ test.describe("Auth: Login", () => {
     );
 
     // Either the field is invalid or error message appears
-    const hasError =
-      isInvalid === "false" ? await loginPage.hasValidationErrors() : true;
+    const hasError = isInvalid === "false" ? await loginPage.hasValidationErrors() : true;
     expect(hasError).toBe(true);
   });
 
@@ -168,9 +167,7 @@ test.describe("Auth: Login", () => {
     await loginPage.clickForgotPasswordLink();
 
     // Should navigate to /forgot-password
-    await page.waitForURL((url) =>
-      url.toString().includes("/forgot-password")
-    );
+    await page.waitForURL((url) => url.toString().includes("/forgot-password"));
     expect(page.url()).toContain("/forgot-password");
   });
 

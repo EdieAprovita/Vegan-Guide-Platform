@@ -44,7 +44,11 @@ const mockRecipe = {
 beforeEach(() => {
   jest.clearAllMocks();
   useQueryMock.mockReturnValue({ data: [mockRecipe], isLoading: false, isError: false });
-  useInfiniteQueryMock.mockReturnValue({ data: { pages: [[mockRecipe]] }, isLoading: false, isError: false });
+  useInfiniteQueryMock.mockReturnValue({
+    data: { pages: [[mockRecipe]] },
+    isLoading: false,
+    isError: false,
+  });
 });
 
 describe("useRecipes query hook", () => {
@@ -127,11 +131,7 @@ describe("useInfiniteRecipes", () => {
     expect(useInfiniteQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
         initialPageParam: 1,
-        queryKey: [
-          "recipes",
-          "infinite",
-          expect.objectContaining({ limit: 12 }),
-        ],
+        queryKey: ["recipes", "infinite", expect.objectContaining({ limit: 12 })],
       })
     );
   });

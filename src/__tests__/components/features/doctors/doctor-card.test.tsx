@@ -116,9 +116,7 @@ describe("DoctorCard", () => {
   });
 
   it("has displayName set to DoctorCard", () => {
-    const { DoctorCard: DC } = jest.requireActual(
-      "@/components/features/doctors/doctor-card"
-    );
+    const { DoctorCard: DC } = jest.requireActual("@/components/features/doctors/doctor-card");
     expect(DC.displayName).toBe("DoctorCard");
   });
 });

@@ -91,7 +91,7 @@ export class RegisterPage {
   async getErrorMessage(): Promise<string> {
     try {
       await this.errorMessage.waitFor({ state: "visible", timeout: 3000 });
-      return await this.errorMessage.textContent() ?? "";
+      return (await this.errorMessage.textContent()) ?? "";
     } catch {
       return "";
     }
@@ -152,7 +152,10 @@ export class RegisterPage {
         const elements = this.page.locator(selector);
         const count = await elements.count();
         for (let i = 0; i < count; i++) {
-          const text = await elements.nth(i).textContent().catch(() => "");
+          const text = await elements
+            .nth(i)
+            .textContent()
+            .catch(() => "");
           const trimmed = text?.trim() ?? "";
           if (trimmed && !seen.has(trimmed)) {
             seen.add(trimmed);

@@ -152,11 +152,7 @@ export interface RestaurantJsonLdProps {
 /**
  * Restaurant schema — eligible for rich results in local search.
  */
-export function RestaurantJsonLd({
-  restaurant,
-}: {
-  restaurant: RestaurantJsonLdProps;
-}) {
+export function RestaurantJsonLd({ restaurant }: { restaurant: RestaurantJsonLdProps }) {
   return (
     <JsonLd
       data={{
@@ -267,11 +263,7 @@ export interface LocalBusinessJsonLdProps {
 /**
  * LocalBusiness schema — covers markets, shops, and general businesses.
  */
-export function LocalBusinessJsonLd({
-  business,
-}: {
-  business: LocalBusinessJsonLdProps;
-}) {
+export function LocalBusinessJsonLd({ business }: { business: LocalBusinessJsonLdProps }) {
   return (
     <JsonLd
       data={{

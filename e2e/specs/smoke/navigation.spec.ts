@@ -15,10 +15,13 @@ import { waitForHydration, mockNextImages } from "../../helpers/test-utils";
 /** Try to open mobile hamburger menu if present */
 async function tryOpenMobileMenu(page: import("@playwright/test").Page) {
   const hamburger = page.locator(
-    'button[aria-label*="menu" i], button[aria-label*="menú" i], button[aria-label*="navigation" i], button[data-testid*="menu"], button.hamburger, [data-testid="mobile-menu-button"]',
+    'button[aria-label*="menu" i], button[aria-label*="menú" i], button[aria-label*="navigation" i], button[data-testid*="menu"], button.hamburger, [data-testid="mobile-menu-button"]'
   );
   try {
-    const visible = await hamburger.first().isVisible({ timeout: 2000 }).catch(() => false);
+    const visible = await hamburger
+      .first()
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
     if (visible) {
       await hamburger.first().click();
       await page.waitForTimeout(500);
@@ -32,7 +35,7 @@ async function tryOpenMobileMenu(page: import("@playwright/test").Page) {
 async function findNavLink(
   page: import("@playwright/test").Page,
   href: string,
-  fallbackText: string,
+  fallbackText: string
 ) {
   let link = page.locator(`a[href="${href}"]`).first();
   let visible = await link.isVisible({ timeout: 1000 }).catch(() => false);
@@ -144,9 +147,11 @@ test.describe("Smoke: Navigation", () => {
     await waitForHydration(page);
 
     // Find home link (logo or "Home" link)
-    const homeLink = page.locator(
-      'a[href="/"], [role="link"]:has-text("Home"), [role="link"]:has-text("Verde"), .logo'
-    ).first();
+    const homeLink = page
+      .locator(
+        'a[href="/"], [role="link"]:has-text("Home"), [role="link"]:has-text("Verde"), .logo'
+      )
+      .first();
 
     if ((await homeLink.count()) > 0) {
       const visible = await homeLink.isVisible({ timeout: 2000 }).catch(() => false);
@@ -180,7 +185,11 @@ test.describe("Smoke: Navigation", () => {
     await page.goto("/");
     await waitForHydration(page);
 
-    const { link: restLink, visible: restVisible } = await findNavLink(page, "/restaurants", "restaurantes");
+    const { link: restLink, visible: restVisible } = await findNavLink(
+      page,
+      "/restaurants",
+      "restaurantes"
+    );
 
     if (restVisible) {
       await restLink.click();
@@ -188,7 +197,11 @@ test.describe("Smoke: Navigation", () => {
       expect(page.url()).toContain("/restaurants");
 
       // Go back home via link or goto
-      const { link: homeLink, visible: homeVisible } = await findNavLink(page, "/", "home|inicio|verde");
+      const { link: homeLink, visible: homeVisible } = await findNavLink(
+        page,
+        "/",
+        "home|inicio|verde"
+      );
       if (homeVisible) {
         await homeLink.click();
         await page.waitForURL("/", { timeout: 10000 });

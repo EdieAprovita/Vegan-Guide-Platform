@@ -25,7 +25,7 @@ export default function ProfileLoading() {
         </div>
 
         {/* Bio / description section */}
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-3">
+        <div className="space-y-3 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
@@ -33,7 +33,7 @@ export default function ProfileLoading() {
         </div>
 
         {/* Form fields section */}
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-5">
+        <div className="space-y-5 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <Skeleton className="h-5 w-40" />
           {/* Two-column field grid */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

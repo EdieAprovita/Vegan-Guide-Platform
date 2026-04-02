@@ -68,10 +68,7 @@ describe("getRecipe", () => {
 
     const result = await getRecipe("abc");
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${BASE}/recipes/abc`,
-      expect.any(Object)
-    );
+    expect(global.fetch).toHaveBeenCalledWith(`${BASE}/recipes/abc`, expect.any(Object));
     expect(result).toEqual(payload);
   });
 

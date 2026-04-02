@@ -57,12 +57,15 @@ test.describe("State Management: Theme Persistence", () => {
           'button[aria-label*="tema" i]',
           'button[data-testid*="theme"]',
           'button[title*="theme" i]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await themeToggle.count();
 
       if (count > 0) {
-        const isVisible = await themeToggle.first().isVisible().catch(() => false);
+        const isVisible = await themeToggle
+          .first()
+          .isVisible()
+          .catch(() => false);
         expect(isVisible || count > 0).toBe(true);
       } else {
         await pragmaticFallback(page);
@@ -82,20 +85,23 @@ test.describe("State Management: Theme Persistence", () => {
           'button[aria-label="a11y.changeTheme"]',
           'button[aria-label*="theme" i]',
           'button[aria-label*="tema" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await themeToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await themeToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         const darkBefore = await page.evaluate(() =>
-          document.documentElement.classList.contains("dark"),
+          document.documentElement.classList.contains("dark")
         );
 
         await themeToggle.first().click();
         await page.waitForTimeout(300);
 
         const darkAfter = await page.evaluate(() =>
-          document.documentElement.classList.contains("dark"),
+          document.documentElement.classList.contains("dark")
         );
 
         const htmlClass = await page.evaluate(() => document.documentElement.className);
@@ -122,9 +128,12 @@ test.describe("State Management: Theme Persistence", () => {
           'button[aria-label="a11y.changeTheme"]',
           'button[aria-label*="theme" i]',
           'button[aria-label*="tema" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await themeToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await themeToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         await themeToggle.first().click();
@@ -156,11 +165,9 @@ test.describe("State Management: Theme Persistence", () => {
       await waitForHydration(page);
 
       const storedTheme = await page.evaluate(() => localStorage.getItem("theme"));
-      const isDark = await page.evaluate(() =>
-        document.documentElement.classList.contains("dark"),
-      );
+      const isDark = await page.evaluate(() => document.documentElement.classList.contains("dark"));
       const dataTheme = await page.evaluate(() =>
-        document.documentElement.getAttribute("data-theme"),
+        document.documentElement.getAttribute("data-theme")
       );
 
       const persisted = storedTheme === "dark" || isDark || dataTheme === "dark";
@@ -217,7 +224,7 @@ test.describe("State Management: Language Persistence", () => {
           'button:has-text("EN")',
           'button[data-testid*="language"]',
           'button[data-testid*="lang"]',
-        ].join(", "),
+        ].join(", ")
       );
       const count = await langToggle.count();
 
@@ -241,9 +248,12 @@ test.describe("State Management: Language Persistence", () => {
           'button[aria-label="a11y.changeLanguage"]',
           'button[aria-label*="language" i]',
           'button[aria-label*="idioma" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await langToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await langToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         const textBefore = await page.locator("body").textContent();
@@ -251,10 +261,9 @@ test.describe("State Management: Language Persistence", () => {
         await waitForHydration(page);
         const textAfter = await page.locator("body").textContent();
 
-        const htmlLang = await page.evaluate(() =>
-          document.documentElement.getAttribute("lang"),
-        );
-        const changed = textBefore !== textAfter || htmlLang !== null || (textAfter ?? "").length > 0;
+        const htmlLang = await page.evaluate(() => document.documentElement.getAttribute("lang"));
+        const changed =
+          textBefore !== textAfter || htmlLang !== null || (textAfter ?? "").length > 0;
         expect(changed).toBe(true);
       } else {
         // Toggle not visible on this viewport — pass
@@ -275,9 +284,12 @@ test.describe("State Management: Language Persistence", () => {
           'button[aria-label="a11y.changeLanguage"]',
           'button[aria-label*="language" i]',
           'button[aria-label*="idioma" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await langToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await langToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         await langToggle.first().click();
@@ -316,29 +328,30 @@ test.describe("State Management: Language Persistence", () => {
           'button[aria-label="a11y.changeLanguage"]',
           'button[aria-label*="language" i]',
           'button[aria-label*="idioma" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await langToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await langToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         await langToggle.first().click();
         await waitForHydration(page);
 
         const langAfterToggle = await page.evaluate(() =>
-          document.documentElement.getAttribute("lang"),
+          document.documentElement.getAttribute("lang")
         );
 
         await page.goto("/restaurants", { waitUntil: "domcontentloaded" });
         await waitForHydration(page);
 
         const langAfterNav = await page.evaluate(() =>
-          document.documentElement.getAttribute("lang"),
+          document.documentElement.getAttribute("lang")
         );
 
         const consistent =
-          langAfterToggle === langAfterNav ||
-          langAfterNav === null ||
-          langAfterToggle === null;
+          langAfterToggle === langAfterNav || langAfterNav === null || langAfterToggle === null;
         expect(consistent).toBe(true);
       } else {
         expect(true).toBe(true);
@@ -360,9 +373,12 @@ test.describe("State Management: Language Persistence", () => {
           'button[aria-label="a11y.changeLanguage"]',
           'button[aria-label*="language" i]',
           'button[aria-label*="idioma" i]',
-        ].join(", "),
+        ].join(", ")
       );
-      const exists = await langToggle.first().isVisible({ timeout: 3000 }).catch(() => false);
+      const exists = await langToggle
+        .first()
+        .isVisible({ timeout: 3000 })
+        .catch(() => false);
 
       if (exists) {
         await langToggle.first().click();
@@ -428,8 +444,7 @@ test.describe("State Management: URL State & Search Params", () => {
 
     try {
       const url = page.url();
-      const retained =
-        url.includes("restaurante") || url.includes("q=") || url.includes("/search");
+      const retained = url.includes("restaurante") || url.includes("q=") || url.includes("/search");
       expect(retained).toBe(true);
     } catch {
       await pragmaticFallback(page);
@@ -448,8 +463,7 @@ test.describe("State Management: URL State & Search Params", () => {
 
     try {
       const url = page.url();
-      const restored =
-        url.includes("vegano") || url.includes("q=") || url.includes("/search");
+      const restored = url.includes("vegano") || url.includes("q=") || url.includes("/search");
       expect(restored).toBe(true);
     } catch {
       await pragmaticFallback(page);
@@ -478,120 +492,103 @@ test.describe("State Management: URL State & Search Params", () => {
 authedTest.describe("State Management: Session & Auth State", () => {
   authedTest.slow();
 
-  authedTest(
-    "authenticated state persists across navigation",
-    async ({ authedPage }) => {
-      await mockRestaurantList(authedPage, 3);
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("authenticated state persists across navigation", async ({ authedPage }) => {
+    await mockRestaurantList(authedPage, 3);
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
-      expect(authedPage.url()).not.toContain("/login");
+    await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
+    expect(authedPage.url()).not.toContain("/login");
 
-      await authedPage.goto("/search", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/search", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      await pragmaticFallback(authedPage);
-    },
-  );
+    await pragmaticFallback(authedPage);
+  });
 
-  authedTest(
-    "user info is available in session context",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("user info is available in session context", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      await pragmaticFallback(authedPage);
-    },
-  );
+    await pragmaticFallback(authedPage);
+  });
 
-  authedTest(
-    "auth state reflects in UI — profile or avatar visible",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("auth state reflects in UI — profile or avatar visible", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        const authIndicator = authedPage.locator(
-          [
-            '[data-testid="user-avatar"]',
-            '[data-testid="user-menu"]',
-            '[aria-label*="profile" i]',
-            '[aria-label*="perfil" i]',
-            'a[href="/profile"]',
-            'button:has-text("Logout")',
-            'button:has-text("Cerrar sesión")',
-          ].join(", "),
-        );
-        const count = await authIndicator.count();
+    try {
+      const authIndicator = authedPage.locator(
+        [
+          '[data-testid="user-avatar"]',
+          '[data-testid="user-menu"]',
+          '[aria-label*="profile" i]',
+          '[aria-label*="perfil" i]',
+          'a[href="/profile"]',
+          'button:has-text("Logout")',
+          'button:has-text("Cerrar sesión")',
+        ].join(", ")
+      );
+      const count = await authIndicator.count();
 
-        if (count > 0) {
-          expect(count).toBeGreaterThan(0);
-        } else {
-          await pragmaticFallback(authedPage);
-        }
-      } catch {
+      if (count > 0) {
+        expect(count).toBeGreaterThan(0);
+      } else {
         await pragmaticFallback(authedPage);
       }
-    },
-  );
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 
-  authedTest(
-    "protected route access maintained across navigation",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
-      await mockUserPreferences(authedPage);
+  authedTest("protected route access maintained across navigation", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
+    await mockUserPreferences(authedPage);
 
-      await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const url1 = authedPage.url();
-      expect(url1.includes("/profile") || url1.includes("/login")).toBe(true);
+    const url1 = authedPage.url();
+    expect(url1.includes("/profile") || url1.includes("/login")).toBe(true);
 
-      await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/restaurants", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/profile", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      const url2 = authedPage.url();
-      expect(url2.includes("/profile") || url2.includes("/login")).toBe(true);
-    },
-  );
+    const url2 = authedPage.url();
+    expect(url2.includes("/profile") || url2.includes("/login")).toBe(true);
+  });
 
-  authedTest(
-    "session data remains after page reload",
-    async ({ authedPage }) => {
-      await mockNextImages(authedPage);
-      await mockGoogleMaps(authedPage);
+  authedTest("session data remains after page reload", async ({ authedPage }) => {
+    await mockNextImages(authedPage);
+    await mockGoogleMaps(authedPage);
 
-      await authedPage.goto("/", { waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.goto("/", { waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      await authedPage.reload({ waitUntil: "domcontentloaded" });
-      await waitForHydration(authedPage);
+    await authedPage.reload({ waitUntil: "domcontentloaded" });
+    await waitForHydration(authedPage);
 
-      try {
-        const response = await authedPage.request.get(
-          "http://localhost:3000/api/auth/session",
-        );
-        expect([200, 401, 404]).toContain(response.status());
-      } catch {
-        await pragmaticFallback(authedPage);
-      }
-    },
-  );
+    try {
+      const response = await authedPage.request.get("http://localhost:3000/api/auth/session");
+      expect([200, 401, 404]).toContain(response.status());
+    } catch {
+      await pragmaticFallback(authedPage);
+    }
+  });
 });
 
 /* ------------------------------------------------------------------ */

@@ -31,30 +31,20 @@ export class SearchPage {
 
     // Advanced search page
     this.heading = page.locator("h1");
-    this.searchInput = page.locator(
-      '#advanced-search-input, input[type="search"]'
-    );
+    this.searchInput = page.locator('#advanced-search-input, input[type="search"]');
     this.suggestionsDropdown = page.locator(
       '[role="listbox"], [class*="suggestion"], [class*="dropdown"]'
     );
-    this.searchResults = page.locator(
-      'article, [class*="result-card"], [class*="search-result"]'
-    );
+    this.searchResults = page.locator('article, [class*="result-card"], [class*="search-result"]');
     this.loadMoreButton = page.getByRole("button", {
       name: /load more|cargar más|ver más/i,
     });
-    this.advancedFiltersButton = page.locator(
-      'button:has(svg), [aria-label*="filter"]'
-    );
+    this.advancedFiltersButton = page.locator('button:has(svg), [aria-label*="filter"]');
     this.activeFilters = page.locator(
       '[class*="active-filter"], [class*="chip"], [class*="badge"]'
     );
-    this.sortSelect = page.locator(
-      'select[name*="sort"], [role="combobox"]'
-    );
-    this.noResultsMessage = page.locator(
-      '[class*="empty"], [class*="no-results"]'
-    );
+    this.sortSelect = page.locator('select[name*="sort"], [role="combobox"]');
+    this.noResultsMessage = page.locator('[class*="empty"], [class*="no-results"]');
   }
 
   /** Navigate to the advanced search page */

@@ -108,7 +108,9 @@ describe("Doctors API", () => {
       const params = { specialty: "Nutrition", rating: 4 };
       const result = await getDoctors(params);
 
-      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4", { signal: undefined });
+      expect(apiRequest).toHaveBeenCalledWith("/doctors?specialty=Nutrition&rating=4", {
+        signal: undefined,
+      });
       expect(result).toEqual(mockResponse);
     });
   });
