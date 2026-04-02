@@ -61,7 +61,7 @@ export interface PostSearchParams {
   visibility?: "public" | "local" | "followers";
 }
 
-export async function getPosts(params?: PostSearchParams) {
+export async function getPosts(params?: PostSearchParams, signal?: AbortSignal) {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.append("page", params.page.toString());
   if (params?.limit) searchParams.append("limit", params.limit.toString());
@@ -74,11 +74,11 @@ export async function getPosts(params?: PostSearchParams) {
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
   if (params?.visibility) searchParams.append("visibility", params.visibility);
 
-  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`, { signal });
 }
 
-export async function getPost(id: string) {
-  return apiRequest<BackendResponse<Post>>(`/posts/${id}`);
+export async function getPost(id: string, signal?: AbortSignal) {
+  return apiRequest<BackendResponse<Post>>(`/posts/${id}`, { signal });
 }
 
 export async function createPost(data: CreatePostData, token?: string) {
@@ -134,14 +134,17 @@ export async function deleteComment(postId: string, commentId: string, token?: s
 }
 
 // Geospatial functions following the same pattern as other sections
-export async function getNearbyPosts(params: {
-  latitude: number;
-  longitude: number;
-  radius?: number;
-  limit?: number;
-  tags?: string;
-  visibility?: "public" | "local" | "followers";
-}) {
+export async function getNearbyPosts(
+  params: {
+    latitude: number;
+    longitude: number;
+    radius?: number;
+    limit?: number;
+    tags?: string;
+    visibility?: "public" | "local" | "followers";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams({
     latitude: params.latitude.toString(),
     longitude: params.longitude.toString(),
@@ -153,17 +156,20 @@ export async function getNearbyPosts(params: {
   if (params.tags) searchParams.append("tags", params.tags);
   if (params.visibility) searchParams.append("visibility", params.visibility);
 
-  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`, { signal });
 }
 
-export async function getPostsByTags(params: {
-  tags: string;
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  limit?: number;
-  sortBy?: "createdAt" | "distance" | "likes";
-}) {
+export async function getPostsByTags(
+  params: {
+    tags: string;
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    limit?: number;
+    sortBy?: "createdAt" | "distance" | "likes";
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams({
     tags: params.tags,
     sortBy: params.sortBy || "createdAt",
@@ -174,21 +180,24 @@ export async function getPostsByTags(params: {
   if (params.radius) searchParams.append("radius", (params.radius || 10).toString());
   if (params.limit) searchParams.append("limit", params.limit.toString());
 
-  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`, { signal });
 }
 
-export async function getAdvancedPosts(params: {
-  search?: string;
-  tags?: string[];
-  author?: string;
-  visibility?: "public" | "local" | "followers";
-  latitude?: number;
-  longitude?: number;
-  radius?: number;
-  sortBy?: "createdAt" | "distance" | "likes";
-  limit?: number;
-  page?: number;
-}) {
+export async function getAdvancedPosts(
+  params: {
+    search?: string;
+    tags?: string[];
+    author?: string;
+    visibility?: "public" | "local" | "followers";
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    sortBy?: "createdAt" | "distance" | "likes";
+    limit?: number;
+    page?: number;
+  },
+  signal?: AbortSignal
+) {
   const searchParams = new URLSearchParams();
 
   if (params.search) searchParams.append("search", params.search);
@@ -202,5 +211,5 @@ export async function getAdvancedPosts(params: {
   if (params.limit) searchParams.append("limit", params.limit.toString());
   if (params.page) searchParams.append("page", params.page.toString());
 
-  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`);
+  return apiRequest<BackendListResponse<Post>>(`/posts?${searchParams.toString()}`, { signal });
 }

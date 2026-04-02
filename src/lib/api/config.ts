@@ -237,17 +237,24 @@ export const apiRequest = async <T>(url: string, options: RequestInit = {}): Pro
   }
   const mergedSignal = mergeAbortSignals(...signals);
 
+  const mergedHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "X-Correlation-ID": correlationId,
+    ...(options.headers as Record<string, string>),
+  };
+
+  // Let the browser set Content-Type (including the multipart boundary) for FormData.
+  if (options.body instanceof FormData) {
+    delete mergedHeaders["Content-Type"];
+  }
+
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}${url}`, {
       ...options,
       signal: mergedSignal,
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "X-Correlation-ID": correlationId,
-        ...options.headers,
-      },
+      headers: mergedHeaders,
     });
 
     clearTimeout(timeoutId);

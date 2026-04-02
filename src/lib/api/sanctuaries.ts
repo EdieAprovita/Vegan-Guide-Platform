@@ -1,4 +1,11 @@
-import { apiRequest, getApiHeaders, BackendListResponse, BackendResponse } from "./config";
+import {
+  apiRequest,
+  getApiHeaders,
+  BackendListResponse,
+  BackendResponse,
+  shouldUseApiFallback,
+  isNonApiTransportError,
+} from "./config";
 
 export interface Animal {
   name: string;
@@ -97,9 +104,21 @@ export async function getSanctuaries(params?: SanctuarySearchParams, signal?: Ab
   if (params?.radius) searchParams.append("radius", params.radius.toString());
   if (params?.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
-    signal,
-  });
+  try {
+    return await apiRequest<BackendListResponse<Sanctuary>>(
+      `/sanctuaries?${searchParams.toString()}`,
+      { signal }
+    );
+  } catch (error) {
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] sanctuaries list: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
+    }
+    throw error;
+  }
 }
 
 export async function getSanctuary(id: string, signal?: AbortSignal) {
@@ -161,9 +180,21 @@ export async function getNearbySanctuaries(
   if (params.minRating) searchParams.append("rating", params.minRating.toString());
   searchParams.append("sortBy", "distance");
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
-    signal,
-  });
+  try {
+    return await apiRequest<BackendListResponse<Sanctuary>>(
+      `/sanctuaries?${searchParams.toString()}`,
+      { signal }
+    );
+  } catch (error) {
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] sanctuaries nearby: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
+    }
+    throw error;
+  }
 }
 
 export async function getSanctuariesByType(
@@ -188,9 +219,21 @@ export async function getSanctuariesByType(
     searchParams.append("sortBy", "distance");
   }
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
-    signal,
-  });
+  try {
+    return await apiRequest<BackendListResponse<Sanctuary>>(
+      `/sanctuaries?${searchParams.toString()}`,
+      { signal }
+    );
+  } catch (error) {
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] sanctuaries by type: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
+    }
+    throw error;
+  }
 }
 
 export async function getAdvancedSanctuaries(
@@ -220,7 +263,19 @@ export async function getAdvancedSanctuaries(
   if (params.radius) searchParams.append("radius", params.radius.toString());
   if (params.sortBy) searchParams.append("sortBy", params.sortBy);
 
-  return apiRequest<BackendListResponse<Sanctuary>>(`/sanctuaries?${searchParams.toString()}`, {
-    signal,
-  });
+  try {
+    return await apiRequest<BackendListResponse<Sanctuary>>(
+      `/sanctuaries?${searchParams.toString()}`,
+      { signal }
+    );
+  } catch (error) {
+    if (shouldUseApiFallback() && isNonApiTransportError(error)) {
+      console.warn(
+        "[API Fallback] sanctuaries advanced: backend unavailable, returning empty data.",
+        error
+      );
+      return { success: true, data: [] };
+    }
+    throw error;
+  }
 }
