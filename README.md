@@ -179,12 +179,12 @@ npm run type-check
 
 ### Variables de Entorno
 
-| Variable              | Descripción                 | Requerido |
-| --------------------- | --------------------------- | --------- |
-| `AUTH_SECRET`         | Secreto principal de autenticación | ✅ |
-| `NEXTAUTH_SECRET`     | Alias legado de `AUTH_SECRET` | Opcional  |
-| `NEXTAUTH_URL`        | URL base de callbacks de autenticación | ✅ |
-| `NEXT_PUBLIC_API_URL` | URL de la API backend (ej. `http://localhost:5001/api/v1`) | ✅ |
+| Variable              | Descripción                                                | Requerido |
+| --------------------- | ---------------------------------------------------------- | --------- |
+| `AUTH_SECRET`         | Secreto principal de autenticación                         | ✅        |
+| `NEXTAUTH_SECRET`     | Alias legado de `AUTH_SECRET`                              | Opcional  |
+| `NEXTAUTH_URL`        | URL base de callbacks de autenticación                     | ✅        |
+| `NEXT_PUBLIC_API_URL` | URL de la API backend (ej. `http://localhost:5001/api/v1`) | ✅        |
 
 ### Configuración de Tailwind
 
