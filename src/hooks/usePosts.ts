@@ -22,8 +22,8 @@ interface Comment {
 export function usePosts(params?: PostSearchParams) {
   return useQuery({
     queryKey: queryKeys.posts.list(params as Record<string, unknown>),
-    queryFn: async () => {
-      const response = await postsApi.getPosts(params);
+    queryFn: async ({ signal }) => {
+      const response = await postsApi.getPosts(params, signal);
       return extractListData<Post>(response);
     },
     staleTime: 2 * 60 * 1000,
@@ -34,8 +34,8 @@ export function usePosts(params?: PostSearchParams) {
 export function usePost(id: string) {
   return useQuery({
     queryKey: queryKeys.posts.detail(id),
-    queryFn: async () => {
-      const response = await postsApi.getPost(id);
+    queryFn: async ({ signal }) => {
+      const response = await postsApi.getPost(id, signal);
       return extractItemData<Post>(response);
     },
     enabled: !!id,
@@ -55,19 +55,22 @@ export function useNearbyPosts(params: {
 
   return useQuery({
     queryKey: queryKeys.posts.nearby(userCoords, params as Record<string, unknown>),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!userCoords) {
         throw new Error("Ubicación del usuario requerida");
       }
 
-      const response = await postsApi.getNearbyPosts({
-        latitude: userCoords.lat,
-        longitude: userCoords.lng,
-        radius: params.radius || 5,
-        limit: params.limit,
-        tags: params.tags,
-        visibility: params.visibility,
-      });
+      const response = await postsApi.getNearbyPosts(
+        {
+          latitude: userCoords.lat,
+          longitude: userCoords.lng,
+          radius: params.radius || 5,
+          limit: params.limit,
+          tags: params.tags,
+          visibility: params.visibility,
+        },
+        signal
+      );
 
       return extractListData<Post>(response);
     },
@@ -89,7 +92,7 @@ export function usePostsByTags(params: {
 
   return useQuery({
     queryKey: queryKeys.posts.byTags(params as Record<string, unknown>, userCoords),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams: Parameters<typeof postsApi.getPostsByTags>[0] = {
         tags: params.tags,
         limit: params.limit,
@@ -102,7 +105,7 @@ export function usePostsByTags(params: {
         searchParams.radius = params.radius || 10;
       }
 
-      const response = await postsApi.getPostsByTags(searchParams);
+      const response = await postsApi.getPostsByTags(searchParams, signal);
       return extractListData<Post>(response);
     },
     enabled: !!params.tags && params.enabled !== false,
@@ -127,7 +130,7 @@ export function useAdvancedPostSearch(params: {
 
   return useQuery({
     queryKey: queryKeys.posts.search(params as Record<string, unknown>, userCoords),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const searchParams: Parameters<typeof postsApi.getAdvancedPosts>[0] = {
         search: params.search,
         tags: params.tags,
@@ -144,7 +147,7 @@ export function useAdvancedPostSearch(params: {
         searchParams.radius = params.radius || 10;
       }
 
-      const response = await postsApi.getAdvancedPosts(searchParams);
+      const response = await postsApi.getAdvancedPosts(searchParams, signal);
       return extractListData<Post>(response);
     },
     enabled: params.enabled !== false,

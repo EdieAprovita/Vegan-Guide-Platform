@@ -263,7 +263,7 @@ describe("saveSearchQuery", () => {
       query: "vegan restaurants",
       resourceType: "restaurants",
     });
-    expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer my-token");
     expect(result).toEqual(payload);
   });
 
@@ -273,7 +273,7 @@ describe("saveSearchQuery", () => {
     await saveSearchQuery("markets");
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("sends without resourceType when it is undefined", async () => {

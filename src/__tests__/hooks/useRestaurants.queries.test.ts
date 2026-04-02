@@ -100,15 +100,14 @@ describe("restaurant query hooks", () => {
     );
   });
 
-  it("requests geolocation when coordinates missing", async () => {
-    const requestLocation = jest.fn().mockResolvedValue(undefined);
-    locationMock.mockReturnValueOnce({ userCoords: null, getCurrentPosition: requestLocation });
+  it("is disabled when coordinates are missing (M-06: no side-effect in queryFn)", () => {
+    locationMock.mockReturnValueOnce({ userCoords: null, getCurrentPosition: jest.fn() });
 
     useNearbyRestaurants({});
 
     const config = queryConfigs[0];
-    await config.queryFn({ signal: undefined });
-    expect(requestLocation).toHaveBeenCalled();
+    // Hook must be disabled — no geolocation side-effect should happen inside queryFn.
+    expect(config.enabled).toBe(false);
     expect(restaurantsApi.getNearbyRestaurants).not.toHaveBeenCalled();
   });
 

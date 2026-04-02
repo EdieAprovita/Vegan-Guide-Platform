@@ -103,7 +103,7 @@ describe("createRecipe", () => {
     expect(url).toBe(`${BASE}/recipes`);
     expect(options.method).toBe("POST");
     expect(options.body).toBeInstanceOf(FormData);
-    expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer my-token");
     expect(result).toEqual(payload);
   });
 
@@ -113,7 +113,7 @@ describe("createRecipe", () => {
     await createRecipe(data);
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("serialises array fields as JSON strings in FormData", async () => {
@@ -187,7 +187,7 @@ describe("deleteRecipe", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/recipes/r1`);
     expect(options.method).toBe("DELETE");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
   });
 
   it("throws when server returns error", async () => {

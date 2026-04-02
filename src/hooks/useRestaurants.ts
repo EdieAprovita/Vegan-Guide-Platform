@@ -57,20 +57,15 @@ export function useNearbyRestaurants(params?: {
   minRating?: number;
   enabled?: boolean;
 }) {
-  const { userCoords, getCurrentPosition } = useUserLocation();
+  const { userCoords } = useUserLocation();
 
   return useQuery({
     queryKey: queryKeys.restaurants.nearby(userCoords, params as Record<string, unknown>),
     queryFn: async ({ signal }) => {
-      if (!userCoords) {
-        await getCurrentPosition();
-        return [];
-      }
-
       const response = await restaurantsApi.getNearbyRestaurants(
         {
-          latitude: userCoords.lat,
-          longitude: userCoords.lng,
+          latitude: userCoords!.lat,
+          longitude: userCoords!.lng,
           radius: params?.radius || 5,
           limit: params?.limit || 20,
           cuisine: params?.cuisine,
@@ -81,7 +76,7 @@ export function useNearbyRestaurants(params?: {
 
       return extractListData<Restaurant>(response);
     },
-    enabled: params?.enabled !== false,
+    enabled: !!userCoords && params?.enabled !== false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

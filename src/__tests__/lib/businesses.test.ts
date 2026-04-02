@@ -119,7 +119,7 @@ describe("createBusiness", () => {
     expect(url).toBe(`${BASE}/businesses`);
     expect(options.method).toBe("POST");
     expect(JSON.parse(options.body as string)).toMatchObject({ namePlace: "Vegan Market" });
-    expect(options.headers).toMatchObject({ Authorization: "Bearer my-token" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer my-token");
     expect(result).toEqual(payload);
   });
 
@@ -129,7 +129,7 @@ describe("createBusiness", () => {
     await createBusiness(sampleBusiness);
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on server error", async () => {
@@ -160,7 +160,7 @@ describe("updateBusiness", () => {
     await updateBusiness("b1", { budget: 100 });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on non-ok response", async () => {
@@ -180,7 +180,7 @@ describe("deleteBusiness", () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(`${BASE}/businesses/b1`);
     expect(options.method).toBe("DELETE");
-    expect(options.headers).toMatchObject({ Authorization: "Bearer tok" });
+    expect((options.headers as Headers).get("authorization")).toBe("Bearer tok");
   });
 
   it("throws on non-ok response", async () => {
@@ -211,7 +211,7 @@ describe("addBusinessReview", () => {
     await addBusinessReview("b1", { rating: 3, comment: "Average place." });
 
     const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers).not.toHaveProperty("Authorization");
+    expect((options.headers as Headers).has("authorization")).toBe(false);
   });
 
   it("throws on server error", async () => {
