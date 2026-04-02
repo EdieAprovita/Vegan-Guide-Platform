@@ -97,50 +97,77 @@ export function InteractiveMap({
     return '#';
   }, []);
 
-  // Helper function to create info window content
-  const createInfoWindowContent = useCallback((location: Location): string => {
-    const detailHref = safeHref(location.url);
-    const websiteHref = safeHref(location.website);
-    return `
-      <div class="p-4 max-w-xs">
-        <div class="space-y-2">
-          <h3 class="font-semibold text-gray-900 text-sm">${location.name}</h3>
-          <p class="text-gray-600 text-xs">${location.address}</p>
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ${location.type}
-            </span>
-            ${
-              location.rating
-                ? `
-              <div class="flex items-center gap-1">
-                <span role="img" aria-label="Calificación: ${location.rating.toFixed(1)} de 5 estrellas">
-                  <span aria-hidden="true" class="text-yellow-400">★</span>
-                </span>
-                <span class="text-xs text-gray-600">${location.rating.toFixed(1)}</span>
-              </div>
-            `
-                : ""
-            }
-          </div>
-          <div class="flex gap-2 pt-2">
-            <a href="${detailHref}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
-              Ver detalles
-            </a>
-            ${
-              location.website
-                ? `
-              <a href="${websiteHref}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                Sitio web
-              </a>
-            `
-                : ""
-            }
-          </div>
-        </div>
-      </div>
-    `;
-  }, [safeHref]);
+  // Helper function to create info window content using DOM APIs (XSS-safe)
+  const createInfoWindowContent = useCallback(
+    (location: Location): HTMLDivElement => {
+      const container = document.createElement("div");
+      container.className = "p-4 max-w-xs";
+
+      const inner = document.createElement("div");
+      inner.className = "space-y-2";
+
+      const title = document.createElement("h3");
+      title.className = "font-semibold text-gray-900 text-sm";
+      title.textContent = location.name;
+      inner.appendChild(title);
+
+      const addr = document.createElement("p");
+      addr.className = "text-gray-600 text-xs";
+      addr.textContent = location.address;
+      inner.appendChild(addr);
+
+      const badges = document.createElement("div");
+      badges.className = "flex items-center gap-2";
+
+      const typeBadge = document.createElement("span");
+      typeBadge.className =
+        "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800";
+      typeBadge.textContent = location.type;
+      badges.appendChild(typeBadge);
+
+      if (location.rating) {
+        const ratingDiv = document.createElement("div");
+        ratingDiv.className = "flex items-center gap-1";
+        const star = document.createElement("span");
+        star.setAttribute("aria-hidden", "true");
+        star.className = "text-yellow-400";
+        star.textContent = "\u2605";
+        ratingDiv.appendChild(star);
+        const ratingText = document.createElement("span");
+        ratingText.className = "text-xs text-gray-600";
+        ratingText.textContent = location.rating.toFixed(1);
+        ratingDiv.appendChild(ratingText);
+        badges.appendChild(ratingDiv);
+      }
+      inner.appendChild(badges);
+
+      const links = document.createElement("div");
+      links.className = "flex gap-2 pt-2";
+
+      const detailLink = document.createElement("a");
+      detailLink.href = safeHref(location.url);
+      detailLink.className =
+        "text-blue-600 hover:text-blue-800 text-xs font-medium";
+      detailLink.textContent = "Ver detalles";
+      links.appendChild(detailLink);
+
+      if (location.website) {
+        const siteLink = document.createElement("a");
+        siteLink.href = safeHref(location.website);
+        siteLink.target = "_blank";
+        siteLink.rel = "noopener noreferrer";
+        siteLink.className =
+          "text-blue-600 hover:text-blue-800 text-xs font-medium";
+        siteLink.textContent = "Sitio web";
+        links.appendChild(siteLink);
+      }
+      inner.appendChild(links);
+
+      container.appendChild(inner);
+      return container;
+    },
+    [safeHref],
+  );
 
   // Memoized marker data conversion for performance
   const markerData = useMemo((): MarkerData[] => {
