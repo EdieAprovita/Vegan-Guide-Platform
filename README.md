@@ -110,7 +110,8 @@ cp .env.example .env.local
 Edita `.env.local` con tus configuraciones:
 
 ```env
-NEXTAUTH_SECRET=your-secret-key
+AUTH_SECRET=your-secret-key
+NEXTAUTH_SECRET=$AUTH_SECRET
 NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
 ```
