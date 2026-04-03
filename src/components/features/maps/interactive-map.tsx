@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useGoogleMaps } from "@/hooks/useGoogleMaps";
 import { useMapMarkers, MarkerData } from "@/hooks/useMapMarkers";
 import { useUserLocation } from "@/hooks/useGeolocation";
@@ -62,7 +62,7 @@ export function InteractiveMap({
   const { theme } = useTheme();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [userLocationMarker, setUserLocationMarker] = useState<google.maps.Marker | null>(null);
+  const userLocationMarker = useRef<google.maps.Marker | null>(null);
 
   // Hooks
   const { isLoaded, loadError, isLoading } = useGoogleMaps({
@@ -224,9 +224,9 @@ export function InteractiveMap({
   useEffect(() => {
     if (!map || !showCurrentLocation || !userCoords) return;
 
-    // Remove existing user location marker
-    if (userLocationMarker) {
-      userLocationMarker.setMap(null);
+    // Remove existing user location marker before placing a new one
+    if (userLocationMarker.current) {
+      userLocationMarker.current.setMap(null);
     }
 
     // Create new user location marker
@@ -242,8 +242,12 @@ export function InteractiveMap({
       zIndex: 1000, // Ensure it's on top
     });
 
-    setUserLocationMarker(marker);
-  }, [map, showCurrentLocation, userCoords, userLocationMarker]);
+    userLocationMarker.current = marker;
+
+    return () => {
+      userLocationMarker.current?.setMap(null);
+    };
+  }, [map, showCurrentLocation, userCoords]);
 
   // Handle get directions
   const handleGetDirections = useCallback((location: Location) => {

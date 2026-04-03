@@ -2,18 +2,28 @@ import type { NextRequest } from "next/server";
 import { middleware, config } from "@/middleware";
 import { auth } from "@/lib/auth";
 
+// Capture the CSP header value written by applySecurityHeaders so we can
+// assert on individual directives without coupling to the full string.
+let capturedCsp = "";
+
 jest.mock("next/server", () => {
-  const createHeaders = (location?: string) => ({
-    get: (key: string) => {
-      if (key.toLowerCase() === "location" && location) {
-        return location;
-      }
-      return null;
-    },
-    set: jest.fn(),
-    append: jest.fn(),
-    delete: jest.fn(),
-  });
+  const createHeaders = (location?: string) => {
+    const store: Record<string, string> = {};
+    return {
+      get: (key: string) => {
+        if (key.toLowerCase() === "location" && location) return location;
+        return store[key.toLowerCase()] ?? null;
+      },
+      set: jest.fn((key: string, value: string) => {
+        store[key.toLowerCase()] = value;
+        if (key === "Content-Security-Policy") {
+          capturedCsp = value;
+        }
+      }),
+      append: jest.fn(),
+      delete: jest.fn(),
+    };
+  };
 
   return {
     NextResponse: {
@@ -95,5 +105,32 @@ describe("middleware — auth failure", () => {
 
     expect(response?.headers.get("location")).toBe("http://localhost/login");
     expect(NextResponse.next).not.toHaveBeenCalled();
+  });
+});
+
+describe("middleware — CSP connect-src (H-07)", () => {
+  beforeEach(() => {
+    capturedCsp = "";
+  });
+
+  it("includes googleapis.com in connect-src", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "1" } });
+    await middleware(createRequest("/profile"));
+    const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
+    expect(connectSrc).toContain("https://*.googleapis.com");
+  });
+
+  it("includes google.com in connect-src", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "1" } });
+    await middleware(createRequest("/profile"));
+    const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
+    expect(connectSrc).toContain("https://*.google.com");
+  });
+
+  it("includes sentry.io in connect-src", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "1" } });
+    await middleware(createRequest("/profile"));
+    const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
+    expect(connectSrc).toContain("https://*.sentry.io");
   });
 });

@@ -37,11 +37,23 @@ declare module "next-auth" {
 // so all TLS/secure-cookie requirements must be relaxed.
 const isSecureEnv = process.env.NODE_ENV === "production" && !process.env.CI;
 
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.AUTH_URL &&
+  !process.env.AUTH_URL.startsWith("https://")
+) {
+  console.warn("[auth] WARNING: AUTH_URL is not HTTPS in production. This is a security risk.");
+}
+
 export const config = {
   secret: process.env.AUTH_SECRET,
-  // trustHost is required when running on a reverse proxy (Vercel, Cloud Run) or
-  // when NODE_ENV=production on plain HTTP (CI). Without it Auth.js v5 rejects
-  // every session request with UntrustedHost.
+  /**
+   * trustHost: true is required for deployments behind reverse proxies
+   * (Cloud Run, Vercel, Railway) — NextAuth needs to trust the host header
+   * forwarded by the proxy to construct callback URLs correctly.
+   * WARNING: Only set this in environments where the proxy is trusted
+   * (i.e., do NOT use in local dev without a proxy).
+   */
   trustHost: true,
   session: {
     strategy: "jwt",
