@@ -56,7 +56,7 @@ describe("BusinessCard — phone URI validation (H-06)", () => {
     expect(disabledBtn).toBeDisabled();
   });
 
-  it("renders plain text (no link) when phone is purely alphabetic", () => {
+  it("renders disabled button (no tel: link) when phone contains injection patterns", () => {
     const business = createMockBusiness({
       contact: [{ phone: "javascript:alert(1)" }],
     });
@@ -65,6 +65,9 @@ describe("BusinessCard — phone URI validation (H-06)", () => {
     const links = screen.queryAllByRole("link");
     const telLinks = links.filter((el) => el.getAttribute("href")?.startsWith("tel:"));
     expect(telLinks).toHaveLength(0);
+
+    const disabledBtn = screen.getByRole("button", { name: /teléfono no disponible/i });
+    expect(disabledBtn).toBeDisabled();
   });
 });
 
@@ -79,7 +82,7 @@ describe("BusinessCard — email URI validation (H-06)", () => {
     expect(link).toHaveAttribute("href", "mailto:info@greenbites.com");
   });
 
-  it("renders plain text (no mailto: link) for an invalid email", () => {
+  it("renders disabled button (no mailto: link) for an invalid email", () => {
     const business = createMockBusiness({
       contact: [{ email: "not-an-email" }],
     });
@@ -89,11 +92,11 @@ describe("BusinessCard — email URI validation (H-06)", () => {
     const mailtoLinks = links.filter((el) => el.getAttribute("href")?.startsWith("mailto:"));
     expect(mailtoLinks).toHaveLength(0);
 
-    // The raw value is rendered as plain text
-    expect(screen.getByText("not-an-email")).toBeInTheDocument();
+    const disabledBtn = screen.getByRole("button", { name: /correo no disponible/i });
+    expect(disabledBtn).toBeDisabled();
   });
 
-  it("renders plain text (no link) when email contains angle brackets", () => {
+  it("renders disabled button (no link) when email contains angle brackets", () => {
     const business = createMockBusiness({
       contact: [{ email: "<script>evil</script>@x.com" }],
     });
@@ -102,6 +105,9 @@ describe("BusinessCard — email URI validation (H-06)", () => {
     const links = screen.queryAllByRole("link");
     const mailtoLinks = links.filter((el) => el.getAttribute("href")?.startsWith("mailto:"));
     expect(mailtoLinks).toHaveLength(0);
+
+    const disabledBtn = screen.getByRole("button", { name: /correo no disponible/i });
+    expect(disabledBtn).toBeDisabled();
   });
 });
 

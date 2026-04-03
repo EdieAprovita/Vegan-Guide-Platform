@@ -48,11 +48,14 @@ if (
 export const config = {
   secret: process.env.AUTH_SECRET,
   /**
-   * trustHost: true is required for deployments behind reverse proxies
-   * (Cloud Run, Vercel, Railway) — NextAuth needs to trust the host header
-   * forwarded by the proxy to construct callback URLs correctly.
-   * WARNING: Only set this in environments where the proxy is trusted
-   * (i.e., do NOT use in local dev without a proxy).
+   * trustHost is enabled unconditionally for this application.
+   * This is required when requests reach NextAuth through a trusted reverse
+   * proxy (Cloud Run, Vercel, Railway) so forwarded host headers can be used
+   * to construct callback URLs correctly.
+   * Local development is safe because the dev server runs behind Next.js's
+   * own local proxy, and the app is not publicly reachable in that context.
+   * Only disable this if the app is exposed directly to the internet without
+   * a trusted proxy in front of it.
    */
   trustHost: true,
   session: {
