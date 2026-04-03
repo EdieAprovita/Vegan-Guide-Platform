@@ -138,9 +138,16 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
                 </a>
               </Button>
             ) : (
-              <span aria-label={`Correo no disponible para ${business.namePlace}`}>
-                {business.contact[0].email}
-              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="flex items-center gap-1"
+                aria-label={`Correo no disponible para ${business.namePlace}`}
+              >
+                <Mail aria-hidden="true" className="h-4 w-4" />
+                Email
+              </Button>
             ))}
         </div>
       </CardContent>
