@@ -163,15 +163,23 @@ export function useDoctorMutations() {
   const queryClient = useQueryClient();
 
   const create = useMutation({
-    mutationFn: ({ data }: { data: CreateDoctorData }) => createDoctor(data),
+    mutationFn: ({ data, token }: { data: CreateDoctorData; token?: string }) =>
+      createDoctor(data, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
     },
   });
 
   const update = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateDoctorData> }) =>
-      updateDoctor(id, data),
+    mutationFn: ({
+      id,
+      data,
+      token,
+    }: {
+      id: string;
+      data: Partial<CreateDoctorData>;
+      token?: string;
+    }) => updateDoctor(id, data, token),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.detail(variables.id) });
@@ -179,7 +187,7 @@ export function useDoctorMutations() {
   });
 
   const remove = useMutation({
-    mutationFn: ({ id }: { id: string }) => deleteDoctor(id),
+    mutationFn: ({ id, token }: { id: string; token?: string }) => deleteDoctor(id, token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
     },
