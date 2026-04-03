@@ -28,7 +28,9 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self'",
-    `connect-src 'self' ${apiOrigin} https://*.googleapis.com https://*.google.com https://*.sentry.io`,
+    // Narrowed to specific Google Maps domains rather than *.google.com wildcard
+    // to minimize XSS exfiltration surface (maps tiles + geocoding only).
+    `connect-src 'self' ${apiOrigin} https://*.googleapis.com https://maps.gstatic.com https://*.sentry.io`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

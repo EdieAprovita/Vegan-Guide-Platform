@@ -16,7 +16,7 @@ jest.mock("next/server", () => {
       },
       set: jest.fn((key: string, value: string) => {
         store[key.toLowerCase()] = value;
-        if (key === "Content-Security-Policy") {
+        if (key.toLowerCase() === "content-security-policy") {
           capturedCsp = value;
         }
       }),
@@ -120,11 +120,11 @@ describe("middleware — CSP connect-src (H-07)", () => {
     expect(connectSrc).toContain("https://*.googleapis.com");
   });
 
-  it("includes google.com in connect-src", async () => {
+  it("includes maps.gstatic.com in connect-src (narrowed from *.google.com)", async () => {
     mockAuth.mockResolvedValue({ user: { id: "1" } });
     await middleware(createRequest("/profile"));
     const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
-    expect(connectSrc).toContain("https://*.google.com");
+    expect(connectSrc).toContain("https://maps.gstatic.com");
   });
 
   it("includes sentry.io in connect-src", async () => {
