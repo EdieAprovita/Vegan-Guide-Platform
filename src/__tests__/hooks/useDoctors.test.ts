@@ -232,8 +232,25 @@ describe("useDoctorMutations", () => {
     renderHook(() => useDoctorMutations());
 
     const createMutationConfig = useMutationMock.mock.calls[0][0];
-    const mockData = { name: "Dr. Test", specialty: "Nutrition" };
-    const mockToken = "Bearer test-token-123";
+    const mockData = {
+      name: "Dr. Test",
+      specialty: "Nutrition",
+      address: {
+        street: "123 Health St",
+        city: "Wellness City",
+        state: "CA",
+        zipCode: "90210",
+        country: "USA",
+      },
+      contact: {
+        phone: "+1-555-0100",
+        email: "dr.test@example.com",
+      },
+      education: [{ degree: "MD", institution: "Test Medical University", year: 2015 }],
+      experience: 10,
+      languages: ["English"],
+    };
+    const mockToken = "test-token-123";
 
     await createMutationConfig.mutationFn({ data: mockData, token: mockToken });
 
@@ -251,7 +268,7 @@ describe("useDoctorMutations", () => {
 
     const updateMutationConfig = useMutationMock.mock.calls[1][0];
     const mockData = { specialty: "Cardiology" };
-    const mockToken = "Bearer test-token-456";
+    const mockToken = "test-token-456";
 
     await updateMutationConfig.mutationFn({ id: "doctor-1", data: mockData, token: mockToken });
 
@@ -265,7 +282,7 @@ describe("useDoctorMutations", () => {
     renderHook(() => useDoctorMutations());
 
     const removeMutationConfig = useMutationMock.mock.calls[2][0];
-    const mockToken = "Bearer test-token-789";
+    const mockToken = "test-token-789";
 
     await removeMutationConfig.mutationFn({ id: "doctor-2", token: mockToken });
 
