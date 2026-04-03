@@ -221,4 +221,54 @@ describe("useDoctorMutations", () => {
       queryKey: ["doctors", "detail", "doctor-1"],
     });
   });
+
+  it("createDoctor mutation forwards token to API function (H-05)", async () => {
+    useQueryClientMock.mockReturnValue({ invalidateQueries: jest.fn() });
+    (doctorsApi.createDoctor as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockDoctor,
+    });
+
+    renderHook(() => useDoctorMutations());
+
+    const createMutationConfig = useMutationMock.mock.calls[0][0];
+    const mockData = { name: "Dr. Test", specialty: "Nutrition" };
+    const mockToken = "Bearer test-token-123";
+
+    await createMutationConfig.mutationFn({ data: mockData, token: mockToken });
+
+    expect(doctorsApi.createDoctor).toHaveBeenCalledWith(mockData, mockToken);
+  });
+
+  it("updateDoctor mutation forwards token to API function (H-05)", async () => {
+    useQueryClientMock.mockReturnValue({ invalidateQueries: jest.fn() });
+    (doctorsApi.updateDoctor as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockDoctor,
+    });
+
+    renderHook(() => useDoctorMutations());
+
+    const updateMutationConfig = useMutationMock.mock.calls[1][0];
+    const mockData = { specialty: "Cardiology" };
+    const mockToken = "Bearer test-token-456";
+
+    await updateMutationConfig.mutationFn({ id: "doctor-1", data: mockData, token: mockToken });
+
+    expect(doctorsApi.updateDoctor).toHaveBeenCalledWith("doctor-1", mockData, mockToken);
+  });
+
+  it("deleteDoctor mutation forwards token to API function (H-05)", async () => {
+    useQueryClientMock.mockReturnValue({ invalidateQueries: jest.fn() });
+    (doctorsApi.deleteDoctor as jest.Mock).mockResolvedValue({ success: true });
+
+    renderHook(() => useDoctorMutations());
+
+    const removeMutationConfig = useMutationMock.mock.calls[2][0];
+    const mockToken = "Bearer test-token-789";
+
+    await removeMutationConfig.mutationFn({ id: "doctor-2", token: mockToken });
+
+    expect(doctorsApi.deleteDoctor).toHaveBeenCalledWith("doctor-2", mockToken);
+  });
 });
