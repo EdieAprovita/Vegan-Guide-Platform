@@ -3,7 +3,7 @@
 import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, Phone, Star, Users } from "lucide-react";
+import { MapPin, Clock, Phone, Mail, Star, Users } from "lucide-react";
 import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,21 @@ interface BusinessCardProps {
   business: Business;
 }
 
-const BusinessCardComponent = ({ business }: BusinessCardProps) => {
-  const handleCall = (phone: string) => {
-    window.location.href = `tel:${phone}`;
-  };
+/** Allow only digits, +, -, (, ), spaces, dots — blocks protocol injection. */
+function isSafePhone(phone: string): boolean {
+  return /^[\d+\-() .]+$/.test(phone);
+}
 
+/**
+ * Basic email format check — only allows alphanumeric chars, dots, hyphens,
+ * underscores, and plus signs in local/domain parts. Rejects HTML chars
+ * (<, >, &, ") and protocol-like strings that could cause URI injection.
+ */
+function isSafeEmail(email: string): boolean {
+  return /^[\w.%+\-]+@[\w.\-]+\.[a-zA-Z]{2,}$/.test(email);
+}
+
+const BusinessCardComponent = ({ business }: BusinessCardProps) => {
   const formatBusinessHours = (
     hours: { dayOfWeek: string; openTime: string; closeTime: string }[]
   ) => {
@@ -93,18 +103,45 @@ const BusinessCardComponent = ({ business }: BusinessCardProps) => {
             <Link href={`/businesses/${business._id}`}>Ver Detalles</Link>
           </Button>
 
-          {business.contact?.[0]?.phone && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleCall(business.contact[0].phone!)}
-              className="flex items-center gap-1"
-              aria-label={`Llamar a ${business.namePlace}`}
-            >
-              <Phone aria-hidden="true" className="h-4 w-4" />
-              Llamar
-            </Button>
-          )}
+          {business.contact?.[0]?.phone &&
+            (isSafePhone(business.contact[0].phone!) ? (
+              <Button variant="outline" size="sm" asChild className="flex items-center gap-1">
+                <a
+                  href={`tel:${business.contact[0].phone}`}
+                  aria-label={`Llamar a ${business.namePlace}`}
+                >
+                  <Phone aria-hidden="true" className="h-4 w-4" />
+                  Llamar
+                </a>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="flex items-center gap-1"
+                aria-label={`Teléfono no disponible para ${business.namePlace}`}
+              >
+                <Phone aria-hidden="true" className="h-4 w-4" />
+                Llamar
+              </Button>
+            ))}
+          {business.contact?.[0]?.email &&
+            (isSafeEmail(business.contact[0].email!) ? (
+              <Button variant="outline" size="sm" asChild className="flex items-center gap-1">
+                <a
+                  href={`mailto:${business.contact[0].email}`}
+                  aria-label={`Enviar correo a ${business.namePlace}`}
+                >
+                  <Mail aria-hidden="true" className="h-4 w-4" />
+                  Email
+                </a>
+              </Button>
+            ) : (
+              <span aria-label={`Correo no disponible para ${business.namePlace}`}>
+                {business.contact[0].email}
+              </span>
+            ))}
         </div>
       </CardContent>
     </article>

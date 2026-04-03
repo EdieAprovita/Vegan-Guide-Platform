@@ -165,6 +165,7 @@ export const buttonMock = {
     size,
     onClick,
     disabled,
+    "aria-label": ariaLabel,
   }: {
     children: React.ReactNode;
     asChild?: boolean;
@@ -173,6 +174,7 @@ export const buttonMock = {
     size?: string;
     onClick?: () => void;
     disabled?: boolean;
+    "aria-label"?: string;
   }) => {
     if (asChild) return <>{children}</>;
     return (
@@ -182,6 +184,7 @@ export const buttonMock = {
         data-variant={variant}
         data-size={size}
         disabled={disabled}
+        aria-label={ariaLabel}
       >
         {children}
       </button>
