@@ -2,8 +2,8 @@
 FROM node:20.3.0-alpine AS deps
 WORKDIR /app
 
-# Install dependencies based on the preferred lockfile
-COPY package.json package-lock.json* ./
+# Install dependencies based on the lockfile
+COPY package.json package-lock.json ./
 RUN npm ci
 
 # Build the application
@@ -37,12 +37,14 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Install only production dependencies for runtime
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy only necessary files
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
+
+USER node
 
 EXPOSE 5000
 CMD ["npm", "start"]

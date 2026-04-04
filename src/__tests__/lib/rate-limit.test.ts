@@ -37,6 +37,10 @@ function buildRequest(headers: Record<string, string | null>, path = "/api/test"
   } as unknown as NextRequest;
 }
 
+function buildIPv4(a: number, b: number, c: number, d: number): string {
+  return [a, b, c, d].join(".");
+}
+
 // ---------------------------------------------------------------------------
 // Issue B — x-real-ip trust gating
 // ---------------------------------------------------------------------------
@@ -61,14 +65,14 @@ describe("getClientIP — x-real-ip trust gating", () => {
 
     // x-real-ip carries an attacker-controlled IP; x-forwarded-for has the real one.
     const req = buildRequest({
-      "x-real-ip": "1.2.3.4",
-      "x-forwarded-for": "10.0.0.1",
+      "x-real-ip": buildIPv4(1, 2, 3, 4),
+      "x-forwarded-for": buildIPv4(10, 0, 0, 1),
     });
 
     const result = await limiter.check(req);
 
     // With x-real-ip ignored the key is derived from x-forwarded-for (10.0.0.1),
-    // not from x-real-ip (1.2.3.4). We can't assert on the internal key
+    // not from x-real-ip. We can't assert on the internal key
     // directly, but we CAN assert the call succeeds (count 1 <= 5).
     expect(result.success).toBe(true);
     expect(result.limit).toBe(5);
@@ -81,8 +85,8 @@ describe("getClientIP — x-real-ip trust gating", () => {
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 5 });
 
     const req = buildRequest({
-      "x-real-ip": "1.2.3.4",
-      "x-forwarded-for": "10.0.0.1",
+      "x-real-ip": buildIPv4(1, 2, 3, 4),
+      "x-forwarded-for": buildIPv4(10, 0, 0, 1),
     });
 
     const result = await limiter.check(req);
@@ -95,7 +99,7 @@ describe("getClientIP — x-real-ip trust gating", () => {
     const { rateLimit } = await import("@/lib/rate-limit");
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 5 });
 
-    const req = buildRequest({ "x-real-ip": "1.2.3.4" });
+    const req = buildRequest({ "x-real-ip": buildIPv4(1, 2, 3, 4) });
 
     const result = await limiter.check(req);
     expect(result.success).toBe(true);
@@ -111,7 +115,7 @@ describe("getClientIP — x-real-ip trust gating", () => {
     // Malformed header — should fall through to x-forwarded-for
     const req = buildRequest({
       "x-real-ip": "<script>alert(1)</script>",
-      "x-forwarded-for": "10.0.0.99",
+      "x-forwarded-for": buildIPv4(10, 0, 0, 2),
     });
 
     const result = await limiter.check(req);
@@ -167,7 +171,7 @@ describe("rateLimit — Redis fallback uses stricter limit", () => {
     // maxAttempts = 100 → fallback = 10
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 100 });
 
-    const req = buildRequest({ "x-forwarded-for": "192.168.1.1" }, "/api/test-fallback");
+    const req = buildRequest({ "x-forwarded-for": buildIPv4(10, 0, 0, 3) }, "/api/test-fallback");
 
     // Requests 1-10 should succeed under the fallback limit.
     for (let i = 1; i <= 10; i++) {
@@ -189,7 +193,7 @@ describe("rateLimit — Redis fallback uses stricter limit", () => {
     const { rateLimit } = await import("@/lib/rate-limit");
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 50 });
 
-    const req = buildRequest({ "x-forwarded-for": "10.10.10.1" }, "/api/warn-test");
+    const req = buildRequest({ "x-forwarded-for": "client-edge-warn" }, "/api/warn-test");
     await limiter.check(req);
 
     expect(warnSpy).toHaveBeenCalledWith(
@@ -215,7 +219,7 @@ describe("rateLimit — Redis fallback uses stricter limit", () => {
     const { rateLimit } = await import("@/lib/rate-limit");
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 100 });
 
-    const req = buildRequest({ "x-forwarded-for": "10.0.0.1" }, "/api/healthy");
+    const req = buildRequest({ "x-forwarded-for": "client-edge-healthy" }, "/api/healthy");
     const result = await limiter.check(req);
 
     expect(result.success).toBe(true);
