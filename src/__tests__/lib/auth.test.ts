@@ -154,16 +154,16 @@ describe("jwt callback", () => {
 
     const result = await jwtCallback!({
       token,
-      user: user as Parameters<NonNullable<JwtCallback>>[0]["user"],
+      user: user as unknown as Parameters<NonNullable<JwtCallback>>[0]["user"],
       account: null,
       trigger: "signIn",
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
-    expect(result.id).toBe("user-123");
-    expect(result.role).toBe("user");
-    expect(result.backendToken).toBe("access-token-abc");
-    expect(result.backendRefreshToken).toBe("refresh-token-xyz");
-    expect(result.backendTokenExpiry).toBe(now + 14 * 60 * 1000);
+    expect(result!.id).toBe("user-123");
+    expect(result!.role).toBe("user");
+    expect(result!.backendToken).toBe("access-token-abc");
+    expect(result!.backendRefreshToken).toBe("refresh-token-xyz");
+    expect(result!.backendTokenExpiry).toBe(now + 14 * 60 * 1000);
 
     jest.restoreAllMocks();
   });
@@ -186,8 +186,8 @@ describe("jwt callback", () => {
       trigger: "update",
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
-    expect(result.backendToken).toBe("existing-access");
-    expect(result.backendRefreshToken).toBe("existing-refresh");
+    expect(result!.backendToken).toBe("existing-access");
+    expect(result!.backendRefreshToken).toBe("existing-refresh");
     expect(mockRefreshAccessToken).not.toHaveBeenCalled();
   });
 
@@ -213,9 +213,9 @@ describe("jwt callback", () => {
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
     expect(mockRefreshAccessToken).toHaveBeenCalledWith("valid-refresh");
-    expect(result.backendToken).toBe("new-access-token");
-    expect(result.backendRefreshToken).toBe("new-refresh-token");
-    expect(result.backendTokenExpiry).toBeGreaterThan(now);
+    expect(result!.backendToken).toBe("new-access-token");
+    expect(result!.backendRefreshToken).toBe("new-refresh-token");
+    expect(result!.backendTokenExpiry).toBeGreaterThan(now);
   });
 
   it("sets error flag when refreshAccessToken throws", async () => {
@@ -235,7 +235,7 @@ describe("jwt callback", () => {
       trigger: "update",
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
-    expect(result.error).toBe("RefreshTokenError");
+    expect(result!.error).toBe("RefreshTokenError");
   });
 
   it("does not trigger refresh when backendRefreshToken is absent", async () => {
@@ -255,7 +255,7 @@ describe("jwt callback", () => {
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
     expect(mockRefreshAccessToken).not.toHaveBeenCalled();
-    expect(result.error).toBeUndefined();
+    expect(result!.error).toBeUndefined();
   });
 
   it("keeps existing refreshToken when backend does not return a new one", async () => {
@@ -280,8 +280,8 @@ describe("jwt callback", () => {
     } as Parameters<NonNullable<JwtCallback>>[0]);
 
     // refreshToken in JWT must remain unchanged when not returned by backend
-    expect(result.backendRefreshToken).toBe("original-refresh");
-    expect(result.backendToken).toBe("new-access-token");
+    expect(result!.backendRefreshToken).toBe("original-refresh");
+    expect(result!.backendToken).toBe("new-access-token");
   });
 });
 
@@ -313,8 +313,8 @@ describe("session callback", () => {
       token,
     } as Parameters<NonNullable<SessionCallback>>[0]);
 
-    expect(result.user.id).toBe("user-456");
-    expect(result.user.role).toBe("professional");
+    expect(result.user!.id).toBe("user-456");
+    expect((result.user as Record<string, unknown>).role).toBe("professional");
   });
 
   it("does not expose backendToken in the session", async () => {
@@ -340,7 +340,7 @@ describe("session callback", () => {
     } as Parameters<NonNullable<SessionCallback>>[0]);
 
     // The session object must not leak the raw backend access token to clients.
-    expect((result as Record<string, unknown>).backendToken).toBeUndefined();
-    expect((result.user as Record<string, unknown>).backendToken).toBeUndefined();
+    expect((result as unknown as Record<string, unknown>).backendToken).toBeUndefined();
+    expect((result.user as unknown as Record<string, unknown>).backendToken).toBeUndefined();
   });
 });
