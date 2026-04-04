@@ -146,6 +146,10 @@ describe("config shape", () => {
 describe("jwt callback", () => {
   const jwtCallback = config.callbacks?.jwt as JwtCallback;
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("populates token fields from user on initial sign-in", async () => {
     const token = makeToken();
     const user = makeUser();
@@ -164,8 +168,6 @@ describe("jwt callback", () => {
     expect(result!.backendToken).toBe("access-token-abc");
     expect(result!.backendRefreshToken).toBe("refresh-token-xyz");
     expect(result!.backendTokenExpiry).toBe(now + 14 * 60 * 1000);
-
-    jest.restoreAllMocks();
   });
 
   it("does not overwrite token when user is undefined (subsequent requests)", async () => {

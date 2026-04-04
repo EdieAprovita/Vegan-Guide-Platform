@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/auth";
 import { API_CONFIG } from "@/lib/api/config";
 import type { User } from "@/types";
+import { mockOkJson, mockError, setupFetchMocks } from "../fetch-mocks";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -31,35 +32,11 @@ const mockUser: User = {
   createdAt: "2024-01-01T00:00:00.000Z",
 };
 
-const successResponse = (data: unknown) => ({
-  ok: true,
-  status: 200,
-  headers: { get: () => "application/json" },
-  json: jest.fn().mockResolvedValue(data),
-});
-
-const errorResponse = (status: number, message: string) => ({
-  ok: false,
-  status,
-  statusText: "Error",
-  headers: { get: () => "application/json" },
-  json: jest.fn().mockResolvedValue({ message }),
-});
-
-const originalFetch = global.fetch;
-
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
 
-beforeEach(() => {
-  global.fetch = jest.fn();
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-  global.fetch = originalFetch;
-});
+setupFetchMocks();
 
 // ---------------------------------------------------------------------------
 // login()
@@ -69,7 +46,7 @@ describe("login()", () => {
   const credentials = { email: "vegan@example.com", password: "Password1" };
 
   it("returns the parsed User on a successful response", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(mockUser));
+    mockOkJson(mockUser);
 
     const result = await login(credentials);
 
@@ -84,7 +61,7 @@ describe("login()", () => {
   });
 
   it("throws when the server returns a non-ok status", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(401, "Invalid credentials"));
+    mockError(401, "Invalid credentials");
 
     await expect(login(credentials)).rejects.toThrow("Invalid credentials");
   });
@@ -110,7 +87,7 @@ describe("register()", () => {
   };
 
   it("returns the created User on a successful response", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(mockUser));
+    mockOkJson(mockUser);
 
     const result = await register(registerData);
 
@@ -125,13 +102,13 @@ describe("register()", () => {
   });
 
   it("throws when the server returns 400 (validation error)", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(400, "Email already in use"));
+    mockError(400, "Email already in use");
 
     await expect(register(registerData)).rejects.toThrow("Email already in use");
   });
 
   it("throws when the server returns 500", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(500, "Internal server error"));
+    mockError(500, "Internal server error");
 
     await expect(register(registerData)).rejects.toThrow("Internal server error");
   });
@@ -143,7 +120,7 @@ describe("register()", () => {
 
 describe("logout()", () => {
   it("calls the blacklist endpoint when a token is provided", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(null));
+    mockOkJson(null);
 
     await logout("valid-token");
 
@@ -160,7 +137,7 @@ describe("logout()", () => {
   });
 
   it("does not throw when the logout endpoint returns an error (non-blocking)", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(500, "Server error"));
+    mockError(500, "Server error");
 
     await expect(logout("some-token")).resolves.toBeUndefined();
   });
@@ -172,7 +149,7 @@ describe("logout()", () => {
 
 describe("revokeAllSessions()", () => {
   it("calls the revoke-all-tokens endpoint", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(null));
+    mockOkJson(null);
 
     await revokeAllSessions("admin-token");
 
@@ -183,7 +160,7 @@ describe("revokeAllSessions()", () => {
   });
 
   it("throws when the server returns an error", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(403, "Forbidden"));
+    mockError(403, "Forbidden");
 
     await expect(revokeAllSessions("bad-token")).rejects.toThrow("Forbidden");
   });
@@ -195,7 +172,7 @@ describe("revokeAllSessions()", () => {
 
 describe("getProfile()", () => {
   it("returns the User profile when authenticated", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(mockUser));
+    mockOkJson(mockUser);
 
     const result = await getProfile("valid-token");
 
@@ -218,7 +195,7 @@ describe("getProfile()", () => {
 
 describe("forgotPassword()", () => {
   it("calls the forgot-password endpoint with the user email", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(null));
+    mockOkJson(null);
 
     await forgotPassword({ email: "vegan@example.com" });
 
@@ -232,7 +209,7 @@ describe("forgotPassword()", () => {
   });
 
   it("throws when the server returns a non-ok response", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(404, "User not found"));
+    mockError(404, "User not found");
 
     await expect(forgotPassword({ email: "ghost@example.com" })).rejects.toThrow("User not found");
   });
@@ -247,7 +224,7 @@ describe("resetPassword()", () => {
   const resetToken = "reset-token-abc";
 
   it("calls the reset-password endpoint including the reset token in the body", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(null));
+    mockOkJson(null);
 
     await resetPassword(newPasswordData, resetToken);
 
@@ -261,7 +238,7 @@ describe("resetPassword()", () => {
   });
 
   it("throws when the reset token is invalid", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(400, "Invalid or expired token"));
+    mockError(400, "Invalid or expired token");
 
     await expect(resetPassword(newPasswordData, "bad-token")).rejects.toThrow(
       "Invalid or expired token"
@@ -276,7 +253,7 @@ describe("resetPassword()", () => {
 describe("updateUserProfile()", () => {
   it("sends a PUT request with partial profile data", async () => {
     const updated = { ...mockUser, username: "newname" };
-    (global.fetch as jest.Mock).mockResolvedValue(successResponse(updated));
+    mockOkJson(updated);
 
     const result = await updateUserProfile({ username: "newname" }, "valid-token");
 
@@ -296,7 +273,7 @@ describe("updateUserProfile()", () => {
   });
 
   it("throws when the server returns an error", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue(errorResponse(422, "Validation failed"));
+    mockError(422, "Validation failed");
 
     await expect(updateUserProfile({ username: "x" }, "token")).rejects.toThrow(
       "Validation failed"
