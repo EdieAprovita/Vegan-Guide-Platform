@@ -127,7 +127,10 @@ export function rateLimit(options: RateLimitOptions) {
   // 10x stricter limit used when the distributed store is unavailable so the
   // fallback fails semi-closed rather than fully open in multi-instance
   // / serverless deployments where each instance has its own in-memory store.
-  const RATE_LIMIT_FALLBACK_MAX = Math.floor(options.maxAttempts / 10);
+  const RATE_LIMIT_FALLBACK_MAX = Math.min(
+    options.maxAttempts,
+    Math.max(1, Math.floor(options.maxAttempts / 10))
+  );
 
   return {
     check: async (request: NextRequest, identifier?: string): Promise<RateLimitResult> => {
@@ -174,9 +177,15 @@ export const passwordResetRateLimit = rateLimit({
   maxAttempts: 3, // 3 attempts per hour
 });
 
-// Returns true for valid IPv4 or IPv6 addresses (basic structural check).
+// Returns true for structurally valid IPv4 or IPv6 addresses.
 function isValidIP(ip: string): boolean {
-  return /^[\d.]+$|^[a-f0-9:]+$/i.test(ip.trim());
+  const trimmed = ip.trim();
+  // IPv4: four decimal octets 0-255
+  const ipv4 =
+    /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/;
+  // IPv6: standard colon-hex notation (including compressed forms)
+  const ipv6 = /^[\da-f]{0,4}(:[\da-f]{0,4}){2,7}$/i;
+  return ipv4.test(trimmed) || ipv6.test(trimmed);
 }
 
 // Utility to get client IP
