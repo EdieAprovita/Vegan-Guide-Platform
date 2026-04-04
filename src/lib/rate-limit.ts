@@ -124,6 +124,14 @@ function toRateLimitResult(count: number, maxAttempts: number, resetTime: number
 }
 
 export function rateLimit(options: RateLimitOptions) {
+  // 10x stricter limit used when the distributed store is unavailable so the
+  // fallback fails semi-closed rather than fully open in multi-instance
+  // / serverless deployments where each instance has its own in-memory store.
+  const RATE_LIMIT_FALLBACK_MAX = Math.min(
+    options.maxAttempts,
+    Math.max(1, Math.floor(options.maxAttempts / 10))
+  );
+
   return {
     check: async (request: NextRequest, identifier?: string): Promise<RateLimitResult> => {
       const ip = identifier || getClientIP(request);
@@ -135,8 +143,16 @@ export function rateLimit(options: RateLimitOptions) {
           return toRateLimitResult(distributed.count, options.maxAttempts, distributed.resetTime);
         }
       } catch (error) {
-        // Distributed store failures should not break auth/profile routes.
-        console.warn("[rate-limit] Falling back to in-memory store:", error);
+        // Distributed store failures should not break auth/profile routes, but
+        // we apply a much stricter in-memory limit to avoid fail-open behavior.
+        console.warn("[rate-limit] Falling back to in-memory store:", {
+          fallback: true,
+          stricterLimit: RATE_LIMIT_FALLBACK_MAX,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        const local = incrementInMemoryCounter(key, options.windowMs);
+        return toRateLimitResult(local.count, RATE_LIMIT_FALLBACK_MAX, local.resetTime);
       }
 
       const local = incrementInMemoryCounter(key, options.windowMs);
@@ -161,11 +177,26 @@ export const passwordResetRateLimit = rateLimit({
   maxAttempts: 3, // 3 attempts per hour
 });
 
+// Returns true for structurally valid IPv4 or IPv6 addresses.
+function isValidIP(ip: string): boolean {
+  const trimmed = ip.trim();
+  // IPv4: four decimal octets 0-255
+  const ipv4 =
+    /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/;
+  // IPv6: standard colon-hex notation (including compressed forms)
+  const ipv6 = /^[\da-f]{0,4}(:[\da-f]{0,4}){2,7}$/i;
+  return ipv4.test(trimmed) || ipv6.test(trimmed);
+}
+
 // Utility to get client IP
 function getClientIP(request: NextRequest): string {
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
+  // Only trust x-real-ip when explicitly enabled via env var. Without this
+  // guard an attacker can forge the header and bypass per-IP rate limits.
+  if (process.env.RATE_LIMIT_TRUST_X_REAL_IP === "true") {
+    const xRealIp = request.headers.get("x-real-ip");
+    if (xRealIp && isValidIP(xRealIp)) {
+      return xRealIp.trim();
+    }
   }
 
   const xff = request.headers.get("x-forwarded-for");
