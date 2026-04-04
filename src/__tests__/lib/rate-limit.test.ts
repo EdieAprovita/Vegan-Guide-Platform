@@ -171,10 +171,7 @@ describe("rateLimit — Redis fallback uses stricter limit", () => {
     // maxAttempts = 100 → fallback = 10
     const limiter = rateLimit({ windowMs: 60_000, maxAttempts: 100 });
 
-    const req = buildRequest(
-      { "x-forwarded-for": buildIPv4(10, 0, 0, 3) },
-      "/api/test-fallback",
-    );
+    const req = buildRequest({ "x-forwarded-for": buildIPv4(10, 0, 0, 3) }, "/api/test-fallback");
 
     // Requests 1-10 should succeed under the fallback limit.
     for (let i = 1; i <= 10; i++) {
