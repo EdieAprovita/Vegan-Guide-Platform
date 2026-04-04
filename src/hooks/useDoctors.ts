@@ -194,8 +194,8 @@ export function useDoctorMutations() {
   });
 
   const addReview = useMutation({
-    mutationFn: ({ id, review }: { id: string; review: DoctorReview }) =>
-      addDoctorReview(id, review),
+    mutationFn: ({ id, review, token }: { id: string; review: DoctorReview; token?: string }) =>
+      addDoctorReview(id, review, token),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.doctors.all });
