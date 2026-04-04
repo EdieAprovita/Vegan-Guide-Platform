@@ -288,4 +288,26 @@ describe("useDoctorMutations", () => {
 
     expect(doctorsApi.deleteDoctor).toHaveBeenCalledWith("doctor-2", mockToken);
   });
+
+  it("addDoctorReview mutation forwards token to API function (H-05)", async () => {
+    useQueryClientMock.mockReturnValue({ invalidateQueries: jest.fn() });
+    (doctorsApi.addDoctorReview as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockDoctor,
+    });
+
+    renderHook(() => useDoctorMutations());
+
+    const addReviewMutationConfig = useMutationMock.mock.calls[3][0];
+    const mockReview = { rating: 5, comment: "Excellent vegan doctor!" };
+    const mockToken = "test-token-review-101";
+
+    await addReviewMutationConfig.mutationFn({
+      id: "doctor-3",
+      review: mockReview,
+      token: mockToken,
+    });
+
+    expect(doctorsApi.addDoctorReview).toHaveBeenCalledWith("doctor-3", mockReview, mockToken);
+  });
 });
