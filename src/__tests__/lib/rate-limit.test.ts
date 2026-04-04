@@ -71,8 +71,8 @@ describe("getClientIP — x-real-ip trust gating", () => {
 
     const result = await limiter.check(req);
 
-    // With x-real-ip ignored the key is derived from x-forwarded-for (10.0.0.1),
-    // not from x-real-ip (1.2.3.4). We can't assert on the internal key
+    // With x-real-ip ignored the key is derived from x-forwarded-for (client-edge-a),
+    // not from x-real-ip. We can't assert on the internal key
     // directly, but we CAN assert the call succeeds (count 1 <= 5).
     expect(result.success).toBe(true);
     expect(result.limit).toBe(5);
