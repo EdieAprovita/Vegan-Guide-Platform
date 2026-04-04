@@ -61,7 +61,7 @@ jobs:
   # JOB 2 — Unit tests + coverage gate
   # Runs after quality to avoid wasting test time on broken code.
   # Coverage thresholds are defined in jest.config.js
-  # (branches: 20, functions: 21, lines: 23, statements: 23).
+  # (branches: 22, functions: 23, lines: 25, statements: 24).
   # This job is fully blocking — a coverage regression fails the PR.
   # ─────────────────────────────────────────────
   test:
