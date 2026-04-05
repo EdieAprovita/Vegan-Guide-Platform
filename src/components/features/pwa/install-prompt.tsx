@@ -7,17 +7,25 @@ import { Download, Smartphone, X, CheckCircle, Wifi, WifiOff } from "lucide-reac
 import { usePWA } from "@/hooks/usePWA";
 import { toast } from "sonner";
 
+const DISMISS_KEY = "pwa-prompt-dismissed-at";
+const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function isDismissedWithinTTL(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = localStorage.getItem(DISMISS_KEY);
+  if (!raw) return false;
+  const dismissedAt = Number.parseInt(raw, 10);
+  return !Number.isNaN(dismissedAt) && Date.now() - dismissedAt < DISMISS_TTL_MS;
+}
+
 export function InstallPrompt() {
   const { isPWAInstalled, isOnline, canInstall, installPWA } = usePWA();
   const [showPrompt, setShowPrompt] = useState(false);
-  // Initialise from localStorage so dismissal survives page reloads
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("pwa-prompt-dismissed") === "true";
-  });
+  // Initialise from localStorage so dismissal survives page reloads (with 30-day TTL)
+  const [dismissed, setDismissed] = useState<boolean>(() => isDismissedWithinTTL());
 
   useEffect(() => {
-    // Show prompt if PWA can be installed and user hasn't dismissed it
+    // Show prompt if PWA can be installed and user hasn't dismissed it within TTL
     if (canInstall && !isPWAInstalled && !dismissed) {
       // Delay showing the prompt to avoid showing it immediately
       const timer = setTimeout(() => {
@@ -32,6 +40,8 @@ export function InstallPrompt() {
     try {
       await installPWA();
       setShowPrompt(false);
+      // Clean up dismissal record on successful install — no longer needed
+      localStorage.removeItem(DISMISS_KEY);
       toast.success("Vegan Guide installed successfully!");
     } catch {
       toast.error("Failed to install app");
@@ -41,8 +51,8 @@ export function InstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     setDismissed(true);
-    // Store dismissal in localStorage
-    localStorage.setItem("pwa-prompt-dismissed", "true");
+    // Store timestamp so we can re-show after 30 days
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
   };
 
   const handleClose = () => {
