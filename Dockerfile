@@ -37,12 +37,16 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Install only production dependencies for runtime
+# Run npm ci as root so node_modules is owned by root (read-only for node user)
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Copy only necessary files
+# Copy only necessary files — owned by root (read-only for node user)
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
+
+# Only the cache directory needs write access at runtime
+RUN mkdir -p /app/.next/cache && chown node:node /app/.next/cache
 
 USER node
 

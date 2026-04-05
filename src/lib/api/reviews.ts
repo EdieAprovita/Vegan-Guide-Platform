@@ -1,5 +1,23 @@
 import { apiRequest, getApiHeaders, BackendResponse } from "./config";
 
+export interface GetAllReviewsParams {
+  page?: number;
+  limit?: number;
+  resourceType?: string;
+  minRating?: number;
+  sortBy?: "newest" | "oldest" | "rating" | "helpful";
+  search?: string;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface Review {
   _id: string;
   user: {
@@ -28,6 +46,60 @@ export interface ReviewStats {
   ratingDistribution: {
     [key: number]: number;
   };
+}
+
+function buildAdminReviewsQueryString(params: GetAllReviewsParams): string {
+  const sp = new URLSearchParams();
+  if (params.page !== undefined) sp.append("page", params.page.toString());
+  if (params.limit !== undefined) sp.append("limit", params.limit.toString());
+  if (params.resourceType !== undefined) sp.append("resourceType", params.resourceType);
+  if (params.minRating !== undefined) sp.append("minRating", params.minRating.toString());
+  if (params.sortBy !== undefined) sp.append("sortBy", params.sortBy);
+  if (params.search !== undefined) sp.append("search", params.search);
+  return sp.toString();
+}
+
+/**
+ * Client-side: calls the Next.js proxy route at /api/admin/reviews.
+ * The route handler enforces admin-only access and holds the backend token
+ * server-side — it is never exposed to the browser.
+ */
+export async function getAllReviews(params: GetAllReviewsParams = {}) {
+  const qs = buildAdminReviewsQueryString(params);
+  const url = `/api/admin/reviews${qs ? `?${qs}` : ""}`;
+
+  // Same-origin relative URL — browser sends session cookie automatically.
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    let message = `HTTP ${response.status}: ${response.statusText}`;
+    try {
+      const body = (await response.json()) as { message?: string; error?: string };
+      message = body.message ?? body.error ?? message;
+    } catch {
+      // ignore JSON parse errors
+    }
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<{
+    success: boolean;
+    data: Review[];
+    pagination: PaginationMeta;
+  }>;
+}
+
+/**
+ * Server-side only: calls the backend directly via apiRequest.
+ * Used exclusively by the /api/admin/reviews route handler so that
+ * raw fetch calls (SSRF surface) are centralised inside apiRequest.
+ */
+export async function fetchAdminReviewsFromBackend(params: GetAllReviewsParams, token: string) {
+  const qs = buildAdminReviewsQueryString(params);
+  return apiRequest<{ success: boolean; data: Review[]; pagination: PaginationMeta }>(
+    `/reviews${qs ? `?${qs}` : ""}`,
+    { headers: getApiHeaders(token) }
+  );
 }
 
 export async function getReview(id: string) {

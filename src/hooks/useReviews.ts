@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import {
   Review,
@@ -15,6 +21,8 @@ import {
   getRestaurantReviews,
   getRestaurantReviewStats,
   createRestaurantReview,
+  getAllReviews,
+  GetAllReviewsParams,
 } from "@/lib/api/reviews";
 import { queryKeys } from "@/lib/api/queryKeys";
 
@@ -367,5 +375,34 @@ export function useReview(reviewId: string) {
     error,
     updateReview: updateReviewLocal,
     deleteReview: deleteReviewLocal,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// useAllReviews — admin-only paginated list of all reviews across resources
+// ---------------------------------------------------------------------------
+type UseAllReviewsParams = GetAllReviewsParams;
+
+export function useAllReviews(params: UseAllReviewsParams = {}) {
+  // No client-side token needed: auth is enforced server-side by the
+  // /api/admin/reviews route handler. The query is always enabled so the
+  // loading state is predictable; 401/403 responses surface as errors.
+  const queryKey = queryKeys.reviews.global(params as Record<string, unknown>);
+
+  const { data, isFetching, isLoading, error, refetch } = useQuery({
+    queryKey,
+    queryFn: () => getAllReviews(params),
+    enabled: true,
+    staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
+
+  return {
+    reviews: data?.data ?? [],
+    pagination: data?.pagination ?? null,
+    loading: isLoading, // Fix C-F6: isLoading (true only on first fetch), not isFetching
+    isFetching, // exposed separately for subtle background-refresh spinners
+    error: error instanceof Error ? error.message : null,
+    refetch,
   };
 }
