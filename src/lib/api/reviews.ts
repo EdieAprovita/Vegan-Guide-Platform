@@ -63,7 +63,9 @@ export async function getAllReviews(params: GetAllReviewsParams = {}) {
   const qs = searchParams.toString();
   const url = `/api/admin/reviews${qs ? `?${qs}` : ""}`;
 
-  const response = await fetch(url, { credentials: "include", cache: "no-store" });
+  // Same-origin request to the Next.js route handler — credentials (cookies)
+  // are sent automatically for same-origin requests without explicit credentials.
+  const response = await fetch(url, { cache: "no-store" });
 
   if (!response.ok) {
     let message = `HTTP ${response.status}: ${response.statusText}`;

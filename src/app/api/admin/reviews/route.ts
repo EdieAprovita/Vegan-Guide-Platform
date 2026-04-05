@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, getServerAuthToken } from "@/lib/server-auth";
 
+// Allowlist of query params forwarded to the backend — prevents SSRF via
+// uncontrolled query string forwarding.
+const ALLOWED_PARAMS = ["page", "limit", "resourceType", "minRating", "sortBy", "search"] as const;
+
 export async function GET(request: NextRequest) {
-  // Enforce admin-only access using the shared server-auth helpers
   const authError = await requireRole("admin");
   if (authError) {
     return authError;
@@ -18,10 +21,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Re-build query string from an explicit allowlist — never forward raw
+  // user-controlled searchParams to avoid SSRF via unvalidated inputs.
   const { searchParams } = new URL(request.url);
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1";
+  const safeParams = new URLSearchParams();
+  for (const key of ALLOWED_PARAMS) {
+    const value = searchParams.get(key);
+    if (value !== null) safeParams.append(key, value);
+  }
 
-  const response = await fetch(`${backendUrl}/reviews?${searchParams.toString()}`, {
+  // Backend base URL comes from server-only env var. NEXT_PUBLIC_ is used here
+  // only for local dev parity; in production this should be a server-side var.
+  const backendBase =
+    process.env.BACKEND_API_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "http://localhost:5001/api/v1";
+  const qs = safeParams.toString();
+  const backendTarget = `${backendBase}/reviews${qs ? `?${qs}` : ""}`;
+
+  const response = await fetch(backendTarget, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
