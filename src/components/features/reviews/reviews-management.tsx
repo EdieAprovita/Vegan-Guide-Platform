@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Search, Filter, Star, AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,14 +14,18 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 import { ReviewCard } from "./review-card";
 // import { ReviewStats } from './review-stats'; // TODO: Implement stats component
 import { Review } from "@/lib/api/reviews";
+import { useAllReviews } from "@/hooks/useReviews";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 interface ReviewsManagementProps {
   showStats?: boolean;
 }
 
+// resourceName is optional — not yet returned by the backend; kept for forward compatibility
 interface ReviewWithResource extends Review {
   resourceType: "restaurant" | "recipe" | "market" | "doctor" | "business" | "sanctuary";
   resourceId: string;
@@ -29,11 +33,7 @@ interface ReviewWithResource extends Review {
 }
 
 export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) => {
-  // TODO: Use session?.user when auth-gated review actions are implemented
-  const [reviews, setReviews] = useState<ReviewWithResource[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<ReviewWithResource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,13 +42,59 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
 
-  // Stats
-  const [stats, setStats] = useState({
-    totalReviews: 0,
-    averageRating: 0,
-    pendingModeration: 0,
-    reportedReviews: 0,
+  const {
+    reviews: rawReviews,
+    pagination,
+    loading,
+    error,
+  } = useAllReviews({
+    page: 1,
+    limit: 50,
+    resourceType: resourceTypeFilter !== "all" ? resourceTypeFilter : undefined,
+    minRating: ratingFilter !== "all" ? parseInt(ratingFilter) : undefined,
+    sortBy: sortBy as "newest" | "oldest" | "rating" | "helpful",
+    search: searchQuery || undefined,
   });
+
+  // Client-side filter: statusFilter has no backend equivalent yet
+  const filteredReviews = useMemo<ReviewWithResource[]>(() => {
+    const typed = rawReviews as ReviewWithResource[];
+    if (statusFilter === "all") return typed;
+    if (statusFilter === "reported") return typed.filter((r) => r.helpfulCount === 0);
+    return typed;
+  }, [rawReviews, statusFilter]);
+
+  // Stats derived from real data
+  const stats = useMemo(() => {
+    const total = pagination?.totalItems ?? rawReviews.length;
+    const avgRating =
+      rawReviews.length > 0 ? rawReviews.reduce((s, r) => s + r.rating, 0) / rawReviews.length : 0;
+    return {
+      totalReviews: total,
+      averageRating: avgRating,
+      pendingModeration: 0,
+      reportedReviews: 0,
+    };
+  }, [rawReviews, pagination]);
+
+  const handleReviewUpdate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() });
+  }, [queryClient]);
+
+  const handleReviewDelete = useCallback(
+    (_reviewId: string) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() });
+    },
+    [queryClient]
+  );
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setResourceTypeFilter("all");
+    setRatingFilter("all");
+    setStatusFilter("all");
+    setSortBy("newest");
+  };
 
   const RESOURCE_TYPES = [
     { id: "all", label: "Todos los recursos", icon: "🌐" },
@@ -84,162 +130,6 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
     { value: "helpful", label: "Más útiles" },
     { value: "reported", label: "Más reportados" },
   ];
-
-  // Mock data - replace with actual API calls
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
-
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock data - replace with actual API calls
-        const mockReviews: ReviewWithResource[] = [
-          {
-            _id: "1",
-            user: {
-              _id: "user1",
-              username: "maria_vegana",
-              photo: "/default-avatar.jpg",
-            },
-            rating: 5,
-            comment:
-              "Excelente restaurante vegano! La comida es deliciosa y el ambiente muy acogedor. Definitivamente volveré.",
-            resourceType: "restaurant",
-            resourceId: "rest1",
-            resourceName: "Verde Bistro",
-            helpful: ["user2", "user3"],
-            helpfulCount: 2,
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            _id: "2",
-            user: {
-              _id: "user2",
-              username: "carlos_eco",
-              photo: "/default-avatar.jpg",
-            },
-            rating: 4,
-            comment:
-              "Muy buena receta, fácil de preparar y muy sabrosa. La recomiendo para principiantes.",
-            resourceType: "recipe",
-            resourceId: "recipe1",
-            resourceName: "Bowl de Quinoa",
-            helpful: ["user1"],
-            helpfulCount: 1,
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            _id: "3",
-            user: {
-              _id: "user3",
-              username: "ana_salud",
-              photo: "/default-avatar.jpg",
-            },
-            rating: 3,
-            comment:
-              "El mercado tiene buena variedad de productos orgánicos, pero los precios son un poco altos.",
-            resourceType: "market",
-            resourceId: "market1",
-            resourceName: "Mercado Orgánico",
-            helpful: [],
-            helpfulCount: 0,
-            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ];
-
-        setReviews(mockReviews);
-        setFilteredReviews(mockReviews);
-
-        // Calculate stats
-        const totalRating = mockReviews.reduce((sum, review) => sum + review.rating, 0);
-        setStats({
-          totalReviews: mockReviews.length,
-          averageRating: totalRating / mockReviews.length,
-          pendingModeration: 0,
-          reportedReviews: 0,
-        });
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al cargar las reviews");
-        console.error("Error fetching reviews:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReviews();
-  }, []);
-
-  // Apply filters
-  useEffect(() => {
-    let filtered = [...reviews];
-
-    // Search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(
-        (review) =>
-          review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          review.user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (review.resourceName &&
-            review.resourceName.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Resource type filter
-    if (resourceTypeFilter !== "all") {
-      filtered = filtered.filter((review) => review.resourceType === resourceTypeFilter);
-    }
-
-    // Rating filter
-    if (ratingFilter !== "all") {
-      const minRating = parseInt(ratingFilter);
-      filtered = filtered.filter((review) => review.rating >= minRating);
-    }
-
-    // Status filter (mock implementation)
-    if (statusFilter === "reported") {
-      filtered = filtered.filter((review) => review.helpfulCount === 0); // Mock logic
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "oldest":
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case "rating":
-          return b.rating - a.rating;
-        case "helpful":
-          return b.helpfulCount - a.helpfulCount;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredReviews(filtered);
-  }, [reviews, searchQuery, resourceTypeFilter, ratingFilter, statusFilter, sortBy]);
-
-  const handleReviewUpdate = () => {
-    // Refresh reviews after update
-  };
-
-  const handleReviewDelete = (reviewId: string) => {
-    setReviews((prev) => prev.filter((review) => review._id !== reviewId));
-    setFilteredReviews((prev) => prev.filter((review) => review._id !== reviewId));
-  };
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setResourceTypeFilter("all");
-    setRatingFilter("all");
-    setStatusFilter("all");
-    setSortBy("newest");
-  };
 
   const activeFiltersCount = [
     searchQuery,
@@ -295,7 +185,11 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
         <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-500" />
         <h3 className="mb-2 text-lg font-semibold text-gray-900">Error al cargar las reviews</h3>
         <p className="mb-4 text-gray-600">{error}</p>
-        <Button onClick={() => window.location.reload()}>Reintentar</Button>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() })}
+        >
+          Reintentar
+        </Button>
       </Card>
     );
   }
@@ -497,7 +391,7 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
         </TabsContent>
 
         <TabsContent value="recent" className="mt-6 space-y-4">
-          {filteredReviews
+          {[...filteredReviews]
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, 10)
             .map((review) => (
@@ -514,7 +408,7 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
         </TabsContent>
 
         <TabsContent value="top" className="mt-6 space-y-4">
-          {filteredReviews
+          {[...filteredReviews]
             .sort((a, b) => b.rating - a.rating)
             .slice(0, 10)
             .map((review) => (
@@ -531,7 +425,7 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
         </TabsContent>
 
         <TabsContent value="helpful" className="mt-6 space-y-4">
-          {filteredReviews
+          {[...filteredReviews]
             .sort((a, b) => b.helpfulCount - a.helpfulCount)
             .slice(0, 10)
             .map((review) => (

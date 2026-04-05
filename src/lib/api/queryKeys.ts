@@ -116,6 +116,7 @@ export const queryKeys = {
       createKey("reviews", "stats", resourceType, resourceId),
     detail: (id: string) => createKey("reviews", "detail", id),
     byEntity: (entityType: string, entityId: string) => createKey("reviews", entityType, entityId),
+    global: (params?: Record<string, unknown>) => createKey("reviews", "global", params ?? {}),
   },
 
   professions: {

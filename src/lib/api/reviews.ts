@@ -1,5 +1,23 @@
 import { apiRequest, getApiHeaders, BackendResponse } from "./config";
 
+export interface GetAllReviewsParams {
+  page?: number;
+  limit?: number;
+  resourceType?: string;
+  minRating?: number;
+  sortBy?: "newest" | "oldest" | "rating" | "helpful";
+  search?: string;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface Review {
   _id: string;
   user: {
@@ -28,6 +46,21 @@ export interface ReviewStats {
   ratingDistribution: {
     [key: number]: number;
   };
+}
+
+export async function getAllReviews(params: GetAllReviewsParams = {}, token?: string) {
+  const searchParams = new URLSearchParams();
+  if (params.page !== undefined) searchParams.append("page", params.page.toString());
+  if (params.limit !== undefined) searchParams.append("limit", params.limit.toString());
+  if (params.resourceType !== undefined) searchParams.append("resourceType", params.resourceType);
+  if (params.minRating !== undefined) searchParams.append("minRating", params.minRating.toString());
+  if (params.sortBy !== undefined) searchParams.append("sortBy", params.sortBy);
+  if (params.search !== undefined) searchParams.append("search", params.search);
+
+  return apiRequest<{ success: boolean; data: Review[]; pagination: PaginationMeta }>(
+    `/reviews?${searchParams.toString()}`,
+    { headers: getApiHeaders(token) }
+  );
 }
 
 export async function getReview(id: string) {
