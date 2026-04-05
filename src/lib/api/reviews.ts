@@ -48,7 +48,7 @@ export interface ReviewStats {
   };
 }
 
-export async function getAllReviews(params: GetAllReviewsParams = {}, token?: string) {
+export async function getAllReviews(params: GetAllReviewsParams = {}) {
   const searchParams = new URLSearchParams();
   if (params.page !== undefined) searchParams.append("page", params.page.toString());
   if (params.limit !== undefined) searchParams.append("limit", params.limit.toString());
@@ -57,10 +57,30 @@ export async function getAllReviews(params: GetAllReviewsParams = {}, token?: st
   if (params.sortBy !== undefined) searchParams.append("sortBy", params.sortBy);
   if (params.search !== undefined) searchParams.append("search", params.search);
 
-  return apiRequest<{ success: boolean; data: Review[]; pagination: PaginationMeta }>(
-    `/reviews?${searchParams.toString()}`,
-    { headers: getApiHeaders(token) }
-  );
+  // Proxy through the Next.js API route so the backend token stays server-side
+  // and is never exposed to the browser. The route handler enforces admin-only
+  // access and forwards the Authorization header to the backend.
+  const qs = searchParams.toString();
+  const url = `/api/admin/reviews${qs ? `?${qs}` : ""}`;
+
+  const response = await fetch(url, { credentials: "include", cache: "no-store" });
+
+  if (!response.ok) {
+    let message = `HTTP ${response.status}: ${response.statusText}`;
+    try {
+      const body = (await response.json()) as { message?: string; error?: string };
+      message = body.message ?? body.error ?? message;
+    } catch {
+      // ignore JSON parse errors
+    }
+    throw new Error(message);
+  }
+
+  return response.json() as Promise<{
+    success: boolean;
+    data: Review[];
+    pagination: PaginationMeta;
+  }>;
 }
 
 export async function getReview(id: string) {

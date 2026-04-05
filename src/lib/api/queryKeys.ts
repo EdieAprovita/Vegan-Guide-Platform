@@ -116,7 +116,10 @@ export const queryKeys = {
       createKey("reviews", "stats", resourceType, resourceId),
     detail: (id: string) => createKey("reviews", "detail", id),
     byEntity: (entityType: string, entityId: string) => createKey("reviews", entityType, entityId),
-    global: (params?: Record<string, unknown>) => createKey("reviews", "global", params ?? {}),
+    /** Prefix key used for broad invalidation of all admin global-review queries. */
+    globalAll: createKey("reviews", "global"),
+    /** Scoped key that includes filter params — use for query registration. */
+    global: (params?: Record<string, unknown>) => createKey("reviews", "global", params ?? null),
   },
 
   professions: {

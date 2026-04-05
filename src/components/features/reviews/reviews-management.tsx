@@ -52,7 +52,11 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
     limit: 50,
     resourceType: resourceTypeFilter !== "all" ? resourceTypeFilter : undefined,
     minRating: ratingFilter !== "all" ? parseInt(ratingFilter) : undefined,
-    sortBy: sortBy as "newest" | "oldest" | "rating" | "helpful",
+    sortBy: (["newest", "oldest", "rating", "helpful"].includes(sortBy) ? sortBy : "newest") as
+      | "newest"
+      | "oldest"
+      | "rating"
+      | "helpful",
     search: searchQuery || undefined,
   });
 
@@ -78,12 +82,12 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
   }, [rawReviews, pagination]);
 
   const handleReviewUpdate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.reviews.globalAll });
   }, [queryClient]);
 
   const handleReviewDelete = useCallback(
     (_reviewId: string) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.globalAll });
     },
     [queryClient]
   );
@@ -128,7 +132,6 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
     { value: "oldest", label: "Más antiguos" },
     { value: "rating", label: "Mejor calificados" },
     { value: "helpful", label: "Más útiles" },
-    { value: "reported", label: "Más reportados" },
   ];
 
   const activeFiltersCount = [
@@ -186,7 +189,7 @@ export const ReviewsManagement = ({ showStats = true }: ReviewsManagementProps) 
         <h3 className="mb-2 text-lg font-semibold text-gray-900">Error al cargar las reviews</h3>
         <p className="mb-4 text-gray-600">{error}</p>
         <Button
-          onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.reviews.global() })}
+          onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.reviews.globalAll })}
         >
           Reintentar
         </Button>

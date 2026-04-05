@@ -384,18 +384,15 @@ export function useReview(reviewId: string) {
 type UseAllReviewsParams = GetAllReviewsParams;
 
 export function useAllReviews(params: UseAllReviewsParams = {}) {
-  const { data: session } = useSession();
-  const token = (session as { backendToken?: string } | null)?.backendToken;
-
+  // No client-side token needed: auth is enforced server-side by the
+  // /api/admin/reviews route handler. The query is always enabled so the
+  // loading state is predictable; 401/403 responses surface as errors.
   const queryKey = queryKeys.reviews.global(params as Record<string, unknown>);
 
-  const { data, isFetching, error, refetch } = useQuery({
+  const { data, isFetching, isLoading, error, refetch } = useQuery({
     queryKey,
-    queryFn: async () => {
-      const response = await getAllReviews(params, token ?? undefined);
-      return response;
-    },
-    enabled: !!token,
+    queryFn: () => getAllReviews(params),
+    enabled: true,
     staleTime: 2 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -403,7 +400,8 @@ export function useAllReviews(params: UseAllReviewsParams = {}) {
   return {
     reviews: data?.data ?? [],
     pagination: data?.pagination ?? null,
-    loading: isFetching,
+    loading: isLoading, // Fix C-F6: isLoading (true only on first fetch), not isFetching
+    isFetching, // exposed separately for subtle background-refresh spinners
     error: error instanceof Error ? error.message : null,
     refetch,
   };
