@@ -1,5 +1,6 @@
 // Server-side authentication utilities
 import { auth, SESSION_COOKIE_NAME } from "@/lib/auth";
+import { parseServerEnv } from "@/lib/env";
 
 /**
  * Get the authenticated user's backend token for server-side API calls.
@@ -17,7 +18,7 @@ export async function getServerAuthToken(): Promise<string | null> {
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!sessionToken) return null;
 
-    const secret = process.env.AUTH_SECRET;
+    const secret = parseServerEnv(process.env as Record<string, string | undefined>).AUTH_SECRET;
     if (!secret) return null;
 
     const decoded = await decode({

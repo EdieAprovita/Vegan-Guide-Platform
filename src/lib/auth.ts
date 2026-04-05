@@ -1,6 +1,9 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { parseServerEnv } from "@/lib/env";
+
+const serverEnv = parseServerEnv(process.env as Record<string, string | undefined>);
 import { API_CONFIG } from "./api/config";
 import { refreshAccessToken } from "./api/tokenRefresh";
 
@@ -46,7 +49,7 @@ if (
 }
 
 export const config = {
-  secret: process.env.AUTH_SECRET,
+  secret: serverEnv.AUTH_SECRET,
   /**
    * trustHost is enabled unconditionally for this application.
    * This is required when requests reach NextAuth through a trusted reverse

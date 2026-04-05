@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { env } from "@/lib/env";
 import { ResetPasswordForm } from "./reset-password-form";
 import { type ResetPasswordFormData } from "@/lib/validations/auth";
 
@@ -15,7 +16,7 @@ export function ResetPasswordClient() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/forgot-password`, {
+      const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/users/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

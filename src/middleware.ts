@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -12,7 +13,7 @@ function generateNonce(): string {
 }
 
 function buildCsp(nonce: string): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  const apiUrl = env.NEXT_PUBLIC_API_URL;
   let apiOrigin = apiUrl;
   try {
     const parsed = new URL(apiUrl);
