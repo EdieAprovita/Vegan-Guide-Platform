@@ -49,13 +49,18 @@ export function usePWA() {
 
     if (process.env.NODE_ENV !== "production") {
       // In dev: unregister any stale SW to prevent serving cached assets
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (const registration of registrations) {
-          registration.unregister().catch(() => {
-            // Unregister is best-effort; ignore errors
-          });
-        }
-      });
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister().catch(() => {
+              // Unregister is best-effort; ignore errors
+            });
+          }
+        })
+        .catch(() => {
+          // getRegistrations is best-effort in dev; ignore errors
+        });
       return;
     }
 

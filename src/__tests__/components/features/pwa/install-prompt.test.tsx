@@ -115,9 +115,9 @@ describe("InstallPrompt — dismissal persistence", () => {
   });
 
   it("removes the dismiss key from localStorage on successful install", async () => {
-    localStorage.setItem(DISMISS_KEY, String(Date.now() - 1000));
-    // Reset dismissed state by not having it in storage
-    localStorage.clear();
+    // Set an existing dismiss key so we can verify it is cleaned up after install
+    localStorage.setItem(DISMISS_KEY, String(Date.now() - THIRTY_DAYS_MS - 1));
+    // Timestamp is older than 30 days so the prompt will still show
 
     renderInstallPrompt();
 
@@ -131,6 +131,7 @@ describe("InstallPrompt — dismissal persistence", () => {
       fireEvent.click(installButton);
     });
 
+    // Key must be removed after a successful install
     expect(localStorage.getItem(DISMISS_KEY)).toBeNull();
   });
 });

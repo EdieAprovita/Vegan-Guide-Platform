@@ -5,73 +5,33 @@
  *  - Missing / malformed variables cause a clear startup error (fail-fast).
  *  - All consumers get a fully-typed object instead of `string | undefined`.
  *
- * On the server the schema is enforced via Zod at module init time.
- * On the client only NEXT_PUBLIC_* vars are inlined by Next.js at build time,
- * so we return a plain object without running the server-side schema (server
- * secrets are not available in the browser bundle).
- */
-
-import { z } from "zod";
-
-// ---------------------------------------------------------------------------
-// Server-side schema — validated once at startup
-// ---------------------------------------------------------------------------
-
-const serverEnvSchema = z.object({
-  // Auth (required in production; relaxed in test/CI environments)
-  NEXTAUTH_SECRET: z
-    .string()
-    .min(16, "NEXTAUTH_SECRET must be at least 16 characters")
-    .optional()
-    .refine(
-      (val) => process.env.NODE_ENV !== "production" || (val !== undefined && val.length >= 16),
-      { message: "NEXTAUTH_SECRET is required in production" }
-    ),
-  AUTH_SECRET: z
-    .string()
-    .min(16, "AUTH_SECRET must be at least 16 characters")
-    .optional()
-    .refine(
-      (val) => process.env.NODE_ENV !== "production" || (val !== undefined && val.length >= 16),
-      { message: "AUTH_SECRET is required in production" }
-    ),
-  NEXTAUTH_URL: z.string().url("NEXTAUTH_URL must be a valid URL").optional(),
-
-  // Public — still accessible server-side
-  NEXT_PUBLIC_API_URL: z.string().url("NEXT_PUBLIC_API_URL must be a valid URL"),
-  NEXT_PUBLIC_SITE_URL: z.string().url("NEXT_PUBLIC_SITE_URL must be a valid URL").optional(),
-  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
-  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional().or(z.literal("")),
-
-  // VAPID — server-only secret
-  VAPID_PRIVATE_KEY: z.string().optional(),
-  VAPID_SUBJECT: z.string().email().optional(),
-});
-
-// ---------------------------------------------------------------------------
-// Client-side subset — only NEXT_PUBLIC_* vars inlined at build time
-// ---------------------------------------------------------------------------
-
-const clientEnv = {
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1",
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-} as const;
-
-// ---------------------------------------------------------------------------
-// Export
-// ---------------------------------------------------------------------------
-
-const isServer = typeof globalThis.window === "undefined";
-
-/**
- * Typed, validated environment variables.
+ * SERVER-SIDE: Zod validates the full schema once at module-init time via
+ * `env.server.ts`. Secrets (AUTH_SECRET, VAPID_PRIVATE_KEY, …) are only
+ * accessible on the server.
+ *
+ * CLIENT-SIDE: Only NEXT_PUBLIC_* vars are available — they are inlined by
+ * Next.js at build time. Zod is NOT included in the browser bundle (zero
+ * bundle-size impact). See `env.client.ts`.
  *
  * @example
  * import { env } from "@/lib/env";
  * fetch(env.NEXT_PUBLIC_API_URL + "/restaurants");
  */
-export const env = isServer ? serverEnvSchema.parse(process.env) : clientEnv;
+
+import { clientEnv } from "./env.client";
+import { parseServerEnv, serverEnvSchema } from "./env.server";
+
+// Re-export schema + parser so tests and other server-only consumers can use
+// the real implementation without duplicating it (F-C5).
+export { serverEnvSchema, parseServerEnv };
+export type { ServerEnv } from "./env.server";
+export type { ClientEnv } from "./env.client";
+
+// ---------------------------------------------------------------------------
+// Unified `env` export — server gets the full validated object, client gets
+// only the NEXT_PUBLIC_* subset (Zod-free).
+// ---------------------------------------------------------------------------
+
+const isServer = typeof globalThis.window === "undefined";
+
+export const env = isServer ? parseServerEnv(process.env) : clientEnv;
