@@ -18,8 +18,6 @@ import { Search } from "lucide-react";
 const PAGE_LIMIT = 12;
 
 interface RecipeListProps {
-  /** @deprecated Not used — infinite query manages pages internally */
-  initialPage?: number;
   initialLimit?: number;
   initialSearch?: string;
   initialCategory?: string;
