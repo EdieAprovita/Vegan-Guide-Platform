@@ -19,7 +19,7 @@ const serverEnvSchema = z.object({
     .optional()
     .refine(
       (val) => process.env.NODE_ENV !== "production" || (val !== undefined && val.length >= 16),
-      { message: "NEXTAUTH_SECRET is required in production" },
+      { message: "NEXTAUTH_SECRET is required in production" }
     ),
   AUTH_SECRET: z
     .string()
@@ -27,7 +27,7 @@ const serverEnvSchema = z.object({
     .optional()
     .refine(
       (val) => process.env.NODE_ENV !== "production" || (val !== undefined && val.length >= 16),
-      { message: "AUTH_SECRET is required in production" },
+      { message: "AUTH_SECRET is required in production" }
     ),
   NEXTAUTH_URL: z.string().url("NEXTAUTH_URL must be a valid URL").optional(),
   NEXT_PUBLIC_API_URL: z.string().url("NEXT_PUBLIC_API_URL must be a valid URL"),
