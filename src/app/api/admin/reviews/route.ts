@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, getServerAuthToken } from "@/lib/server-auth";
-
-// Allowlist of query params forwarded to the backend — prevents SSRF via
-// uncontrolled query string forwarding.
-const ALLOWED_PARAMS = ["page", "limit", "resourceType", "minRating", "sortBy", "search"] as const;
+import { fetchAdminReviewsFromBackend, GetAllReviewsParams } from "@/lib/api/reviews";
 
 export async function GET(request: NextRequest) {
   const authError = await requireRole("admin");
@@ -21,32 +18,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Re-build query string from an explicit allowlist — never forward raw
-  // user-controlled searchParams to avoid SSRF via unvalidated inputs.
+  // Extract only typed params from the request — never forward the raw query
+  // string. All outbound HTTP calls are delegated to fetchAdminReviewsFromBackend
+  // (uses apiRequest) so no raw fetch calls live in this route handler.
   const { searchParams } = new URL(request.url);
-  const safeParams = new URLSearchParams();
-  for (const key of ALLOWED_PARAMS) {
-    const value = searchParams.get(key);
-    if (value !== null) safeParams.append(key, value);
-  }
+  const params: GetAllReviewsParams = {
+    page: searchParams.has("page") ? Number(searchParams.get("page")) : undefined,
+    limit: searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined,
+    resourceType: searchParams.get("resourceType") ?? undefined,
+    minRating: searchParams.has("minRating") ? Number(searchParams.get("minRating")) : undefined,
+    sortBy: (searchParams.get("sortBy") as GetAllReviewsParams["sortBy"]) ?? undefined,
+    search: searchParams.get("search") ?? undefined,
+  };
 
-  // Backend base URL comes from server-only env var. NEXT_PUBLIC_ is used here
-  // only for local dev parity; in production this should be a server-side var.
-  const backendBase =
-    process.env.BACKEND_API_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "http://localhost:5001/api/v1";
-  const qs = safeParams.toString();
-  const backendTarget = `${backendBase}/reviews${qs ? `?${qs}` : ""}`;
-
-  const response = await fetch(backendTarget, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  const data: unknown = await response.json();
-  return NextResponse.json(data, { status: response.status });
+  const data = await fetchAdminReviewsFromBackend(params, token);
+  return NextResponse.json(data);
 }

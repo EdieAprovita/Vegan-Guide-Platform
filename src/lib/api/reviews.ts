@@ -48,23 +48,27 @@ export interface ReviewStats {
   };
 }
 
-export async function getAllReviews(params: GetAllReviewsParams = {}) {
-  const searchParams = new URLSearchParams();
-  if (params.page !== undefined) searchParams.append("page", params.page.toString());
-  if (params.limit !== undefined) searchParams.append("limit", params.limit.toString());
-  if (params.resourceType !== undefined) searchParams.append("resourceType", params.resourceType);
-  if (params.minRating !== undefined) searchParams.append("minRating", params.minRating.toString());
-  if (params.sortBy !== undefined) searchParams.append("sortBy", params.sortBy);
-  if (params.search !== undefined) searchParams.append("search", params.search);
+function buildAdminReviewsQueryString(params: GetAllReviewsParams): string {
+  const sp = new URLSearchParams();
+  if (params.page !== undefined) sp.append("page", params.page.toString());
+  if (params.limit !== undefined) sp.append("limit", params.limit.toString());
+  if (params.resourceType !== undefined) sp.append("resourceType", params.resourceType);
+  if (params.minRating !== undefined) sp.append("minRating", params.minRating.toString());
+  if (params.sortBy !== undefined) sp.append("sortBy", params.sortBy);
+  if (params.search !== undefined) sp.append("search", params.search);
+  return sp.toString();
+}
 
-  // Proxy through the Next.js API route so the backend token stays server-side
-  // and is never exposed to the browser. The route handler enforces admin-only
-  // access and forwards the Authorization header to the backend.
-  const qs = searchParams.toString();
+/**
+ * Client-side: calls the Next.js proxy route at /api/admin/reviews.
+ * The route handler enforces admin-only access and holds the backend token
+ * server-side — it is never exposed to the browser.
+ */
+export async function getAllReviews(params: GetAllReviewsParams = {}) {
+  const qs = buildAdminReviewsQueryString(params);
   const url = `/api/admin/reviews${qs ? `?${qs}` : ""}`;
 
-  // Same-origin request to the Next.js route handler — credentials (cookies)
-  // are sent automatically for same-origin requests without explicit credentials.
+  // Same-origin relative URL — browser sends session cookie automatically.
   const response = await fetch(url, { cache: "no-store" });
 
   if (!response.ok) {
@@ -83,6 +87,19 @@ export async function getAllReviews(params: GetAllReviewsParams = {}) {
     data: Review[];
     pagination: PaginationMeta;
   }>;
+}
+
+/**
+ * Server-side only: calls the backend directly via apiRequest.
+ * Used exclusively by the /api/admin/reviews route handler so that
+ * raw fetch calls (SSRF surface) are centralised inside apiRequest.
+ */
+export async function fetchAdminReviewsFromBackend(params: GetAllReviewsParams, token: string) {
+  const qs = buildAdminReviewsQueryString(params);
+  return apiRequest<{ success: boolean; data: Review[]; pagination: PaginationMeta }>(
+    `/reviews${qs ? `?${qs}` : ""}`,
+    { headers: getApiHeaders(token) }
+  );
 }
 
 export async function getReview(id: string) {
