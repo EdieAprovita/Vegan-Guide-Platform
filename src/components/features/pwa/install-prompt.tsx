@@ -14,8 +14,8 @@ function isDismissedWithinTTL(): boolean {
   if (typeof window === "undefined") return false;
   const raw = localStorage.getItem(DISMISS_KEY);
   if (!raw) return false;
-  const dismissedAt = parseInt(raw, 10);
-  return !isNaN(dismissedAt) && Date.now() - dismissedAt < DISMISS_TTL_MS;
+  const dismissedAt = Number.parseInt(raw, 10);
+  return !Number.isNaN(dismissedAt) && Date.now() - dismissedAt < DISMISS_TTL_MS;
 }
 
 export function InstallPrompt() {

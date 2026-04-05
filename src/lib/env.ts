@@ -65,7 +65,7 @@ const clientEnv = {
 // Export
 // ---------------------------------------------------------------------------
 
-const isServer = typeof window === "undefined";
+const isServer = typeof globalThis.window === "undefined";
 
 /**
  * Typed, validated environment variables.

@@ -107,8 +107,8 @@ describe("InstallPrompt — dismissal persistence", () => {
 
     const stored = localStorage.getItem(DISMISS_KEY);
     expect(stored).not.toBeNull();
-    const ts = parseInt(stored!, 10);
-    expect(isNaN(ts)).toBe(false);
+    const ts = Number.parseInt(stored!, 10);
+    expect(Number.isNaN(ts)).toBe(false);
     expect(ts).toBeGreaterThan(0);
     // Must NOT be the old "true" string
     expect(stored).not.toBe("true");
