@@ -1,6 +1,13 @@
 // Server-side authentication utilities
 import { auth, SESSION_COOKIE_NAME } from "@/lib/auth";
-import { parseServerEnv } from "@/lib/env";
+import { parseServerEnv } from "@/lib/env.server";
+
+// Cache parsed env so we don't re-run Zod on every getServerAuthToken() call.
+let _serverEnv: ReturnType<typeof parseServerEnv> | null = null;
+function getServerEnv() {
+  if (!_serverEnv) _serverEnv = parseServerEnv(process.env as Record<string, string | undefined>);
+  return _serverEnv;
+}
 
 /**
  * Get the authenticated user's backend token for server-side API calls.
@@ -18,7 +25,7 @@ export async function getServerAuthToken(): Promise<string | null> {
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!sessionToken) return null;
 
-    const secret = parseServerEnv(process.env as Record<string, string | undefined>).AUTH_SECRET;
+    const secret = getServerEnv().AUTH_SECRET;
     if (!secret) return null;
 
     const decoded = await decode({
