@@ -3,7 +3,13 @@ import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { parseServerEnv } from "@/lib/env";
 
-const serverEnv = parseServerEnv(process.env as Record<string, string | undefined>);
+// Lazy evaluation: avoid calling parseServerEnv at module scope so tests
+// that import auth.ts don't crash when NEXT_PUBLIC_API_URL is unset in CI.
+let _serverEnv: ReturnType<typeof parseServerEnv> | null = null;
+function getServerEnv() {
+  if (!_serverEnv) _serverEnv = parseServerEnv(process.env as Record<string, string | undefined>);
+  return _serverEnv;
+}
 import { API_CONFIG } from "./api/config";
 import { refreshAccessToken } from "./api/tokenRefresh";
 
@@ -49,7 +55,7 @@ if (
 }
 
 export const config = {
-  secret: serverEnv.AUTH_SECRET,
+  secret: getServerEnv().AUTH_SECRET,
   /**
    * trustHost is enabled unconditionally for this application.
    * This is required when requests reach NextAuth through a trusted reverse
