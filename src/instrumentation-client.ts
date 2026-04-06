@@ -1,9 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { clientEnv } from "@/lib/env.client";
 
-const replaysSampleRate = parseFloat(
-  process.env.NEXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE ?? "0.1"
-);
+const replaysSampleRate = parseFloat(process.env.NEXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE ?? "0.1");
 
 Sentry.init({
   dsn: clientEnv.NEXT_PUBLIC_SENTRY_DSN,
