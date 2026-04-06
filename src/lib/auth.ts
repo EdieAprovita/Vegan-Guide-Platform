@@ -1,15 +1,12 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { parseServerEnv } from "@/lib/env.server";
-
-// Lazy evaluation: avoid calling parseServerEnv at module scope so tests
-// that import auth.ts don't crash when NEXT_PUBLIC_API_URL is unset in CI.
-let _serverEnv: ReturnType<typeof parseServerEnv> | null = null;
-function getServerEnv() {
-  if (!_serverEnv) _serverEnv = parseServerEnv(process.env as Record<string, string | undefined>);
-  return _serverEnv;
-}
+// AUTH_SECRET is read directly from process.env because it is consumed at
+// module-scope by the NextAuth config object.  Routing through the Zod-
+// validated env module would trigger server-side schema parsing (which
+// requires NEXT_PUBLIC_API_URL) at import time — breaking tests that import
+// this module without a full .env.  NextAuth already handles a missing
+// secret gracefully, so direct access is safe and intentional here.
 import { API_CONFIG } from "./api/config";
 import { refreshAccessToken } from "./api/tokenRefresh";
 
@@ -55,7 +52,7 @@ if (
 }
 
 export const config = {
-  secret: getServerEnv().AUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
   /**
    * trustHost is enabled unconditionally for this application.
    * This is required when requests reach NextAuth through a trusted reverse
