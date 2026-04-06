@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { parseServerEnv } from "@/lib/env";
+import { parseServerEnv } from "@/lib/env.server";
 
 // Lazy evaluation: avoid calling parseServerEnv at module scope so tests
 // that import auth.ts don't crash when NEXT_PUBLIC_API_URL is unset in CI.

@@ -34,4 +34,18 @@ export type { ClientEnv } from "./env.client";
 
 const isServer = typeof globalThis.window === "undefined";
 
-export const env = isServer ? parseServerEnv(process.env) : clientEnv;
+// Lazy evaluation: avoid calling parseServerEnv at module scope so test files
+// that import the barrel for `parseServerEnv` or types don't crash when
+// NEXT_PUBLIC_API_URL is absent in CI. The Proxy ensures `env.X` access
+// triggers validation on first use, not at import time.
+let _cachedEnv: ReturnType<typeof parseServerEnv> | typeof clientEnv | undefined;
+function resolveEnv() {
+  if (!_cachedEnv) _cachedEnv = isServer ? parseServerEnv(process.env) : clientEnv;
+  return _cachedEnv;
+}
+
+export const env = new Proxy({} as ReturnType<typeof parseServerEnv> & typeof clientEnv, {
+  get(_, prop: string) {
+    return (resolveEnv() as Record<string, unknown>)[prop];
+  },
+});
