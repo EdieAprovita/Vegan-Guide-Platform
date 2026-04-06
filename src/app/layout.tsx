@@ -7,8 +7,9 @@ import { InstallPrompt } from "@/components/features/pwa/install-prompt";
 import { DebugInfo } from "@/components/ui/debug-info";
 import { Header } from "@/components/vegan-landing/header";
 import { WebVitalsReporter } from "@/components/performance/_web-vitals-loader";
+import { clientEnv } from "@/lib/env.client";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const inter = Inter({
   variable: "--font-inter",

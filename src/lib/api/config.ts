@@ -1,6 +1,8 @@
+import { clientEnv } from "@/lib/env.client";
+
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api/v1",
+  BASE_URL: clientEnv.NEXT_PUBLIC_API_URL,
   TIMEOUT: 15000, // Aumentar timeout a 15 segundos
   RETRY_ATTEMPTS: 3,
 } as const;

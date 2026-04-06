@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { clientEnv } from "@/lib/env.client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -209,7 +210,7 @@ export function usePWA() {
       return null;
     }
 
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const vapidKey = clientEnv.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) {
       console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set. Cannot subscribe to push.");
       return null;

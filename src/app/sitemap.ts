@@ -1,11 +1,12 @@
 import { MetadataRoute } from "next";
+import { clientEnv } from "@/lib/env.client";
 import { getRestaurants } from "@/lib/api/restaurants";
 import { getRecipes } from "@/lib/api/recipes";
 import { getDoctors } from "@/lib/api/doctors";
 import { getMarkets } from "@/lib/api/markets";
 import { getBusinesses } from "@/lib/api/businesses";
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://verdeguide.com";
+const baseUrl = clientEnv.NEXT_PUBLIC_SITE_URL ?? "https://verdeguide.com";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 

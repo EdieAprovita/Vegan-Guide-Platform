@@ -1,6 +1,12 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+// AUTH_SECRET is read directly from process.env because it is consumed at
+// module-scope by the NextAuth config object.  Routing through the Zod-
+// validated env module would trigger server-side schema parsing (which
+// requires NEXT_PUBLIC_API_URL) at import time — breaking tests that import
+// this module without a full .env.  NextAuth already handles a missing
+// secret gracefully, so direct access is safe and intentional here.
 import { API_CONFIG } from "./api/config";
 import { refreshAccessToken } from "./api/tokenRefresh";
 
