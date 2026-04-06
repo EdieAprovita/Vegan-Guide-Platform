@@ -1,8 +1,8 @@
-import { env } from "@/lib/env";
+import { clientEnv } from "@/lib/env.client";
 
 // Configuración centralizada de la API
 export const API_CONFIG = {
-  BASE_URL: env.NEXT_PUBLIC_API_URL,
+  BASE_URL: clientEnv.NEXT_PUBLIC_API_URL,
   TIMEOUT: 15000, // Aumentar timeout a 15 segundos
   RETRY_ATTEMPTS: 3,
 } as const;
