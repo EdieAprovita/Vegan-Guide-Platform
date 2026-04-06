@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
-import { env } from "@/lib/env";
+import { clientEnv } from "@/lib/env.client";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = env.NEXT_PUBLIC_SITE_URL ?? "https://verdeguide.com";
+  const baseUrl = clientEnv.NEXT_PUBLIC_SITE_URL ?? "https://verdeguide.com";
   return {
     rules: {
       userAgent: "*",

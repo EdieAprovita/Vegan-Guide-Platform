@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { env } from "@/lib/env";
+import { clientEnv } from "@/lib/env.client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -109,7 +109,7 @@ export function PushNotifications() {
   };
 
   const subscribeToPush = async () => {
-    const vapidKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const vapidKey = clientEnv.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) {
       console.error("NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set");
       toast.error("Push notifications are not configured. Contact support.");

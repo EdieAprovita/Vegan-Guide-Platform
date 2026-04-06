@@ -1,8 +1,8 @@
-import { env } from "@/lib/env";
+import { clientEnv } from "@/lib/env.client";
 
 // Performance: Lazy load configuration
 const getApiKey = () => {
-  const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = clientEnv.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
     console.error("Google Maps API key not found. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY");
     throw new Error("Google Maps API key is required");

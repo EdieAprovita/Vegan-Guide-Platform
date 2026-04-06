@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { env } from "@/lib/env";
+import { clientEnv } from "@/lib/env.client";
 import { RegisterForm } from "./register-form";
 import { type RegisterFormData } from "@/lib/validations/auth";
 
@@ -17,7 +17,7 @@ export function RegisterClient() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/users/register`, {
+      const res = await fetch(`${clientEnv.NEXT_PUBLIC_API_URL}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
