@@ -26,13 +26,14 @@ function buildCsp(nonce: string): string {
     // sha256 hash is for the Next.js App Router bootstrap script
     // `(self.__next_f=self.__next_f||[]).push([0])` which cannot receive a nonce.
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'sha256-n46vPwSWuMC0W703pBofImv82Z26xo4LXymv0E9caPk='`,
+    // fonts.googleapis.com serves CSS stylesheets — belongs in style-src, not connect-src.
     // Remove 'unsafe-inline' in production; gate via NEXT_PUBLIC_CSP_STRICT env flag for rollback.
-    `style-src 'self'${process.env.NEXT_PUBLIC_CSP_STRICT !== "true" || process.env.NODE_ENV !== "production" ? " 'unsafe-inline'" : ""}`,
+    `style-src 'self' https://fonts.googleapis.com${process.env.NEXT_PUBLIC_CSP_STRICT !== "true" || process.env.NODE_ENV !== "production" ? " 'unsafe-inline'" : ""}`,
     "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self' https://fonts.gstatic.com",
-    // Narrowed from *.googleapis.com wildcard to specific subdomains (Maps JS API + Fonts)
-    // to reduce XSS exfiltration surface.
-    `connect-src 'self' ${apiOrigin} https://maps.googleapis.com https://fonts.googleapis.com https://maps.gstatic.com https://*.sentry.io`,
+    // Narrowed from *.googleapis.com wildcard to specific subdomains (Maps JS API only).
+    // fonts.googleapis.com moved to style-src — it delivers CSS, not XHR/fetch data.
+    `connect-src 'self' ${apiOrigin} https://maps.googleapis.com https://maps.gstatic.com https://*.sentry.io`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

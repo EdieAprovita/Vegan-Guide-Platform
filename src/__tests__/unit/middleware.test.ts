@@ -108,19 +108,28 @@ describe("middleware — auth failure", () => {
   });
 });
 
-describe("middleware — CSP connect-src (H-07)", () => {
+describe("middleware — CSP directives (H-07)", () => {
   beforeEach(() => {
     capturedCsp = "";
   });
 
-  it("includes specific googleapis.com subdomains in connect-src (narrowed from wildcard)", async () => {
+  it("includes Maps API subdomains in connect-src but NOT fonts.googleapis.com", async () => {
     mockAuth.mockResolvedValue({ user: { id: "1" } });
     await middleware(createRequest("/profile"));
     const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
-    // Wildcard *.googleapis.com was replaced with explicit subdomains to reduce XSS exfiltration surface.
+    // Maps JS API requires XHR/fetch — belongs in connect-src.
     expect(connectSrc).toContain("https://maps.googleapis.com");
-    expect(connectSrc).toContain("https://fonts.googleapis.com");
+    // fonts.googleapis.com delivers CSS stylesheets — moved to style-src.
+    expect(connectSrc).not.toContain("https://fonts.googleapis.com");
+    // Wildcard *.googleapis.com was replaced with explicit subdomains.
     expect(connectSrc).not.toContain("https://*.googleapis.com");
+  });
+
+  it("includes fonts.googleapis.com in style-src (CSS stylesheet host)", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "1" } });
+    await middleware(createRequest("/profile"));
+    const styleSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("style-src"));
+    expect(styleSrc).toContain("https://fonts.googleapis.com");
   });
 
   it("includes maps.gstatic.com in connect-src (narrowed from *.google.com)", async () => {
