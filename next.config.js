@@ -78,6 +78,32 @@ const nextConfig = {
           },
         ],
       },
+      // Baseline CSP for public routes NOT covered by the auth middleware matcher.
+      // The middleware already injects a richer nonce-based CSP for protected routes;
+      // this catches /, /restaurants, /recipes, etc. without running auth() on them.
+      {
+        source: "/((?!api|_next).*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;",
+          },
+        ],
+      },
+      // Baseline CSP for public routes NOT covered by the auth middleware matcher.
+      // The middleware injects a richer nonce-based CSP for protected routes;
+      // this covers /, /restaurants, /recipes, etc. without running auth() on them.
+      {
+        source: "/((?!api|_next).*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;",
+          },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [

@@ -113,11 +113,14 @@ describe("middleware — CSP connect-src (H-07)", () => {
     capturedCsp = "";
   });
 
-  it("includes googleapis.com in connect-src", async () => {
+  it("includes specific googleapis.com subdomains in connect-src (narrowed from wildcard)", async () => {
     mockAuth.mockResolvedValue({ user: { id: "1" } });
     await middleware(createRequest("/profile"));
     const connectSrc = capturedCsp.split(";").find((d) => d.trim().startsWith("connect-src"));
-    expect(connectSrc).toContain("https://*.googleapis.com");
+    // Wildcard *.googleapis.com was replaced with explicit subdomains to reduce XSS exfiltration surface.
+    expect(connectSrc).toContain("https://maps.googleapis.com");
+    expect(connectSrc).toContain("https://fonts.googleapis.com");
+    expect(connectSrc).not.toContain("https://*.googleapis.com");
   });
 
   it("includes maps.gstatic.com in connect-src (narrowed from *.google.com)", async () => {
