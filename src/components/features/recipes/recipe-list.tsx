@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useInfiniteRecipes } from "@/hooks/useRecipes";
 import { RecipeCard } from "./recipe-card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 const PAGE_LIMIT = 12;
 
@@ -31,6 +33,7 @@ export function RecipeList({
   initialDifficulty = "",
 }: RecipeListProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
@@ -51,7 +54,11 @@ export function RecipeList({
         <p className="text-lg text-red-500">
           Error loading recipes: {error instanceof Error ? error.message : "Unknown error"}
         </p>
-        <Button onClick={() => window.location.reload()} className="mt-4" variant="outline">
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all })}
+          className="mt-4"
+          variant="outline"
+        >
           Try Again
         </Button>
       </div>
