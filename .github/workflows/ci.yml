@@ -208,6 +208,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
           AUTH_URL: http://localhost:3000
+          AUTH_TRUST_HOST: "true"
           NEXTAUTH_URL: http://localhost:3000
           AUTH_SECRET: ci-placeholder-secret-not-used-in-production
           NEXTAUTH_SECRET: ci-placeholder-secret-not-used-in-production
@@ -279,6 +280,7 @@ jobs:
           # AUTH_URL is the Auth.js v5 canonical env var (replaces NEXTAUTH_URL).
           # Both are set for compatibility with any v4 paths still in the bundle.
           AUTH_URL: http://localhost:3000
+          AUTH_TRUST_HOST: "true"
           NEXTAUTH_URL: http://localhost:3000
           # AUTH_SECRET / NEXTAUTH_SECRET must match the value used at build time
           # (baked into the .next/ artifact by the build job).
