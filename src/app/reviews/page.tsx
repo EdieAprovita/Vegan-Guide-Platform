@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { ReviewsManagement } from "./_reviews-loader";
 
 export const metadata: Metadata = {
@@ -7,7 +9,10 @@ export const metadata: Metadata = {
   description: "Administra y modera todas las reviews de la plataforma Verde Guide.",
 };
 
-export default function ReviewsPage() {
+export default async function ReviewsPage() {
+  const session = await auth();
+  if (session?.user?.role !== "admin") redirect("/");
+
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
       {/* Header */}
