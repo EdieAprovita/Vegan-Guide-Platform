@@ -78,19 +78,13 @@ const nextConfig = {
           },
         ],
       },
-      // Baseline CSP for public routes NOT covered by the auth middleware matcher.
-      // The middleware already injects a richer nonce-based CSP for protected routes;
-      // this catches /, /restaurants, /recipes, etc. without running auth() on them.
-      {
-        source: "/((?!api|_next).*)",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;",
-          },
-        ],
-      },
+      // NOTE: Baseline CSP for public routes was removed because next.config.js
+      // static headers cannot include a per-request nonce. Without a nonce,
+      // script-src 'self' blocks Next.js App Router inline bootstrap scripts,
+      // breaking page hydration (empty title, no interactivity).
+      // Public routes are covered by standard security headers below (X-Frame-Options,
+      // X-Content-Type-Options, etc.). Full-site CSP with nonce requires extending
+      // the middleware matcher or a custom server — tracked as future improvement.
       {
         source: "/(.*)",
         headers: [
