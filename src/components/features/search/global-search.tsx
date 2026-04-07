@@ -12,10 +12,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Search, MapPin, ChefHat, Store, Heart, User, Star } from "lucide-react";
-import { getRestaurants } from "@/lib/api/restaurants";
-import { getRecipes } from "@/lib/api/recipes";
-import { getDoctors } from "@/lib/api/doctors";
-import { getMarkets } from "@/lib/api/markets";
+import { getRestaurants, type Restaurant } from "@/lib/api/restaurants";
+import { getRecipes, type Recipe } from "@/lib/api/recipes";
+import { getDoctors, type Doctor } from "@/lib/api/doctors";
+import { getMarkets, type Market } from "@/lib/api/markets";
 import { useRouter } from "next/navigation";
 
 interface SearchResult {
@@ -51,14 +51,14 @@ export function GlobalSearch() {
       // Search restaurants
       try {
         const restaurants = await getRestaurants({ search: searchQuery, limit: 5 }, signal);
-        const restaurantResults = (restaurants.data || []).map((restaurant) => ({
-          id: restaurant._id as string,
+        const restaurantResults = (restaurants.data || []).map((restaurant: Restaurant) => ({
+          id: restaurant._id,
           type: "restaurant" as const,
-          title: restaurant.restaurantName as string,
-          description: restaurant.address as string,
-          rating: restaurant.rating as number,
-          location: restaurant.address as string,
-          tags: restaurant.cuisine as string[],
+          title: restaurant.restaurantName,
+          description: restaurant.address,
+          rating: restaurant.rating,
+          location: restaurant.address,
+          tags: restaurant.cuisine,
           url: `/restaurants/${restaurant._id}`,
         }));
         allResults.push(...restaurantResults);
@@ -69,13 +69,13 @@ export function GlobalSearch() {
       // Search recipes
       try {
         const recipes = await getRecipes({ search: searchQuery, limit: 5 }, signal);
-        const recipeResults = (recipes.data || []).map((recipe) => ({
-          id: recipe._id as string,
+        const recipeResults = (recipes.data || []).map((recipe: Recipe) => ({
+          id: recipe._id,
           type: "recipe" as const,
-          title: recipe.title as string,
-          description: recipe.description as string,
-          rating: recipe.averageRating as number,
-          tags: recipe.categories as string[],
+          title: recipe.title,
+          description: recipe.description,
+          rating: recipe.averageRating ?? recipe.rating,
+          tags: recipe.categories,
           url: `/recipes/${recipe._id}`,
         }));
         allResults.push(...recipeResults);
@@ -86,14 +86,14 @@ export function GlobalSearch() {
       // Search doctors
       try {
         const doctors = await getDoctors({ search: searchQuery, limit: 5 }, signal);
-        const doctorResults = (doctors.data || []).map((doctor) => ({
-          id: doctor._id as string,
+        const doctorResults = (doctors.data || []).map((doctor: Doctor) => ({
+          id: doctor._id,
           type: "doctor" as const,
-          title: `Dr. ${doctor.name as string}`,
-          description: doctor.specialty as string,
-          rating: doctor.rating as number,
-          location: doctor.address as string,
-          tags: doctor.languages as string[],
+          title: `Dr. ${doctor.name}`,
+          description: doctor.specialty,
+          rating: doctor.rating,
+          location: doctor.address,
+          tags: doctor.languages,
           url: `/doctors/${doctor._id}`,
         }));
         allResults.push(...doctorResults);
@@ -104,14 +104,14 @@ export function GlobalSearch() {
       // Search markets
       try {
         const markets = await getMarkets({ search: searchQuery, limit: 5 }, signal);
-        const marketResults = (markets.data || []).map((market) => ({
-          id: market._id as string,
+        const marketResults = (markets.data || []).map((market: Market) => ({
+          id: market._id,
           type: "market" as const,
-          title: market.marketName as string,
-          description: market.address as string,
-          rating: market.rating as number,
-          location: market.address as string,
-          tags: market.products as string[],
+          title: market.marketName,
+          description: market.address,
+          rating: market.rating,
+          location: market.address,
+          tags: market.products,
           url: `/markets/${market._id}`,
         }));
         allResults.push(...marketResults);
