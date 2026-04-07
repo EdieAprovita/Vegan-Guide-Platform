@@ -30,6 +30,8 @@ interface SearchResultsProps {
   hasResults: boolean;
   query?: string;
   onClearFilters: () => void;
+  /** Called when the user requests a retry after an error. Falls back to onClearFilters if omitted. */
+  onRetry?: () => void;
 }
 
 const RESOURCE_TYPE_CONFIG: Record<
@@ -236,6 +238,7 @@ export const SearchResults = ({
   hasResults,
   query,
   onClearFilters,
+  onRetry,
 }: SearchResultsProps) => {
   if (error) {
     return (
@@ -243,7 +246,7 @@ export const SearchResults = ({
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-red-600">Error en la búsqueda</h3>
           <p className="text-gray-600">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={onRetry ?? onClearFilters}>
             Reintentar
           </Button>
         </div>
