@@ -63,7 +63,9 @@ export const config = {
    * Only disable this if the app is exposed directly to the internet without
    * a trusted proxy in front of it.
    */
-  trustHost: true,
+  // Gate trustHost via AUTH_TRUST_HOST env flag in production.
+  // NOTE: uses process.env directly — auth.ts module-scope eval issue with Zod (FE1 constraint).
+  trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.NODE_ENV !== "production",
   session: {
     strategy: "jwt",
   },

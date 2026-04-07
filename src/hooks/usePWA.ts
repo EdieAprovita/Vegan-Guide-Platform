@@ -97,6 +97,7 @@ export function usePWA() {
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (!refreshing) {
         refreshing = true;
+        // Legit full reload for SW activation — data invalidation is insufficient here
         window.location.reload();
       }
     });

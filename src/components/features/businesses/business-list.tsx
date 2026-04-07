@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Search, MapPin, SlidersHorizontal } from "lucide-react";
 import { BusinessCard } from "./business-card";
 import { useBusinesses } from "@/hooks/useBusinesses";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 // Using native selects for consistent hydration and simplicity
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 const BUSINESS_TYPES = [
   "Tienda de Alimentos",
@@ -40,6 +42,7 @@ export const BusinessList = ({
   const [typeBusiness, setTypeBusiness] = useState<string>("");
   const [rating, setRating] = useState<number>();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const queryClient = useQueryClient();
 
   const { businesses, loading, error } = useBusinesses({
     search: search || undefined,
@@ -65,7 +68,11 @@ export const BusinessList = ({
     return (
       <Card className="p-6 text-center">
         <p className="text-red-600">Error al cargar negocios: {error}</p>
-        <Button variant="outline" onClick={() => window.location.reload()} className="mt-2">
+        <Button
+          variant="outline"
+          onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.businesses.all })}
+          className="mt-2"
+        >
           Reintentar
         </Button>
       </Card>

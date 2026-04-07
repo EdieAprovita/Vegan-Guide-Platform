@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, MapPin, Star, SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { Slider } from "@/components/ui/slider";
 import { useAdvancedSearch, useGeolocation } from "@/hooks/useAdvancedSearch";
 import { SearchResults } from "./search-results";
 import { ResourceType, SortOption } from "@/types/search";
+import { queryKeys } from "@/lib/api/queryKeys";
 
 const RESOURCE_TYPES: Array<{
   id: ResourceType;
@@ -53,6 +55,7 @@ const SORT_OPTIONS: Array<{
 ];
 
 export const AdvancedSearch = () => {
+  const queryClient = useQueryClient();
   const {
     searchState,
     suggestions,
@@ -82,6 +85,11 @@ export const AdvancedSearch = () => {
     getCurrentPosition,
     isSupported: geoSupported,
   } = useGeolocation();
+
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.search.all });
+    search();
+  };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -508,6 +516,7 @@ export const AdvancedSearch = () => {
           hasResults={hasResults}
           query={searchState.filters.query}
           onClearFilters={clearFilters}
+          onRetry={handleRetry}
         />
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, MapPin, Phone, Mail, Globe, Clock, Star, Users, Edit } from "lucide-react";
 import { Review } from "@/lib/api/reviews";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { useBusiness, useBusinessMutations } from "@/hooks/useBusinesses";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { BusinessReview } from "@/lib/api/businesses";
+import { queryKeys } from "@/lib/api/queryKeys";
 import Image from "next/image";
 
 interface BusinessDetailClientProps {
@@ -22,6 +24,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
   const { business, loading, error } = useBusiness(businessId);
   const { addReview, loading: mutationLoading } = useBusinessMutations();
   const { data: session, status } = useSession();
+  const queryClient = useQueryClient();
   const user = session?.user;
   const isAuthenticated = status === "authenticated";
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -37,8 +40,8 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
 
       await addReview(business._id, review);
       setShowReviewForm(false);
-      // Optionally refresh the business data
-      window.location.reload();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.businesses.detail(business._id) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.businesses.all });
     } catch (error) {
       console.error("Error adding review:", error);
     }
