@@ -21,7 +21,7 @@ export function ProfileForm() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [originalValues, setOriginalValues] = useState<UpdateProfileFormData | null>(null);
-  const { user: sessionUser, isAuthenticated, status } = useAuthWithRouter();
+  const { isAuthenticated } = useAuthWithRouter();
 
   const {
     register,
@@ -150,22 +150,6 @@ export function ProfileForm() {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Debug info */}
-        <div className="mb-4 rounded bg-gray-100 p-3 text-sm">
-          <p>
-            <strong>Status:</strong> {status}
-          </p>
-          <p>
-            <strong>Authenticated:</strong> {isAuthenticated ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>Has Session:</strong> {isAuthenticated ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>User ID:</strong> {sessionUser?.id || "None"}
-          </p>
-        </div>
-
         <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-6" noValidate>
           {/* Profile Picture */}
           <div className="flex items-center space-x-4">
