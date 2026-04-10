@@ -9,6 +9,7 @@ import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { notFound } from "next/navigation";
+import { sanitizeExternalUrl } from "@/lib/utils/safe-url";
 
 interface MarketDetailClientProps {
   marketId: string;
@@ -119,17 +120,20 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
                     {market.contact[0].phone}
                   </p>
                 )}
-                {market.contact && market.contact.length > 0 && market.contact[0].website && (
-                  <a
-                    href={market.contact[0].website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
-                  >
-                    <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Visit website
-                  </a>
-                )}
+                {(() => {
+                  const websiteHref = sanitizeExternalUrl(market.contact?.[0]?.website);
+                  return websiteHref ? (
+                    <a
+                      href={websiteHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
+                    >
+                      <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Visit website
+                    </a>
+                  ) : null;
+                })()}
               </div>
             </div>
           </div>
