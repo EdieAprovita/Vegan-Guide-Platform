@@ -116,6 +116,13 @@ NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
 ```
 
+> **Seguridad — Rate limiter detrás de proxies:** Si el servidor está detrás de
+> un proxy (Vercel, Cloud Run, Nginx, un LB), debes configurar
+> `RATE_LIMIT_TRUSTED_PROXY_HOPS` con el número de saltos de proxy confiables
+> (normalmente `1`). Sin esto, un atacante puede manipular la cabecera
+> `X-Forwarded-For` para evadir los límites de tasa. Consulta `.env.example`
+> para detalles y valores comunes.
+
 4. **Ejecutar en desarrollo**
 
 ```bash
