@@ -15,11 +15,7 @@ import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { BusinessReview } from "@/lib/api/businesses";
 import { queryKeys } from "@/lib/api/queryKeys";
 import Image from "next/image";
-import {
-  isSafeEmail,
-  isSafePhoneNumber,
-  sanitizeExternalUrl,
-} from "@/lib/utils/safe-url";
+import { isSafeEmail, isSafePhoneNumber, sanitizeExternalUrl } from "@/lib/utils/safe-url";
 
 interface BusinessDetailClientProps {
   businessId: string;
@@ -321,9 +317,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                           variant="link"
                           className="h-auto p-0 text-blue-600 hover:text-blue-700"
                           onClick={() => {
-                            const safeWebsite = sanitizeExternalUrl(
-                              business.contact?.[0]?.website
-                            );
+                            const safeWebsite = sanitizeExternalUrl(business.contact?.[0]?.website);
                             if (safeWebsite) {
                               window.open(safeWebsite, "_blank", "noopener,noreferrer");
                             }

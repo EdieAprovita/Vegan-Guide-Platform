@@ -19,9 +19,7 @@ export function isSafeExternalUrl(url: string | undefined | null): boolean {
  * Returns the URL if safe (http/https), otherwise undefined.
  * Use for `href` on external anchors.
  */
-export function sanitizeExternalUrl(
-  url: string | undefined | null
-): string | undefined {
+export function sanitizeExternalUrl(url: string | undefined | null): string | undefined {
   return isSafeExternalUrl(url) ? (url as string) : undefined;
 }
 
@@ -42,5 +40,33 @@ export function isSafePhoneNumber(phone: string | undefined | null): boolean {
  */
 export function isSafeEmail(email: string | undefined | null): boolean {
   if (typeof email !== "string") return false;
-  return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email.trim());
+  const value = email.trim();
+  if (!value || value.length > 254) return false;
+  if (value.includes(" ") || value.includes("<") || value.includes(">")) return false;
+
+  const atIndex = value.indexOf("@");
+  if (atIndex <= 0 || atIndex !== value.lastIndexOf("@") || atIndex === value.length - 1) {
+    return false;
+  }
+
+  const local = value.slice(0, atIndex);
+  const domain = value.slice(atIndex + 1);
+  if (!local || !domain) return false;
+  if (
+    local.startsWith(".") ||
+    local.endsWith(".") ||
+    domain.startsWith(".") ||
+    domain.endsWith(".")
+  ) {
+    return false;
+  }
+  if (!domain.includes(".")) return false;
+  if (domain.includes("..")) return false;
+
+  const labels = domain.split(".");
+  if (labels.some((label) => label.length === 0)) return false;
+  const tld = labels[labels.length - 1];
+  if (!/^[a-zA-Z]{2,63}$/.test(tld)) return false;
+
+  return true;
 }

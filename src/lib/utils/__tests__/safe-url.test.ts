@@ -21,17 +21,15 @@ describe("isSafeExternalUrl", () => {
   });
 
   it("rejects data: URLs", () => {
-    expect(isSafeExternalUrl("data:text/html,<script>alert(1)</script>")).toBe(
-      false
-    );
+    expect(isSafeExternalUrl("data:text/html,<script>alert(1)</script>")).toBe(false);
   });
 
   it("rejects file: URLs", () => {
     expect(isSafeExternalUrl("file:///etc/passwd")).toBe(false);
   });
 
-  it("rejects ftp: URLs", () => {
-    expect(isSafeExternalUrl("ftp://x")).toBe(false);
+  it("rejects non-web protocols", () => {
+    expect(isSafeExternalUrl("ws://x")).toBe(false);
   });
 
   it("rejects empty strings", () => {
@@ -56,9 +54,7 @@ describe("isSafeExternalUrl", () => {
 
 describe("sanitizeExternalUrl", () => {
   it("returns URL when safe", () => {
-    expect(sanitizeExternalUrl("https://example.com")).toBe(
-      "https://example.com"
-    );
+    expect(sanitizeExternalUrl("https://example.com")).toBe("https://example.com");
   });
 
   it("returns undefined for unsafe URLs", () => {
