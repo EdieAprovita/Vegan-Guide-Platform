@@ -1,6 +1,21 @@
 // Rate limiting utility for API routes
 import { NextRequest, NextResponse } from "next/server";
 
+let proxyHopsWarningEmitted = false;
+
+function warnIfProxyHopsNotConfigured(): void {
+  if (proxyHopsWarningEmitted) return;
+  if (process.env.NODE_ENV !== "production") return;
+  if (process.env.RATE_LIMIT_TRUSTED_PROXY_HOPS === undefined) {
+    console.warn(
+      "[RATE-LIMIT] RATE_LIMIT_TRUSTED_PROXY_HOPS is not set in production. " +
+        "Defaulting to 0 may allow IP spoofing via X-Forwarded-For if the app runs behind one or more proxies. " +
+        "Set this to the number of trusted proxy hops (e.g., 1 for Vercel, Cloud Run, or Nginx)."
+    );
+    proxyHopsWarningEmitted = true;
+  }
+}
+
 interface RateLimitOptions {
   windowMs: number; // Time window in milliseconds
   maxAttempts: number; // Maximum attempts per window
@@ -190,6 +205,8 @@ function isValidIP(ip: string): boolean {
 
 // Utility to get client IP
 function getClientIP(request: NextRequest): string {
+  warnIfProxyHopsNotConfigured();
+
   // Only trust x-real-ip when explicitly enabled via env var. Without this
   // guard an attacker can forge the header and bypass per-IP rate limits.
   if (process.env.RATE_LIMIT_TRUST_X_REAL_IP === "true") {
