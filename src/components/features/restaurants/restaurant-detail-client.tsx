@@ -10,6 +10,7 @@ import { MapPin, Phone, Globe, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { notFound } from "next/navigation";
+import { sanitizeExternalUrl } from "@/lib/utils/safe-url";
 
 interface RestaurantDetailClientProps {
   restaurantId: string;
@@ -120,17 +121,20 @@ export function RestaurantDetailClient({ restaurantId }: RestaurantDetailClientP
                     {restaurant.phone}
                   </p>
                 )}
-                {restaurant.website && (
-                  <a
-                    href={restaurant.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
-                  >
-                    <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Visit website
-                  </a>
-                )}
+                {(() => {
+                  const websiteHref = sanitizeExternalUrl(restaurant.website);
+                  return websiteHref ? (
+                    <a
+                      href={websiteHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex items-center text-indigo-600 hover:text-indigo-800"
+                    >
+                      <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Visit website
+                    </a>
+                  ) : null;
+                })()}
               </div>
             </div>
           </div>
