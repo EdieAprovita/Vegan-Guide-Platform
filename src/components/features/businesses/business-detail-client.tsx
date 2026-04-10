@@ -15,6 +15,7 @@ import { ReviewSystem } from "@/components/features/reviews/review-system";
 import { BusinessReview } from "@/lib/api/businesses";
 import { queryKeys } from "@/lib/api/queryKeys";
 import Image from "next/image";
+import { isSafeEmail, isSafePhoneNumber, sanitizeExternalUrl } from "@/lib/utils/safe-url";
 
 interface BusinessDetailClientProps {
   businessId: string;
@@ -265,7 +266,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
             <CardContent className="space-y-4">
               {business.contact && business.contact.length > 0 && (
                 <>
-                  {business.contact[0].phone && (
+                  {isSafePhoneNumber(business.contact[0].phone) && (
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-gray-500" />
                       <div>
@@ -273,9 +274,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="h-auto p-0 text-blue-600 hover:text-blue-700"
-                          onClick={() =>
-                            (window.location.href = `tel:${business.contact[0].phone}`)
-                          }
+                          onClick={() => {
+                            const phone = business.contact?.[0]?.phone;
+                            if (isSafePhoneNumber(phone)) {
+                              window.location.href = `tel:${phone}`;
+                            }
+                          }}
                         >
                           {business.contact[0].phone}
                         </Button>
@@ -283,7 +287,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                     </div>
                   )}
 
-                  {business.contact[0].email && (
+                  {isSafeEmail(business.contact[0].email) && (
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-gray-500" />
                       <div>
@@ -291,9 +295,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="h-auto p-0 text-blue-600 hover:text-blue-700"
-                          onClick={() =>
-                            (window.location.href = `mailto:${business.contact[0].email}`)
-                          }
+                          onClick={() => {
+                            const email = business.contact?.[0]?.email;
+                            if (isSafeEmail(email)) {
+                              window.location.href = `mailto:${email}`;
+                            }
+                          }}
                         >
                           {business.contact[0].email}
                         </Button>
@@ -301,7 +308,7 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                     </div>
                   )}
 
-                  {business.contact[0].website && (
+                  {sanitizeExternalUrl(business.contact[0].website) && (
                     <div className="flex items-center gap-3">
                       <Globe className="h-4 w-4 text-gray-500" />
                       <div>
@@ -309,7 +316,12 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
                         <Button
                           variant="link"
                           className="h-auto p-0 text-blue-600 hover:text-blue-700"
-                          onClick={() => window.open(business.contact[0].website, "_blank")}
+                          onClick={() => {
+                            const safeWebsite = sanitizeExternalUrl(business.contact?.[0]?.website);
+                            if (safeWebsite) {
+                              window.open(safeWebsite, "_blank", "noopener,noreferrer");
+                            }
+                          }}
                         >
                           Visitar sitio web
                         </Button>
@@ -321,11 +333,16 @@ export const BusinessDetailClient = ({ businessId }: BusinessDetailClientProps) 
 
               {/* Quick Actions */}
               <div className="space-y-2 border-t pt-4">
-                {business.contact?.[0]?.phone && (
+                {isSafePhoneNumber(business.contact?.[0]?.phone) && (
                   <Button
                     variant="default"
                     className="w-full"
-                    onClick={() => (window.location.href = `tel:${business.contact[0].phone}`)}
+                    onClick={() => {
+                      const phone = business.contact?.[0]?.phone;
+                      if (isSafePhoneNumber(phone)) {
+                        window.location.href = `tel:${phone}`;
+                      }
+                    }}
                   >
                     <Phone className="mr-2 h-4 w-4" />
                     Llamar Ahora
